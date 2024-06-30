@@ -1,0 +1,36 @@
+body {
+    margin: 0;
+}
+
+h1 {
+    text-align: center;
+}
+
+.forms {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.forms button {
+    width: 5rem;
+    padding: 0.2rem 0;
+    margin: 1rem auto auto;
+    background-color: aqua;
+    border-radius: 5px;
+}
+
+.forms label {
+    margin: 0.5rem 0;
+}
+
+.ingredients, .steps {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.ingredients button, .steps button {
+    margin-bottom: 1rem;
+    background-color: orange;
+}

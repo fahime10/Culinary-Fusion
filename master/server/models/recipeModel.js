@@ -9,7 +9,7 @@ const RecipeSchema = new Schema({
     ingredients: { type: String, minLength: 1, required: true },
     steps: { type: String, minLength: 1, required : true },
     timestamp: { type: Date, default: Date.now, required: true },
-    stars: { type: Number }
+    stars: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model("Recipe", RecipeSchema);
