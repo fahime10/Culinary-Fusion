@@ -18,6 +18,8 @@ const mongoDB = process.env.MONGODB;
 // Database connection
 async function main() {
   await mongoose.connect(mongoDB);
+
+  console.log('Connected to MongoDB');
 }
 
 // Catch any errors when connecting to the database
@@ -37,11 +39,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/routes_manager', routesManager);
+app.use('/api', routesManager);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
+  console.log("Something went wrong! 404");
 });
 
 // error handler

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 const AddRecipe = () => {
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
     const [chef, setChef] = useState("");
+    const [description, setDescription] = useState("");
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
 
@@ -21,6 +22,10 @@ const AddRecipe = () => {
         setChef(e.target.value);
     }
 
+    function handleDescription(e) {
+        setDescription(e.target.value);
+    }
+
     function addIngredient() {
         setIngredients([...ingredients, { id: uuidv4(), value: ""}]);
     }
@@ -34,10 +39,9 @@ const AddRecipe = () => {
     function handleIngredientsChange(id, event) {
         const newIngredients = ingredients.map((ingredient) => {
             if (ingredient.id === id) {
-                return { ...ingredients, value: event.target.value };
-            } else {
-                return ingredient;
+                return { ...ingredient, value: event.target.value };
             }
+            return ingredient;
         });
         setIngredients(newIngredients);
     }
@@ -55,12 +59,33 @@ const AddRecipe = () => {
     function handleStepsChange(id, event) {
         const newSteps = steps.map((step) => {
             if (step.id === id) {
-                return { ...steps, value: event.target.value }
-            } else {
-                return step;
+                return { ...step, value: event.target.value };
             }
+            return step;
         });
         setSteps(newSteps);
+    }
+
+    function handleSave() {
+        const data = new FormData();
+        data.append("title", title);
+        data.append("image", image);
+        data.append("chef", chef);
+        data.append("description", description);
+        data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
+        data.append("steps", JSON.stringify(steps.map(step => step.value)));
+
+
+        fetch("http://localhost:9000/api/recipes/add-recipe", {
+            method: "POST",
+            body: data
+        })
+        .then((res) => {
+            if (res.status !== 200) {
+                throw new Error(res.statusText);
+            }
+            return res.json();
+        });
     }
 
     return (
@@ -89,15 +114,24 @@ const AddRecipe = () => {
                                 onChange={handleChef}
                             />
                         </label>
+                        <label>Description:
+                            <textarea 
+                                name="text" 
+                                rows={10}
+                                cols={30}
+                                onChange={handleDescription}
+                            />
+                        </label>
                         <div className="ingredients">
                             <label>Ingredients:
                                 {ingredients.map((ingredient) => (
-                                    <input type="text"
-                                    key={ingredient.id}
-                                    className="ingredient"
-                                    name="ingredients"
-                                    required={true}
-                                    onChange={(event) => handleIngredientsChange(event)}
+                                    <input 
+                                        type="text"
+                                        key={ingredient.id}
+                                        className="ingredient"
+                                        name="ingredients"
+                                        required={true}
+                                        onChange={(event) => handleIngredientsChange(ingredient.id, event)}
                                     /> 
                                 ))}
                             </label>
@@ -112,15 +146,15 @@ const AddRecipe = () => {
                                     className="step"
                                     name="steps"
                                     required={true}
-                                    onChange={(event) => handleStepsChange(event)}
+                                    onChange={(event) => handleStepsChange(step.id, event)}
                                     /> 
                                 ))}
                             </label>
                             <button onClick={addStep}>Add one more step</button>
                             <button onClick={removeStep}>Remove last step</button>
                         </div>
-                        <button>Save</button>
                         <Link to="/">
+                            <button type="button" onClick={handleSave}>Save</button>
                             <button type="button">Cancel</button>
                         </Link>
                     </form>
