@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
@@ -10,7 +10,8 @@ const RecipeSchema = new Schema({
     ingredients: { type: [String], required: true },
     steps: { type: [String], required : true },
     timestamp: { type: Date, default: Date.now, required: true },
-    stars: { type: Number, default: 0 }
+    stars: { type: Number, default: 0 },
+    test: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model("Recipe", RecipeSchema);

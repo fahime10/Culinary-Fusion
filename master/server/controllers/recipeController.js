@@ -9,7 +9,7 @@ exports.upload = upload.single('image');
 
 exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
-        const { title, chef, description, ingredients, steps } = req.body;
+        const { title, chef, description, ingredients, steps, test } = req.body;
         const image = req.file.buffer;
         
         console.log("Received data: ", { title, chef, description, ingredients, steps, image });
@@ -22,7 +22,8 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             ingredients: JSON.parse(ingredients),
             steps: JSON.parse(steps),
             stars: 0,
-            timestamp: new Date()
+            timestamp: new Date(),
+            test
         });
 
         const saveRecipe = await newRecipe.save();
