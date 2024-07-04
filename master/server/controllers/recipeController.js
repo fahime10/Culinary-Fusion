@@ -33,6 +33,23 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
-    
-    
+});
+
+exports.recipes_get = asyncHandler(async (req, res, next) => {
+    try {
+        const allRecipes = await Recipe.find().exec();
+
+        // Retrieve all Base64 images from each record
+        const Base64Images = allRecipes.map(recipe => {
+            const recipeObj = recipe.toObject();
+            recipeObj.image = recipe.image.toString('base64');
+            return recipeObj;
+        });
+
+        res.status(200).json(Base64Images);
+
+    } catch (err) {
+        res.status(400).json({ error: 'Something went wrong' });
+        console.log(err);
+    }
 });

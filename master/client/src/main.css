@@ -52,3 +52,33 @@ h1 {
     align-items: center;
     margin: 1rem;
 }
+
+.recipes {
+    display: flex;
+    margin: 1rem;
+}
+
+.recipe {
+    margin: 1rem;
+    padding: 1rem;
+    border: 3px solid black;
+    border-radius: 5px;
+    width: 15rem;
+    height: 15rem;
+}
+
+.recipe p {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.recipe img {
+    width: 100%;
+    height: 10rem;
+}
+
+.recipe:hover {
+    background-color: aqua;
+}
