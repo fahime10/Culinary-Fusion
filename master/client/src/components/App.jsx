@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Homepage from "./HomePage";
 import AddRecipe from "./AddRecipe";
+import ViewRecipe from "./ViewRecipe";
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Homepage response={response} />} />
           <Route path="/add-recipe" element={<AddRecipe />} />
+          <Route path="/recipe/:id" element={<ViewRecipe />} />
         </Routes>
       </BrowserRouter>
     </>
