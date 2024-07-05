@@ -53,3 +53,16 @@ exports.recipes_get = asyncHandler(async (req, res, next) => {
         console.log(err);
     }
 });
+
+exports.recipe_delete = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    
+    try {
+        await Recipe.findByIdAndDelete(id);
+
+        res.sendStatus(204);
+        
+    } catch (err) {
+        console.log(err);
+    }
+});

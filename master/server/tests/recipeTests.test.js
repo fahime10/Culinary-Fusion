@@ -43,4 +43,30 @@ describe('Testing Recipe API', () => {
             expect(res.body).toHaveProperty('test', true);
         });
     });
+
+    describe('Test DELETE /api/recipes/delete', () => {
+        it('should delete recipe', async () => {
+            const res = await request
+                .post('/api/recipes/add-recipe')
+                .set('Content-Type', 'multipart/form-data')
+                .field('title', 'Scrambled eggs')
+                .field('chef', 'John')
+                .field('description', 'Simple, nutritious recipe')
+                .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
+                .field('steps', JSON.stringify(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']))
+                .field('test', true)
+                .attach('image', Buffer.from('test image'), 'test-image.jpg');
+    
+            expect(res.status).toBe(200);
+    
+            const recipe_id = res.body._id;
+    
+            await request
+                .delete(`/api/recipes/delete/${recipe_id}`)
+                .expect(204);
+    
+            const resQuery = await Recipe.findById(recipe_id);
+            expect(resQuery).toBeNull();
+        });
+    });
 });

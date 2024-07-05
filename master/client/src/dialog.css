@@ -1,0 +1,24 @@
+.dialog.active {
+    width: 300px;
+    height: 300px;
+    border-radius: 5px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dialog.active button {
+    margin: 1rem;
+    width: 10rem;
+    height: 3rem;
+    background-color: yellowgreen;
+    border-radius: 5px;
+}
+
+.dialog.active {
+    display: flex;
+}
+
+.dialog.active button:hover {
+    background-color: rgb(90, 142, 90);
+}

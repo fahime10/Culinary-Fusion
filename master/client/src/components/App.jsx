@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Homepage from "./HomePage";
 import AddRecipe from "./AddRecipe";
 import ViewRecipe from "./ViewRecipe";
+import EditRecipe from "./EditRecipe";
 
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/" element={<Homepage response={response} />} />
           <Route path="/add-recipe" element={<AddRecipe />} />
           <Route path="/recipe/:id" element={<ViewRecipe />} />
+          <Route path="/recipe/edit/:id" element={<EditRecipe />} />
         </Routes>
       </BrowserRouter>
     </>

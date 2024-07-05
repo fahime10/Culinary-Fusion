@@ -1,9 +1,14 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import  Dialog from "./Dialog";
 import { dataStructRecipe } from "./recipeDataStructure.js";
 
 const ViewRecipe = () => {
     const { id } = useParams();
     const recipe = dataStructRecipe.find(recipe => recipe._id === id);
+    const [dialog, setDialog] = useState(false);
+
+    const navigate = useNavigate();
 
     if (!recipe) {
         return <div>Recipe not found...</div>;
@@ -19,12 +24,38 @@ const ViewRecipe = () => {
         return `${day}/${month}/${year}`;
     }
 
+    function redirectToEditRecipe(id) {
+        navigate(`/recipe/edit/${id}`);
+    }
+
+    function toggleDialog() {
+        setDialog(!dialog);
+    }
+
+    function deleteRecipe(id) {
+        fetch(`http://localhost:9000/api/recipes/delete/${id}`, {
+            method: "DELETE",
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+        .finally(navigate("/"));
+    }
+
     return (
         <>
             <div className="top">
-                <button>Edit Recipe</button>
-                <button>Delete Recipe</button>
+                <button onClick={() => redirectToEditRecipe(id)}>Edit Recipe</button>
+                <button onClick={toggleDialog}>Delete Recipe</button>
             </div>
+            <Dialog
+                isOpen={dialog} 
+                onClose={toggleDialog} 
+                title="Attention" 
+                content="Are you sure you want to delete this recipe?"
+                funct={() => deleteRecipe(id)}
+            >
+            </Dialog>
             <div className="recipe-details">
                 <h1>{recipe.title}</h1>
                 <img src={`data:image/jpeg;base64,${recipe.image}`} />
