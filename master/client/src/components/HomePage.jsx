@@ -18,8 +18,7 @@ const HomePage = () => {
         })
         .then((res) => res.json())
         .then((res) => {
-            setRecipes(res)
-            console.log(res[0].image);
+            setRecipes(res);
             dataStructRecipe.push(...res);
         })
         .catch((err) => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 const EditRecipe = () => {
@@ -26,7 +26,6 @@ const EditRecipe = () => {
             setIngredients(res.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
             setSteps(res.steps.map(step => ({ id: uuidv4(), value: step})));
 
-            console.log(res.image);
             if (res.image) {
                 setImage(res.image);
                 setImageUrl(`data:image/jpeg;base64,${res.image}`);
@@ -110,21 +109,17 @@ const EditRecipe = () => {
         data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
         data.append("steps", JSON.stringify(steps.map(step => step.value)));
 
-
-        fetch("http://localhost:9000/api/recipes/edit-recipe", {
+        fetch(`http://localhost:9000/api/recipes/edit/${id}`, {
             method: "POST",
             body: data
         })
-        .then((res) => {
-            if (res.status !== 200) {
-                throw new Error(res.statusText);
-            }
-            return res.json();
-        })
-        .then(() => {
-            navigate(`/recipes/${id}`);
-        })
         .catch(err => console.log(err));
+
+        navigate(`/recipe/${id}`);
+    }
+
+    function redirectToViewRecipe(id) {
+        navigate(`/recipe/${id}`);
     }
 
     return (
@@ -132,7 +127,7 @@ const EditRecipe = () => {
             <div>
                 <h1>Edit recipe</h1>
                 <div className="edit-recipe">
-                    <form className="forms">
+                    <form className="forms" onSubmit={(e) => e.preventDefault()}>
                         <label>Title:
                             <input type="text"
                                 name="title"
@@ -198,10 +193,8 @@ const EditRecipe = () => {
                             <button onClick={addStep}>Add one more step</button>
                             <button onClick={removeStep}>Remove last step</button>
                         </div>
-                        <Link to="/recipe/edit/:id">
-                            <button type="button" onClick={handleSave}>Save</button>
-                            <button type="button" onClick={() => navigate(-1)}>Cancel</button>
-                        </Link>
+                        <button type="button" onClick={() => {handleSave(); redirectToViewRecipe(id);}}>Save</button>
+                        <button type="button" onClick={() => navigate(-1)}>Cancel</button>
                     </form>
                 </div>
             </div>

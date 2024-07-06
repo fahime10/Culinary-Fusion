@@ -81,16 +81,35 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
     }
 });
 
-// To complete
 exports.recipe_edit = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-
-    const { title, chef, description, ingredients, steps, test } = req.body;
-    const image = req.file.buffer;
-
     try {
-        const editedRecipe = await Recipe.findByIdAndUpdate(id)
+        const { id } = req.params;
+        const { title, chef, description, ingredients, steps } = req.body;
 
+        let image = null;
+        if (req.file && req.file.buffer) {
+            image = req.file.buffer;
+        }
+
+        const updatedData = {
+            title,
+            chef,
+            description,
+            ingredients: JSON.parse(ingredients),
+            steps: JSON.parse(steps)
+        };
+
+        if (image) {
+            updatedData.image = image;
+        }
+
+        const editedRecipe = await Recipe.findByIdAndUpdate(id, updatedData, { new: true });
+
+        if (!editedRecipe) {
+            return res.status(404).json({ err: 'Something went wrong' });
+        }
+
+        res.status(200).json(editedRecipe);
 
     } catch (err) {
         console.log(err);
