@@ -11,8 +11,6 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
         const { title, chef, description, ingredients, steps, test } = req.body;
         const image = req.file.buffer;
-        
-        console.log("Received data: ", { title, chef, description, ingredients, steps, image });
 
         const newRecipe = new Recipe({
             title,
@@ -66,3 +64,35 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
         console.log(err);
     }
 });
+
+exports.get_recipe = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+        const recipe = await Recipe.findById(id).exec();
+
+        const recipeObj = recipe.toObject();
+        recipeObj.image = recipe.image.toString('base64');
+
+        res.status(200).json(recipeObj);
+
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+// To complete
+exports.recipe_edit = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const { title, chef, description, ingredients, steps, test } = req.body;
+    const image = req.file.buffer;
+
+    try {
+        const editedRecipe = await Recipe.findByIdAndUpdate(id)
+
+
+    } catch (err) {
+        console.log(err);
+    }
+})

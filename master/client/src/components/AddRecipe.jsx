@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 const AddRecipe = () => {
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
+    const [imageUrl, setImageUrl] = useState(null);
     const [chef, setChef] = useState("");
     const [description, setDescription] = useState("");
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
@@ -15,7 +16,17 @@ const AddRecipe = () => {
     }
 
     function handleImage(e) {
-        setImage(e.target.files[0]);
+        const file = e.target.files[0];
+        setImage(file);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImageUrl(reader.result);
+        };
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
     }
 
     function handleChef(e) {
@@ -103,6 +114,7 @@ const AddRecipe = () => {
                             />
                         </label>
                         <label>Image:
+                            {imageUrl && <img src={imageUrl} />}
                             <input type="file" 
                                 onChange={handleImage} 
                             />
