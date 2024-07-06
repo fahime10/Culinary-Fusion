@@ -10,10 +10,10 @@ router.post('/recipes/add-recipe', recipe_controller.upload, recipe_controller.a
 
 router.get('/recipes', recipe_controller.recipes_get);
 
-router.delete('/recipes/delete/:id', recipe_controller.recipe_delete);
+router.delete('/recipes/delete-recipe/:id', recipe_controller.recipe_delete);
 
 router.get('/recipes/:id', recipe_controller.get_recipe);
 
-router.post('/recipes/edit/:id', recipe_controller.upload, recipe_controller.recipe_edit);
+router.post('/recipes/edit-recipe/:id', recipe_controller.upload, recipe_controller.recipe_edit);
 
 module.exports = router;

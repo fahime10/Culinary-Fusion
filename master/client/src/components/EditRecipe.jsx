@@ -109,7 +109,7 @@ const EditRecipe = () => {
         data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
         data.append("steps", JSON.stringify(steps.map(step => step.value)));
 
-        fetch(`http://localhost:9000/api/recipes/edit/${id}`, {
+        fetch(`http://localhost:9000/api/recipes/edit-recipe/${id}`, {
             method: "POST",
             body: data
         })

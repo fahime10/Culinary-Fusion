@@ -68,7 +68,7 @@ const ViewRecipe = () => {
     }
 
     function deleteRecipe(id) {
-        fetch(`http://localhost:9000/api/recipes/delete/${id}`, {
+        fetch(`http://localhost:9000/api/recipes/delete-recipe/${id}`, {
             method: "DELETE",
         })
         .catch((err) => {
