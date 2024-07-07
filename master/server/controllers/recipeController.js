@@ -114,4 +114,4 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
     } catch (err) {
         console.log(err);
     }
-})
+});

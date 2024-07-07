@@ -79,7 +79,8 @@ const AddRecipe = () => {
         setSteps(newSteps);
     }
 
-    function handleSave() {
+    function handleSave(event) {
+        event.preventDefault();
         const data = new FormData();
         data.append("title", title);
         data.append("image", image);
@@ -107,7 +108,7 @@ const AddRecipe = () => {
             <div>
                 <h1>Add new recipe</h1>
                 <div className="add-recipe">
-                    <form className="forms" onSubmit={handleSave}>
+                    <form className="forms" onSubmit={(event) => handleSave(event)}>
                         <label>Title:
                             <input type="text"
                                 name="title"
@@ -117,7 +118,7 @@ const AddRecipe = () => {
                             />
                         </label>
                         <label>Image:
-                            {imageUrl && <img src={imageUrl} />}
+                            {imageUrl && <img src={imageUrl} style={{ width: "200px", height: "200px" }} />}
                             <input type="file" 
                                 onChange={handleImage} 
                             />

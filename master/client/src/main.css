@@ -114,3 +114,7 @@ h1 {
     height: 40%;
     align-self: center;
 }
+
+.forms select {
+    margin: 1rem;
+}

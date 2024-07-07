@@ -35,18 +35,25 @@ const SignUpPage = () => {
         setPreference(e.target.value);
     }
 
-    function handleSave() {
-        const data = new FormData();
-        data.append("name_title", nameTitle);
-        data.append("first_name", firstName);
-        data.append("last_name", lastName);
-        data.append("username", username);
-        data.append("password", password);
-        data.append("dietary_preference", preference);
+    function handleSave(event) {
+        event.preventDefault();
+
+        const data = {
+            name_title: nameTitle,
+            first_name: firstName,
+            last_name: lastName,
+            username: username,
+            password: password,
+            dietary_preferences: preference
+        }
 
         fetch("http://localhost:9000/api/users/add-user", {
             method: "POST",
-            body: data
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
         })
         .then((res) => {
             if (res.status !== 200) {
@@ -54,7 +61,8 @@ const SignUpPage = () => {
             }
             return res.json();
         })
-        .then(navigate("/"));
+        .then(navigate("/"))
+        .catch(err => console.log(err));
     }
 
     return (
@@ -62,12 +70,13 @@ const SignUpPage = () => {
             <div>
                 <h1>Sign up page</h1>
                 <div className="sign-up">
-                    <form className="forms" onSubmit={handleSave}>
-                        <select value={nameTitle} onChange={handleNameTitle}>
+                    <form className="forms" onSubmit={(event) => handleSave(event)}>
+                        <select value={nameTitle} onChange={handleNameTitle} required={true}>
                             <option value="" disabled>Please select an option</option>
                             <option value="Mr">Mr</option>
                             <option value="Mrs">Mrs</option>
                             <option value="Miss">Miss</option>
+                            <option value="Dr">Dr</option>
                             <option value="Chef">Chef</option>
                         </select>
                         <label>First name:
@@ -117,8 +126,8 @@ const SignUpPage = () => {
                             cols={30}
                             onChange={handlePreference}
                         />
-                        <button onClick={() => navigate(-1)}>Save</button>
-                        <button onClick={() => navigate(-1)}>Cancel</button>
+                        <button>Save</button>
+                        <button type="button" onClick={() => navigate(-1)}>Cancel</button>
                     </form>
                 </div>
             </div>

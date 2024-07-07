@@ -134,6 +134,6 @@ describe('Testing Recipe API', () => {
             expect(extraRes.body).toHaveProperty('description', editedRecipe.description);
             expect(extraRes.body.ingredients).toEqual(editedRecipe.ingredients);
             expect(extraRes.body.steps).toEqual(editedRecipe.steps);
-        })
-    })
+        });
+    });
 });
