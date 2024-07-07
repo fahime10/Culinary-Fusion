@@ -34,7 +34,7 @@ const HomePage = () => {
         <>
             <div className="top-bar">
                 <h1>Culinary Fusion</h1>
-                <button>Log out</button>
+                <button onClick={() => navigate("/sign-up")}>Sign up</button>
                 <Link to="/add-recipe">
                     <button>Add new recipe</button>
                 </Link>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 const AddRecipe = () => {
@@ -10,6 +10,8 @@ const AddRecipe = () => {
     const [description, setDescription] = useState("");
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
+
+    const navigate = useNavigate();
 
     function handleTitle(e) {
         setTitle(e.target.value);
@@ -96,7 +98,8 @@ const AddRecipe = () => {
                 throw new Error(res.statusText);
             }
             return res.json();
-        });
+        })
+        .then(navigate("/"));
     }
 
     return (
@@ -104,7 +107,7 @@ const AddRecipe = () => {
             <div>
                 <h1>Add new recipe</h1>
                 <div className="add-recipe">
-                    <form className="forms">
+                    <form className="forms" onSubmit={handleSave}>
                         <label>Title:
                             <input type="text"
                                 name="title"
@@ -165,10 +168,8 @@ const AddRecipe = () => {
                             <button onClick={addStep}>Add one more step</button>
                             <button onClick={removeStep}>Remove last step</button>
                         </div>
-                        <Link to="/">
-                            <button type="button" onClick={handleSave}>Save</button>
-                            <button type="button">Cancel</button>
-                        </Link>
+                        <button type="submit">Save</button>
+                        <button type="button" onClick={() => navigate(-1)}>Cancel</button>
                     </form>
                 </div>
             </div>

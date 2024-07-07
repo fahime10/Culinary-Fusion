@@ -5,6 +5,7 @@ import Homepage from "./HomePage";
 import AddRecipe from "./AddRecipe";
 import ViewRecipe from "./ViewRecipe";
 import EditRecipe from "./EditRecipe";
+import SignUpPage from "./SignUpPage";
 
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Route path="/add-recipe" element={<AddRecipe />} />
           <Route path="/recipe/:id" element={<ViewRecipe />} />
           <Route path="/recipe/edit/:id" element={<EditRecipe />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
         </Routes>
       </BrowserRouter>
     </>
