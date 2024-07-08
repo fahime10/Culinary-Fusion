@@ -17,6 +17,10 @@ const ViewRecipe = () => {
     const [timestamp, setTimestamp] = useState(null);
     const [stars, setStars] = useState();
 
+    const [recipes, setRecipes] = useState([]);
+    const [nameTitle, setNameTitle] = useState("");
+    const [lastName, setLastName] = useState("");
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -80,8 +84,12 @@ const ViewRecipe = () => {
     return (
         <>
             <div className="top">
-                <button onClick={() => redirectToEditRecipe(id)}>Edit Recipe</button>
-                <button onClick={toggleDialog}>Delete Recipe</button>
+                {lastName !== "undefined" || lastName ? (
+                    <button onClick={() => redirectToEditRecipe(id)}>Edit Recipe</button>
+                ) : null}
+                {lastName !== "undefined" || lastName ? (
+                    <button onClick={toggleDialog}>Delete Recipe</button>
+                ) : null}
                 <button onClick={returnToHomepage}>Home</button>
             </div>
             <Dialog

@@ -1,4 +1,5 @@
 const Recipe = require("../models/recipeModel");
+const User = require('../models/userModel');
 const asyncHandler = require("express-async-handler");
 const multer = require("multer");
 
@@ -9,18 +10,27 @@ exports.upload = upload.single('image');
 
 exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
-        const { title, chef, description, ingredients, steps, test } = req.body;
-        const image = req.file.buffer;
+        const { title, chef, username, description, private, ingredients, steps, test } = req.body;
+        
+        let image = null;
+        if (req.file.buffer) {
+            image = req.file.buffer;
+        }
+
+        const user = await User.findOne({ username: username });
+        const user_id = user._id;
 
         const newRecipe = new Recipe({
+            user_id,
             title,
             image,
             chef,
+            private,
             description,
             ingredients: JSON.parse(ingredients),
             steps: JSON.parse(steps),
-            stars: 0,
             timestamp: new Date(),
+            stars: 0,
             test
         });
 
@@ -33,9 +43,9 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
     }
 });
 
-exports.recipes_get = asyncHandler(async (req, res, next) => {
+exports.recipes_get_all = asyncHandler(async (req, res, next) => {
     try {
-        const allRecipes = await Recipe.find().exec();
+        const allRecipes = await Recipe.find({ private: false }).exec();
 
         // Retrieve all Base64 images from each record
         const Base64Images = allRecipes.map(recipe => {
@@ -49,6 +59,44 @@ exports.recipes_get = asyncHandler(async (req, res, next) => {
     } catch (err) {
         res.status(400).json({ error: 'Something went wrong' });
         console.log(err);
+    }
+});
+
+exports.recipe_get_own = asyncHandler(async (req, res, next) => {
+    const { username } = req.params;
+
+    try {
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const publicRecipes = await Recipe.find({ private: false });
+        const userRecipes = await Recipe.find({ user_id: user._id });
+
+        const recipes = [...publicRecipes, ...userRecipes];
+
+        const distinctRecipes = [];
+        const seenIds = new Set();
+
+        for (const recipe of recipes) {
+            if (!seenIds.has(recipe._id.toString())) {
+                seenIds.add(recipe._id.toString());
+                distinctRecipes.push(recipe);
+            }
+        }
+
+        const Base64Images = distinctRecipes.map(recipe => {
+            const recipeObj = recipe.toObject();
+            recipeObj.image = recipe.image.toString('base64');
+            return recipeObj;
+        });
+
+        res.status(200).json(Base64Images);
+
+    } catch (err) {
+        res.status(404).json({ error: err.message });
     }
 });
 

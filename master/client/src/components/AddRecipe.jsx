@@ -7,6 +7,7 @@ const AddRecipe = () => {
     const [image, setImage] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
     const [chef, setChef] = useState("");
+    const [checked, setChecked] = useState(false);
     const [description, setDescription] = useState("");
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
@@ -33,6 +34,10 @@ const AddRecipe = () => {
 
     function handleChef(e) {
         setChef(e.target.value);
+    }
+
+    function handleChecked(e) {
+        setChecked(e.target.checked);
     }
 
     function handleDescription(e) {
@@ -86,9 +91,10 @@ const AddRecipe = () => {
         data.append("image", image);
         data.append("chef", chef);
         data.append("description", description);
+        data.append("username", sessionStorage.getItem("username"));
+        data.append("private", checked);
         data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
         data.append("steps", JSON.stringify(steps.map(step => step.value)));
-
 
         fetch("http://localhost:9000/api/recipes/add-recipe", {
             method: "POST",
@@ -132,6 +138,13 @@ const AddRecipe = () => {
                             name="chef"
                             required={true}
                             onChange={handleChef}
+                        />
+                    </label>
+                    <label>Private recipe: 
+                        <input 
+                            type="checkbox"
+                            checked={checked}
+                            onChange={handleChecked}
                         />
                     </label>
                     <label htmlFor="description">Description:</label>

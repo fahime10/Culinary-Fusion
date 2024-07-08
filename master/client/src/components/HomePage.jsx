@@ -15,17 +15,33 @@ const HomePage = () => {
             
         // }
 
-        fetch("http://localhost:9000/api/recipes", {
-            method: "GET"
-        })
-        .then((res) => res.json())
-        .then((res) => {
-            setRecipes(res);
-            dataStructRecipe.push(...res);
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+        if (sessionStorage.getItem("last_name") === null || sessionStorage.getItem("last_name") === "undefined") {
+            fetch("http://localhost:9000/api/recipes", {
+                method: "GET"
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setRecipes(res);
+                dataStructRecipe.push(...res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+
+        } else {
+            const username = sessionStorage.getItem("username");
+            fetch(`http://localhost:9000/api/recipes/${username}`, {
+                method: "POST"
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setRecipes(res);
+                dataStructRecipe.push(...res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        }
 
         if (sessionStorage.getItem("name_title") !== "undefined" && sessionStorage.getItem("last_name") !== "undefined") {
             setNameTitle(sessionStorage.getItem("name_title"));
