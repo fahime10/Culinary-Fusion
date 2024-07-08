@@ -94,23 +94,27 @@ const ViewRecipe = () => {
             </Dialog>
             <div className="recipe-details">
                 <h1>{title}</h1>
+                <p>Stars: {stars}</p>
                 {imageUrl && <img src={imageUrl} /> }
                 <p>{description}</p>
                 <p>Chef/s: {chef}</p>
-                <p>Ingredients:</p>
-                <ul>
-                    {ingredients.map((ingredient) => (
-                        <li key={ingredient.id}>{ingredient.value}</li>
-                    ))}
-                </ul>
-                <p>Steps:</p>
-                <ul>
-                    {steps.map((step) => (
-                        <li key={step.id}>{step.value}</li>
-                    ))}
-                </ul>
+                <div className="ingredient-list">
+                    <p>Ingredients:</p>
+                    <ul>
+                        {ingredients.map((ingredient) => (
+                            <li key={ingredient.id} className="ingredient">{ingredient.value}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="step-list">
+                    <p>Steps:</p>
+                    <ul>
+                        {steps.map((step) => (
+                            <li key={step.id} className="step">{step.value}</li>
+                        ))}
+                    </ul>
+                </div>
                 <p>Added: {formatDate(timestamp)}</p>
-                <p>Stars: {stars}</p>
             </div>
         </>
     );

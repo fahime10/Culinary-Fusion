@@ -124,79 +124,83 @@ const EditRecipe = () => {
 
     return (
         <>
-            <div>
-                <h1>Edit recipe</h1>
-                <div className="edit-recipe">
-                    <form className="forms" onSubmit={(e) => e.preventDefault()}>
-                        <label>Title:
-                            <input type="text"
-                                name="title"
+            <div className="top-bar">
+                <h1 className="title">Edit recipe</h1>
+            </div>
+            <div className="edit-recipe">
+                <form className="forms" onSubmit={(e) => e.preventDefault()}>
+                    <label>Title:
+                        <input 
+                            type="text"
+                            name="title"
+                            required={true}
+                            maxLength={50}
+                            value={title}
+                            onChange={handleTitle}
+                        />
+                    </label>
+                    <label htmlFor="image-file">Image:</label>
+                    {imageUrl && <img src={imageUrl} style={{ width: "200px", height: "200px"}} />}
+                    <input
+                        id="image-file" 
+                        type="file" 
+                        onChange={handleImage} 
+                    />
+                    <label>Chef:
+                        <input 
+                            type="text"
+                            name="chef"
+                            value={chef}
+                            required={true}
+                            onChange={handleChef}
+                        />
+                    </label>
+                    <label htmlFor="description">Description:</label>
+                    <textarea 
+                        id="description"
+                        name="text" 
+                        rows={10}
+                        cols={30}
+                        value={description}
+                        onChange={handleDescription}
+                    />
+                    <div className="edit-recipe-ingredients">
+                        <label htmlFor="ingredients">Ingredients:</label>
+                        {ingredients.map((ingredient) => (
+                            <input 
+                                id="ingredients"
+                                type="text"
+                                key={ingredient.id}
+                                className="ingredient"
+                                name="ingredients"
+                                value={ingredient.value}
                                 required={true}
-                                maxLength={50}
-                                value={title}
-                                onChange={handleTitle}
-                            />
-                        </label>
-                        <label>Image:
-                            {imageUrl && <img src={imageUrl} style={{ width: "200px", height: "200px"}} />}
-                            <input type="file" 
-                                onChange={handleImage} 
-                            />
-                        </label>
-                        <label>Chef:
-                            <input type="text"
-                                name="chef"
-                                value={chef}
+                                onChange={(event) => handleIngredientsChange(ingredient.id, event)}
+                            /> 
+                        ))}
+                        <button onClick={addIngredient}>Add one more ingredient</button>
+                        <button onClick={removeIngredient}>Remove last ingredient</button>
+                    </div>
+                    <div className="edit-recipe-steps">
+                        <label htmlFor="steps">Steps:</label>
+                        {steps.map((step) => (
+                            <input
+                                id="steps" 
+                                type="text"
+                                key={step.id}
+                                className="step"
+                                name="steps"
+                                value={step.value}
                                 required={true}
-                                onChange={handleChef}
-                            />
-                        </label>
-                        <label>Description:
-                            <textarea 
-                                name="text" 
-                                rows={10}
-                                cols={30}
-                                value={description}
-                                onChange={handleDescription}
-                            />
-                        </label>
-                        <div className="ingredients">
-                            <label>Ingredients:
-                                {ingredients.map((ingredient) => (
-                                    <input 
-                                        type="text"
-                                        key={ingredient.id}
-                                        className="ingredient"
-                                        name="ingredients"
-                                        value={ingredient.value}
-                                        required={true}
-                                        onChange={(event) => handleIngredientsChange(ingredient.id, event)}
-                                    /> 
-                                ))}
-                            </label>
-                            <button onClick={addIngredient}>Add one more ingredient</button>
-                            <button onClick={removeIngredient}>Remove last ingredient</button>
-                        </div>
-                        <div className="steps">
-                            <label>Steps:
-                                {steps.map((step) => (
-                                    <input type="text"
-                                    key={step.id}
-                                    className="step"
-                                    name="steps"
-                                    value={step.value}
-                                    required={true}
-                                    onChange={(event) => handleStepsChange(step.id, event)}
-                                    /> 
-                                ))}
-                            </label>
-                            <button onClick={addStep}>Add one more step</button>
-                            <button onClick={removeStep}>Remove last step</button>
-                        </div>
-                        <button type="button" onClick={() => {handleSave(); redirectToViewRecipe(id);}}>Save</button>
-                        <button type="button" onClick={() => navigate(-1)}>Cancel</button>
-                    </form>
-                </div>
+                                onChange={(event) => handleStepsChange(step.id, event)}
+                            /> 
+                        ))}
+                        <button onClick={addStep}>Add one more step</button>
+                        <button onClick={removeStep}>Remove last step</button>
+                    </div>
+                    <button type="button" onClick={() => {handleSave(); redirectToViewRecipe(id);}}>Save</button>
+                    <button type="button" onClick={() => navigate(-1)}>Cancel</button>
+                </form>
             </div>
         </>
     );

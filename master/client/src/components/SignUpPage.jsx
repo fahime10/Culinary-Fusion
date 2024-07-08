@@ -67,69 +67,69 @@ const SignUpPage = () => {
 
     return (
         <>
-            <div>
-                <h1>Sign up page</h1>
-                <div className="sign-up">
-                    <form className="forms" onSubmit={(event) => handleSave(event)}>
-                        <select value={nameTitle} onChange={handleNameTitle} required={true}>
-                            <option value="" disabled>Please select an option</option>
-                            <option value="Mr">Mr</option>
-                            <option value="Mrs">Mrs</option>
-                            <option value="Miss">Miss</option>
-                            <option value="Dr">Dr</option>
-                            <option value="Chef">Chef</option>
-                        </select>
-                        <label>First name:
-                            <input
-                                type="text"
-                                name="first-name"
-                                required={true}
-                                minLength={1}
-                                maxLength={50}
-                                onChange={handleFirstName}
-                            />
-                        </label>
-                        <label>Last name:
-                            <input
-                                type="text"
-                                name="last-name"
-                                required={true}
-                                minLength={1}
-                                maxLength={50}
-                                onChange={handleLastName}
-                            />
-                        </label>
-                        <label>Username:
-                            <input
-                                type="text"
-                                name="username"
-                                required={true}
-                                minLength={3}
-                                maxLength={20}
-                                onChange={handleUsername}
-                            />
-                        </label>
-                        <label>Password:
-                            <input
-                                type="password"
-                                name="password"
-                                required={true}
-                                minLength={4}
-                                onChange={handlePassword}
-                            />
-                        </label>
-                        <label htmlFor="dietary-preference">Dietary preferences:</label>
-                        <textarea
-                            id="dietary-preference"
-                            name="dietary-preference"
-                            rows={10}
-                            cols={30}
-                            onChange={handlePreference}
+            <div className="top-bar">
+                <h1 className="title">Sign up page</h1>
+            </div>
+            <div className="sign-up">
+                <form className="forms" onSubmit={(event) => handleSave(event)}>
+                    <select value={nameTitle} onChange={handleNameTitle} required={true}>
+                        <option value="" disabled>Please select an option</option>
+                        <option value="Mr">Mr</option>
+                        <option value="Mrs">Mrs</option>
+                        <option value="Miss">Miss</option>
+                        <option value="Dr">Dr</option>
+                        <option value="Chef">Chef</option>
+                    </select>
+                    <label>First name:
+                        <input
+                            type="text"
+                            name="first-name"
+                            required={true}
+                            minLength={1}
+                            maxLength={50}
+                            onChange={handleFirstName}
                         />
-                        <button>Save</button>
-                        <button type="button" onClick={() => navigate(-1)}>Cancel</button>
-                    </form>
-                </div>
+                    </label>
+                    <label>Last name:
+                        <input
+                            type="text"
+                            name="last-name"
+                            required={true}
+                            minLength={1}
+                            maxLength={50}
+                            onChange={handleLastName}
+                        />
+                    </label>
+                    <label>Username:
+                        <input
+                            type="text"
+                            name="username"
+                            required={true}
+                            minLength={3}
+                            maxLength={20}
+                            onChange={handleUsername}
+                        />
+                    </label>
+                    <label>Password:
+                        <input
+                            type="password"
+                            name="password"
+                            required={true}
+                            minLength={4}
+                            onChange={handlePassword}
+                        />
+                    </label>
+                    <label htmlFor="dietary-preference">Dietary preferences:</label>
+                    <textarea
+                        id="dietary-preference"
+                        name="dietary-preference"
+                        rows={10}
+                        cols={30}
+                        onChange={handlePreference}
+                    />
+                    <button>Save</button>
+                    <button type="button" onClick={() => navigate(-1)}>Cancel</button>
+                </form>
             </div>
         </>
     );

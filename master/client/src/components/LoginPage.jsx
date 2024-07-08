@@ -57,8 +57,10 @@ const LoginPage = () => {
 
     return (
         <>
+            <div className="top-bar">
+                <h1 className="title">Login</h1>
+            </div>
             <div className="login-page">
-                <h1>Login</h1>
                 <form className="forms" onSubmit={(event) => handleLogin(event)}>
                     <label htmlFor="username">Username:</label>
                     <input 
