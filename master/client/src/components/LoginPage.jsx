@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
 
     const navigate = useNavigate();
 
@@ -37,8 +38,16 @@ const LoginPage = () => {
             }
             return res.json();
         })
-        .then(sessionStorage.setItem("username", username))
-        .then(navigate("/"))
+        .then((res) => {
+            if (res.username) {
+                sessionStorage.setItem("username", res.username);
+                sessionStorage.setItem("name_title", res.name_title);
+                sessionStorage.setItem("last_name", res.last_name);
+                navigate("/");
+            } else {
+                setError(res.error);
+            }
+        })
         .catch(err => console.log(err));
     }
 
@@ -67,6 +76,7 @@ const LoginPage = () => {
                         required={true}
                         onChange={handlePassword}
                     />
+                    <p className="error-credentials">{error}</p>
                     <button>Login</button>
                     <button type="button" onClick={redirectToHomepage}>Cancel</button>
                 </form>

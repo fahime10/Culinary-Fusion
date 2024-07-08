@@ -118,3 +118,7 @@ h1 {
 .forms select {
     margin: 1rem;
 }
+
+.error-credentials {
+    color: red;
+}

@@ -46,4 +46,37 @@ describe('Testing User API', () => {
             expect(res.body).toHaveProperty('test', true);
         });
     });
+
+    describe('Test POST /api/users/login', () => {
+        it('should add new user', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'james123456789012345',
+                password: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+
+            const newData = {
+                username: res.username,
+                password: res.password
+            }
+
+            const newRes = await request
+                .post('/api/users/login')
+                .set('Content-Type', 'application/json')
+                .send(newData);
+
+            expect(newRes.status).toBe(200);
+        });
+    })
 });

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { dataStructRecipe } from "./recipeDataStructure.js";
 
 const HomePage = () => {
     //const [loading, setLoading] = useState(true);
     const [recipes, setRecipes] = useState([]);
+    const [nameTitle, setNameTitle] = useState("");
+    const [lastName, setLastName] = useState("");
     
     const navigate = useNavigate();
     
@@ -24,6 +26,12 @@ const HomePage = () => {
         .catch((err) => {
             console.log(err);
         });
+
+        if (sessionStorage.getItem("name_title") !== "undefined" && sessionStorage.getItem("last_name") !== "undefined") {
+            setNameTitle(sessionStorage.getItem("name_title"));
+            setLastName(sessionStorage.getItem("last_name"));
+        }
+
     }, []);
 
     function viewRecipe(id) {
@@ -34,11 +42,16 @@ const HomePage = () => {
         <>
             <div className="top-bar">
                 <h1>Culinary Fusion</h1>
-                <Link to="/add-recipe">
-                    <button>Add new recipe</button>
-                </Link>
-                <button onClick={() => navigate("/sign-up")}>Sign up</button>
-                <button onClick={() => navigate("/login-page")}>Login</button>
+                {lastName === "undefined" || !lastName ? (
+                    <button onClick={() => navigate("/sign-up")}>Sign up</button>
+                ) : null}
+                {lastName !== "undefined" && lastName ? (
+                    <button onClick={() => navigate("/add-recipe")}>Add new recipe</button>
+                ) : null}
+                {lastName === "undefined" || !lastName ? (
+                    <button onClick={() => navigate("/login-page")}>Login</button>
+                ) : null}
+                <p>Hello {nameTitle} {lastName}</p>
             </div>
             <div className="recipes">
                 {recipes.map((recipe) => (

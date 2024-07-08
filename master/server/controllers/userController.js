@@ -33,3 +33,29 @@ exports.add_user = asyncHandler(async (req, res, next) => {
         console.log(err);
     }
 });
+
+exports.login_user = asyncHandler(async (req, res, next) => {
+    try {
+        const { username, password } = req.body;
+
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            res.send({ error: "Incorrect credentials" });
+            return;
+        }
+
+        const match = await bcrypt.compare(password, user.password);
+
+        if (!match) {
+            res.send({ error: "Incorrect credentials" });
+            return;
+        }
+
+        res.status(200).send({ username: user.username, name_title: user.name_title, last_name: user.last_name });
+
+    } catch (err) {
+        console.log(err);
+        res.status(404).json({ error: err.message });
+    }
+})

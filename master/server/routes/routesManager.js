@@ -19,4 +19,6 @@ router.post('/recipes/edit-recipe/:id', recipe_controller.upload, recipe_control
 
 router.post('/users/add-user', user_controller.add_user);
 
+router.post('/users/login', user_controller.login_user);
+
 module.exports = router;
