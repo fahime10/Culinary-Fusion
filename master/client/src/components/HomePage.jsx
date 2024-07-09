@@ -1,20 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { dataStructRecipe } from "./recipeDataStructure.js";
+import SearchIcon from "../assets/search-icon.png";
+import AccountIcon from "../assets/account-icon.png";
 
 const HomePage = () => {
     //const [loading, setLoading] = useState(true);
     const [recipes, setRecipes] = useState([]);
     const [nameTitle, setNameTitle] = useState("");
     const [lastName, setLastName] = useState("");
-    
+    const [searchRecipe, setSearchRecipe] = useState("");
+
     const navigate = useNavigate();
     
-    useEffect(() => {
-        // if (dataStructRecipe.length === 0) {
-            
-        // }
-
+    async function fetchRecipes() {
         if (sessionStorage.getItem("last_name") === null || sessionStorage.getItem("last_name") === "undefined") {
             fetch("http://localhost:9000/api/recipes", {
                 method: "GET"
@@ -42,6 +41,14 @@ const HomePage = () => {
                 console.log(err);
             });
         }
+    }
+
+    useEffect(() => {
+        // if (dataStructRecipe.length === 0) {
+            
+        // }
+
+        fetchRecipes();
 
         if (sessionStorage.getItem("name_title") !== "undefined" && sessionStorage.getItem("last_name") !== "undefined") {
             setNameTitle(sessionStorage.getItem("name_title"));
@@ -61,6 +68,32 @@ const HomePage = () => {
         window.location.reload();
     }
 
+    function handleSearchRecipe(e) {
+        const { value } = e.target;
+        setSearchRecipe(value);
+
+        if (value === "") {
+            fetchRecipes();
+        }
+    }
+
+    function findRecipe(searchRecipe) {
+        if (searchRecipe !== "") {
+            const data = new FormData();
+            data.append("username", sessionStorage.getItem("username"));
+            data.append("last_name", lastName);
+            data.append("name_title", nameTitle);
+
+            fetch(`http://localhost:9000/api/recipes/search/${searchRecipe}`, {
+                method: "POST",
+                body: data
+            })
+            .then((res) => res.json())
+            .then((res) => setRecipes(res))
+            .catch(err => console.log(err));
+        }
+    }
+
     return (
         <>
             <div className="top-bar">
@@ -78,6 +111,17 @@ const HomePage = () => {
                     <button className="second" onClick={handleLogout}>Logout</button>
                 ) : null}
                 <p className="greeting">Hello {nameTitle} {lastName}</p>
+                <div className="search-bar">
+                    <input
+                        type="text"
+                        placeholder="Search for a recipe"
+                        onChange={handleSearchRecipe}
+                    />
+                    <img src={SearchIcon} onClick={() => findRecipe(searchRecipe)} />
+                </div>
+                {lastName !== "undefined" && lastName ? (
+                    <img src={AccountIcon} className="account" />
+                ) : null}
             </div>
             <div className="recipes">
                 {recipes.map((recipe) => (

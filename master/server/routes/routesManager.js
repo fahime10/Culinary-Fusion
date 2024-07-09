@@ -13,6 +13,8 @@ router.get('/recipes', recipe_controller.recipes_get_all);
 
 router.post('/recipes/:username', recipe_controller.recipe_get_own);
 
+router.post('/recipes/search/:search', recipe_controller.search_recipe);
+
 router.delete('/recipes/delete-recipe/:id', recipe_controller.recipe_delete);
 
 router.get('/recipes/:id', recipe_controller.get_recipe);

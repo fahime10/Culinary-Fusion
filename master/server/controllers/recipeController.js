@@ -163,3 +163,50 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
         console.log(err);
     }
 });
+
+exports.search_recipe = asyncHandler(async (req, res, next) => {
+    try {
+        const { search } = req.params;
+
+        const { username, last_name, name_title } = req.body;
+
+        let user = null;
+        if (username && last_name && name_title) {
+            user = await User.findOne({ name_title: name_title, last_name: last_name, username: username });
+        }
+
+        const publicRecipes = await Recipe.find({ title: new RegExp(search, 'i'), private: false });
+
+        let userRecipes = [];
+        if (user) {
+            userRecipes = await Recipe.find({ user_id: user._id, title: new RegExp(search, 'i') });
+        }
+
+        const recipes = [...publicRecipes, ...userRecipes];
+
+        if (!recipes) {
+            return;
+        }
+
+        const distinctRecipes = [];
+        const seenIds = new Set();
+
+        for (const recipe of recipes) {
+            if (!seenIds.has(recipe._id.toString())) {
+                seenIds.add(recipe._id.toString());
+                distinctRecipes.push(recipe);
+            }
+        }
+
+        const Base64Images = distinctRecipes.map(recipe => {
+            const recipeObj = recipe.toObject();
+            recipeObj.image = recipe.image.toString('base64');
+            return recipeObj;
+        });
+
+        res.status(200).json(Base64Images);
+
+    } catch (err) {
+        res.status(404).json({ error: err.message });
+    }
+});
