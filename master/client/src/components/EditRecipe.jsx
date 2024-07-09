@@ -70,9 +70,11 @@ const EditRecipe = () => {
         setIngredients([...ingredients, { id: uuidv4(), value: ""}]);
     }
 
-    function removeIngredient() {
+    function removeIngredient(id) {
         if (ingredients.length > 1) {
-            setIngredients(ingredients.slice(0, -1));
+            setIngredients(ingredients.filter(ingredient => ingredient.id !== id));
+        } else {
+            setIngredients([{ ...ingredients[0], value: "" }]);
         }
     }
 
@@ -90,9 +92,11 @@ const EditRecipe = () => {
         setSteps([...steps, { id: uuidv4(), value: ""}]);
     }
 
-    function removeStep() {
+    function removeStep(id) {
         if (steps.length > 1) {
-            setSteps(steps.slice(0, -1));
+            setSteps(steps.filter(step => step.id !== id));
+        } else {
+            setSteps([{ ...steps[0], value: "" }]);
         }
     }
 
@@ -180,36 +184,38 @@ const EditRecipe = () => {
                     <div className="edit-recipe-ingredients">
                         <label htmlFor="ingredients">Ingredients:</label>
                         {ingredients.map((ingredient) => (
-                            <input 
-                                id="ingredients"
-                                type="text"
-                                key={ingredient.id}
-                                className="ingredient"
-                                name="ingredients"
-                                value={ingredient.value}
-                                required={true}
-                                onChange={(event) => handleIngredientsChange(ingredient.id, event)}
-                            /> 
+                            <div key={ingredient.id}>
+                                <input 
+                                    id="ingredients"
+                                    type="text"
+                                    className="ingredient"
+                                    name="ingredients"
+                                    value={ingredient.value}
+                                    required={true}
+                                    onChange={(event) => handleIngredientsChange(ingredient.id, event)}
+                                />
+                                <button onClick={() => removeIngredient(ingredient.id)}>Delete</button>
+                            </div>
                         ))}
                         <button onClick={addIngredient}>Add one more ingredient</button>
-                        <button onClick={removeIngredient}>Remove last ingredient</button>
                     </div>
                     <div className="edit-recipe-steps">
                         <label htmlFor="steps">Steps:</label>
                         {steps.map((step) => (
-                            <input
-                                id="steps" 
-                                type="text"
-                                key={step.id}
-                                className="step"
-                                name="steps"
-                                value={step.value}
-                                required={true}
-                                onChange={(event) => handleStepsChange(step.id, event)}
-                            /> 
+                            <div key={step.id}>
+                                <input
+                                    id="steps" 
+                                    type="text"
+                                    className="step"
+                                    name="steps"
+                                    value={step.value}
+                                    required={true}
+                                    onChange={(event) => handleStepsChange(step.id, event)}
+                                />
+                                <button onClick={() => removeStep(step.id)}>Delete</button>
+                            </div>
                         ))}
                         <button onClick={addStep}>Add one more step</button>
-                        <button onClick={removeStep}>Remove last step</button>
                     </div>
                     <button type="button" onClick={() => {handleSave(); redirectToViewRecipe(id);}}>Save</button>
                     <button type="button" onClick={() => navigate(-1)}>Cancel</button>

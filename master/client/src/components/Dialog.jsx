@@ -14,11 +14,7 @@ const Dialog = ({ isOpen, onClose, title, content, funct }) => {
 
     function dialogOpen(isOpen) {
         if (isOpen) {
-            document.body.style.overflow = "hidden";
             return "dialog active";
-
-        } else {
-            document.body.style.overflow = "";
         }
         return "dialog";
     }
