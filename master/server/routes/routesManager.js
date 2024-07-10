@@ -21,10 +21,16 @@ router.post('/recipes/recipe/:id', recipe_controller.get_recipe);
 
 router.post('/recipes/edit-recipe/:id', recipe_controller.upload, recipe_controller.recipe_edit);
 
+router.post('/recipes/own/:username', recipe_controller.personal_recipes);
+
 router.post('/users/add-user', user_controller.add_user);
 
 router.post('/users/login', user_controller.login_user);
 
-router.post('/recipes/own/:username', recipe_controller.personal_recipes);
+router.post('/users/:username', user_controller.user_details);
+
+router.post('/users/edit-user/:username', user_controller.edit_user);
+
+router.delete('/users/delete-user/:username', user_controller.delete_user);
 
 module.exports = router;

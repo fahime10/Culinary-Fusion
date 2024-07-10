@@ -24,8 +24,8 @@ const Dialog = ({ isOpen, onClose, title, content, funct }) => {
             <dialog className={dialogOpen(isOpen)} ref={ref}>
                 <h1>{title}</h1>
                 <p>{content}</p>
-                <button onClick={funct}>Yes</button>
-                <button onClick={onClose}>No</button>
+                <button type="button" onClick={funct}>Yes</button>
+                <button type="button" onClick={onClose}>No</button>
             </dialog>
         </>
     );

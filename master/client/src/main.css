@@ -253,7 +253,7 @@ button:hover {
     width: 9rem;
 }
 
-.sign-up, .login-page {
+.sign-up, .login-page, .edit-user {
     border: 2px solid black;
     border-radius: 5px;
 }
@@ -269,5 +269,18 @@ button:hover {
 }
 
 .error-credentials {
+    display: none;
     color: red;
+}
+
+.edit-user {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.edit-user .edit-button {
+    transform: scale(1);
+    height: 2rem;
+    background-color: red;
 }

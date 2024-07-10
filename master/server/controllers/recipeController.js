@@ -106,7 +106,7 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
     try {
         await Recipe.findByIdAndDelete(id);
 
-        res.sendStatus(204);
+        res.sendStatus(200);
         
     } catch (err) {
         console.log(err);
