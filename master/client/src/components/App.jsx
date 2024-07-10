@@ -7,6 +7,7 @@ import ViewRecipe from "./ViewRecipe";
 import EditRecipe from "./EditRecipe";
 import SignUpPage from "./SignUpPage";
 import LoginPage from "./LoginPage";
+import PersonalCollection from "./PersonalCollection";
 
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
           <Route path="/recipe/edit/:id" element={<EditRecipe />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/login-page" element={<LoginPage />} />
+          <Route path="/personal-collection" element={<PersonalCollection />} />
         </Routes>
       </BrowserRouter>
     </>

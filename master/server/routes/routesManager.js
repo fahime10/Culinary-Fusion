@@ -25,4 +25,6 @@ router.post('/users/add-user', user_controller.add_user);
 
 router.post('/users/login', user_controller.login_user);
 
+router.post('/recipes/own/:username', recipe_controller.personal_recipes);
+
 module.exports = router;

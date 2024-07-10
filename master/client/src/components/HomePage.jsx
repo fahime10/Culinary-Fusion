@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { dataStructRecipe } from "./recipeDataStructure.js";
 import SearchIcon from "../assets/search-icon.png";
-import AccountIcon from "../assets/account-icon.png";
+import MenuContainer from "./MenuContainer.jsx";
 
 const HomePage = () => {
     //const [loading, setLoading] = useState(true);
@@ -120,7 +120,9 @@ const HomePage = () => {
                     <img src={SearchIcon} onClick={() => findRecipe(searchRecipe)} />
                 </div>
                 {lastName !== "undefined" && lastName ? (
-                    <img src={AccountIcon} className="account" />
+                    <div className="account">
+                        <MenuContainer />
+                    </div>
                 ) : null}
             </div>
             <div className="recipes">

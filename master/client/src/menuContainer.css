@@ -1,0 +1,61 @@
+.menu {
+    width: 20vw;
+    height: 100%;
+    background-color: white;
+    position: fixed;
+    top: 0;
+    right: -20vw;
+    transition: right 0.3s ease;
+    overflow-x: hidden;
+    padding-top: 60px;
+    z-index: 1000;
+}
+
+.menu button {
+    width: 50%;
+    height: 5%;
+}
+
+.menu .menu-button {
+    margin-bottom: 1rem;
+}
+
+.menu.open {
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.menu.closed {
+    right: -20vw;
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.account {
+    width: 50%;
+    height: 50%;
+    cursor: pointer;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 900;
+}
+
+.account-icon {
+    height: 10%;
+    width: 20%;
+    align-self: center;
+    padding-bottom: 3rem;
+}

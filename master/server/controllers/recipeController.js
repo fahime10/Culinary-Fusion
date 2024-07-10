@@ -223,3 +223,29 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
         res.status(404).json({ error: err.message });
     }
 });
+
+exports.personal_recipes = asyncHandler(async (req, res, next) => {
+    const { username } = req.params;
+    
+    try {
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userRecipes = await Recipe.find({ user_id: user._id });
+
+        const Base64Images = userRecipes.map(recipe => {
+            const recipeObj = recipe.toObject();
+            recipeObj.image = recipe.image.toString('base64');
+            return recipeObj;
+        });
+
+        res.status(200).json(Base64Images);
+
+    } catch (err) {
+        console.log(err);
+        res.status(404).json({ error: err.message });
+    }
+});
