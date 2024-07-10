@@ -17,37 +17,44 @@ const ViewRecipe = () => {
     const [timestamp, setTimestamp] = useState(null);
     const [stars, setStars] = useState();
 
-    const [recipes, setRecipes] = useState([]);
-    const [nameTitle, setNameTitle] = useState("");
-    const [lastName, setLastName] = useState("");
+    const [isOwner, setIsOwner] = useState(false);
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`http://localhost:9000/api/recipes/${id}`, {
-            method: "GET"
+        const data = {
+            username: sessionStorage.getItem("username")
+        };
+
+        fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
         })
         .then((res) => res.json())
         .then((res) => {
-            setTitle(res.title);
-            setChef(res.chef);
-            setDescription(res.description);
-            setIngredients(res.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
-            setSteps(res.steps.map(step => ({ id: uuidv4(), value: step})));
-            setTimestamp(res.timestamp);
-            setStars(res.stars);
+            setTitle(res.recipe.title);
+            setChef(res.recipe.chef);
+            setDescription(res.recipe.description);
+            setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
+            setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+            setTimestamp(res.recipe.timestamp);
+            setStars(res.recipe.stars);
 
-            if (res.image) {
-                setImageUrl(`data:image/jpeg;base64,${res.image}`);
+            if (res.recipe.image) {
+                setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
+            }
+
+            if (res.owner === true) {
+                setIsOwner(true);
             }
         })
         .catch(err => console.log(err));
 
-    }, [id])
-
-    // if (!recipe) {
-    //     return <div>Recipe not found...</div>;
-    // }
+    }, [id]);
 
     function formatDate(timestamp) {
         const date = new Date(timestamp);
@@ -84,10 +91,10 @@ const ViewRecipe = () => {
     return (
         <>
             <div className="top">
-                {lastName !== "undefined" || lastName ? (
+                {isOwner ? (
                     <button onClick={() => redirectToEditRecipe(id)}>Edit Recipe</button>
                 ) : null}
-                {lastName !== "undefined" || lastName ? (
+                {isOwner ? (
                     <button onClick={toggleDialog}>Delete Recipe</button>
                 ) : null}
                 <button onClick={returnToHomepage}>Home</button>

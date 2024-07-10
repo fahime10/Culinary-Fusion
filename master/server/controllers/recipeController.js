@@ -115,14 +115,27 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
 
 exports.get_recipe = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
+    const { username } = req.body;
 
     try {
         const recipe = await Recipe.findById(id).exec();
 
-        const recipeObj = recipe.toObject();
-        recipeObj.image = recipe.image.toString('base64');
+        if (!recipe) {
+            return res.status(404).json({ error: "Recipe not found" });
+        }
 
-        res.status(200).json(recipeObj);
+        const recipeObj = recipe.toObject();
+        if (recipe.image) {
+            recipeObj.image = recipe.image.toString('base64');
+        }
+
+        const user = await User.findOne({ username: username });
+
+        if (user._id.toString() === recipe.user_id.toString()) {
+            res.status(200).json({ recipe: recipeObj, owner: true });
+        } else {
+            res.status(200).json({ recipe: recipeObj, owner: false });
+        }
 
     } catch (err) {
         console.log(err);

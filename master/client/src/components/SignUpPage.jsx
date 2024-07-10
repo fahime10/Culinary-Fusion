@@ -9,6 +9,8 @@ const SignUpPage = () => {
     const [password, setPassword] = useState("");
     const [preference, setPreference] = useState("");
 
+    const [error, setError] = useState("");
+
     const navigate = useNavigate();
 
     function handleNameTitle(e) {
@@ -55,13 +57,17 @@ const SignUpPage = () => {
             },
             body: JSON.stringify(data)
         })
+        .then((res) => res.json())
         .then((res) => {
-            if (res.status !== 200) {
-                throw new Error(res.statusText);
+            if (res.error) {
+                setError(res.error);
+            } else {
+                sessionStorage.setItem("username", res.username);
+                sessionStorage.setItem("name_title", res.name_title);
+                sessionStorage.setItem("last_name", res.last_name);
+                navigate("/");
             }
-            return res.json();
         })
-        .then(navigate("/"))
         .catch(err => console.log(err));
     }
 
@@ -100,6 +106,7 @@ const SignUpPage = () => {
                             onChange={handleLastName}
                         />
                     </label>
+                    <p className="error-credentials">{error}</p>
                     <label>Username:
                         <input
                             type="text"
