@@ -21,7 +21,7 @@ describe('Testing User API', () => {
         await mongoose.disconnect();
     });
 
-    describe('Test POST /api/user/add-user', () => {
+    describe('Test POST /api/users/add-user', () => {
         it('should add new user', async () => {
             const data = {
                 name_title: 'Mr',
@@ -53,7 +53,7 @@ describe('Testing User API', () => {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
-                username: 'james123456789012345',
+                username: 'james12345678901',
                 password: 'pass',
                 dietary_preferences: '',
                 test: true
@@ -67,8 +67,8 @@ describe('Testing User API', () => {
             expect(res.status).toBe(200);
 
             const newData = {
-                username: res.username,
-                password: res.password
+                username: 'james12345678901',
+                password: 'pass'
             }
 
             const newRes = await request
@@ -78,5 +78,118 @@ describe('Testing User API', () => {
 
             expect(newRes.status).toBe(200);
         });
-    })
+    });
+
+    describe('Test POST /api/users/:username', () => {
+        it('should add new user', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'jAmEs123456789012345',
+                password: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+            
+            const newRes = await request
+                .post(`/api/users/${data.username}`)
+                .set('Content-Type', 'application/json');
+            
+            expect(newRes.status).toBe(200);
+            expect(newRes.body).toHaveProperty('first_name', 'James');
+            expect(newRes.body).toHaveProperty('last_name', 'Smith');
+            expect(newRes.body).toHaveProperty('username', 'jAmEs123456789012345');
+            expect(newRes.body).toHaveProperty('dietary_preferences', '');
+        });
+    });
+
+    describe('Test POST /api/users/edit-user/:username', () => {
+        it('should edit user', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'jAs123456789012345',
+                password: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+            
+            const newRes = await request
+                .post(`/api/users/${data.username}`)
+                .set('Content-Type', 'application/json');
+            
+            expect(newRes.status).toBe(200);
+            
+            const secondData = {
+                name_title: 'Mr',
+                first_name: 'John',
+                last_name: 'S',
+                username: 'jAs123456789012345',
+                password: 'pass',
+                dietary_preferences: 'none',
+                test: true
+            }
+
+            const extraRes = await request
+                .post(`/api/users/edit-user/${data.username}`)
+                .set('Content-Type', 'application/json')
+                .send(secondData);
+
+            expect(extraRes.status).toBe(200);
+            expect(extraRes.body).toHaveProperty('message', 'Updated successfully');
+            expect(extraRes.body).toHaveProperty('name_title', secondData.name_title);
+            expect(extraRes.body).toHaveProperty('last_name', secondData.last_name);
+            expect(extraRes.body).toHaveProperty('username', secondData.username);
+        });
+    });
+
+    describe('Test POST /api/users/delete-user/:username', () => {
+        it('should delete user', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'mEs1234567890123457',
+                password: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+            
+            const newRes = await request
+                .post(`/api/users/${data.username}`)
+                .set('Content-Type', 'application/json');
+            
+            expect(newRes.status).toBe(200);
+            
+            await request
+                .delete(`/api/users/delete-user/${data.username}`)
+                .expect(204);
+
+            const resQuery = await User.findOne({ username: data.username });
+            expect(resQuery).toBeNull();
+        });
+    });
 });

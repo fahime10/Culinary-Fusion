@@ -2,6 +2,8 @@ const supertest = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../app.js');
 const Recipe = require('../models/recipeModel.js');
+const User = require('../models/userModel.js');
+const Ingredient = require('../models/ingredientModel.js');
 
 const request = supertest(app);
 
@@ -15,6 +17,8 @@ describe('Testing Recipe API', () => {
 
     afterEach(async () => {
         await Recipe.deleteMany({ test: true });
+        await User.deleteMany({ test: true });
+        await Ingredient.deleteMany({ test: true });
     });
 
     afterAll(async () => {
@@ -23,12 +27,30 @@ describe('Testing Recipe API', () => {
 
     describe('Test POST /api/recipes/add-recipe', () => {
         it('should add new recipe', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'james12345678901234',
+                password: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const user = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
             const res = await request
                 .post('/api/recipes/add-recipe')
                 .set('Content-Type', 'multipart/form-data')
                 .field('title', 'Scrambled eggs')
                 .field('chef', 'John')
+                .field('username', 'james12345678901234')
+                .field('isPrivate', false)
                 .field('description', 'Simple, nutritious recipe')
+                .field('quantities', JSON.stringify(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']))
                 .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
                 .field('steps', JSON.stringify(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']))
                 .field('test', true)
@@ -37,13 +59,21 @@ describe('Testing Recipe API', () => {
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty('title', 'Scrambled eggs');
             expect(res.body).toHaveProperty('chef', 'John');
+            expect(res.body).toHaveProperty('isPrivate', false);
             expect(res.body).toHaveProperty('description', 'Simple, nutritious recipe');
+            expect(res.body.quantities).toEqual(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']);
             expect(res.body.ingredients).toEqual(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']);
             expect(res.body.steps).toEqual(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']);
             expect(res.body).toHaveProperty('test', true);
 
+            const secondData = {
+                username: 'james12345678901234'
+            }
+
             const newRes = await request
-                .get(`/api/recipes/${res.body._id}`);
+                .post(`/api/recipes/recipe/${res.body._id}`)
+                .set('Content-Type', 'application/json')
+                .send(secondData);
 
             expect(newRes.status).toBe(200);
         });
@@ -51,12 +81,30 @@ describe('Testing Recipe API', () => {
 
     describe('Test DELETE /api/recipes/delete-recipe/:id', () => {
         it('should delete recipe', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'james1234567890123',
+                password: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const user = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
             const res = await request
                 .post('/api/recipes/add-recipe')
                 .set('Content-Type', 'multipart/form-data')
                 .field('title', 'Scrambled eggs')
                 .field('chef', 'John')
+                .field('username', 'james1234567890123')
+                .field('isPrivate', false)
                 .field('description', 'Simple, nutritious recipe')
+                .field('quantities', JSON.stringify(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']))
                 .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
                 .field('steps', JSON.stringify(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']))
                 .field('test', true)
@@ -77,12 +125,30 @@ describe('Testing Recipe API', () => {
 
     describe('Test POST /api/recipes/edit-recipe/:id', () => {
         it('should edit recipe', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'JAMES1234567890123',
+                password: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const user = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
             const res = await request
                 .post('/api/recipes/add-recipe')
                 .set('Content-Type', 'multipart/form-data')
                 .field('title', 'Scrambled eggs')
                 .field('chef', 'John')
+                .field('username', 'JAMES1234567890123')
+                .field('isPrivate', false)
                 .field('description', 'Simple, nutritious recipe')
+                .field('quantities', JSON.stringify(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']))
                 .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
                 .field('steps', JSON.stringify(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']))
                 .field('test', true)
@@ -95,6 +161,7 @@ describe('Testing Recipe API', () => {
                 image: Buffer.from('some image'),
                 chef: 'Johnson',
                 description: 'Simple recipe',
+                quantities: ['5', '400ml', '1 teaspoon', 'a pinch', 'a pinch'],
                 ingredients: ['Eggs', 'Water', 'Olive Oil', 'Salt'],
                 steps: ['Open the eggs, place in a bowl', 'Heat a pan', 'Cook the eggs'],
             };
@@ -105,6 +172,7 @@ describe('Testing Recipe API', () => {
             recipe.image = editedRecipe.image;
             recipe.chef = editedRecipe.chef;
             recipe.description = editedRecipe.description;
+            recipe.quantities = editedRecipe.quantities;
             recipe.ingredients = editedRecipe.ingredients;
             recipe.steps = editedRecipe.steps;
 
@@ -114,6 +182,7 @@ describe('Testing Recipe API', () => {
                 .field('title', editedRecipe.title)
                 .field('chef', editedRecipe.chef)
                 .field('description', editedRecipe.description)
+                .field('quantities', JSON.stringify(editedRecipe.quantities))
                 .field('ingredients', JSON.stringify(editedRecipe.ingredients))
                 .field('steps', JSON.stringify(editedRecipe.steps))
                 .attach('image', editedRecipe.image, 'some-image.jpg');
@@ -122,18 +191,25 @@ describe('Testing Recipe API', () => {
             expect(newRes.body).toHaveProperty('title', editedRecipe.title);
             expect(newRes.body).toHaveProperty('chef', editedRecipe.chef);
             expect(newRes.body).toHaveProperty('description', editedRecipe.description);
+            expect(newRes.body.quantities).toEqual(editedRecipe.quantities);
             expect(newRes.body.ingredients).toEqual(editedRecipe.ingredients);
             expect(newRes.body.steps).toEqual(editedRecipe.steps);
 
+            const secondData = {
+                username: 'JAMES1234567890123'
+            }
             const extraRes = await request
-                .get(`/api/recipes/${res.body._id}`);
+                .post(`/api/recipes/recipe/${res.body._id}`)
+                .set('Content-Type', 'application/json')
+                .send(secondData);
 
             expect(extraRes.status).toBe(200);
-            expect(extraRes.body).toHaveProperty('title', editedRecipe.title);
-            expect(extraRes.body).toHaveProperty('chef', editedRecipe.chef);
-            expect(extraRes.body).toHaveProperty('description', editedRecipe.description);
-            expect(extraRes.body.ingredients).toEqual(editedRecipe.ingredients);
-            expect(extraRes.body.steps).toEqual(editedRecipe.steps);
+            expect(extraRes.body.recipe).toHaveProperty('title', editedRecipe.title);
+            expect(extraRes.body.recipe).toHaveProperty('chef', editedRecipe.chef);
+            expect(extraRes.body.recipe).toHaveProperty('description', editedRecipe.description);
+            expect(extraRes.body.recipe.quantities).toEqual(editedRecipe.quantities);
+            expect(extraRes.body.recipe.ingredients).toEqual(editedRecipe.ingredients);
+            expect(extraRes.body.recipe.steps).toEqual(editedRecipe.steps);
         });
     });
 });

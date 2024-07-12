@@ -12,7 +12,7 @@ exports.upload = upload.single('image');
 
 exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
-        const { title, chef, username, description, private, quantities, ingredients, steps, test } = req.body;
+        const { title, chef, username, description, isPrivate, quantities, ingredients, steps, test } = req.body;
         
         let image = null;
         if (req.file.buffer) {
@@ -29,7 +29,7 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             title,
             image,
             chef,
-            private,
+            private: isPrivate,
             description,
             quantities: JSON.parse(quantities),
             ingredients: JSON.parse(ingredients),
@@ -44,7 +44,8 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
         for (let ingredient of newIngredients) {
             const newIngredient = await Ingredient({
                 recipe_id: saveRecipe._id,
-                ingredient: ingredient
+                ingredient: ingredient,
+                test: test
             });
             await newIngredient.save();
         }
@@ -127,7 +128,7 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
 
         await Recipe.findByIdAndDelete(id);
 
-        res.sendStatus(200);
+        res.status(204).json({ message: 'Recipe deleted successfully' });;
         
     } catch (err) {
         console.log(err);
@@ -162,6 +163,7 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
 
     } catch (err) {
         console.log(err);
+        res.status(404);
     }
 });
 

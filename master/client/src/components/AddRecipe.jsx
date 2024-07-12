@@ -103,7 +103,7 @@ const AddRecipe = () => {
         data.append("chef", chef);
         data.append("description", description);
         data.append("username", sessionStorage.getItem("username"));
-        data.append("private", checked);
+        data.append("isPrivate", checked);
         data.append("quantities", JSON.stringify(quantities));
         data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
         data.append("steps", JSON.stringify(steps.map(step => step.value)));

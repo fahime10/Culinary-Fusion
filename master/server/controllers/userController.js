@@ -143,7 +143,7 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
     try {
         await User.deleteOne({ username: username });
 
-        res.json({ status: 200 });
+        res.status(204).json({ status: 200 });
 
     } catch (err) {
         console.log(err);
