@@ -12,7 +12,7 @@ const ViewRecipe = () => {
     const [imageUrl, setImageUrl] = useState(null);
     const [chef, setChef] = useState("");
     const [description, setDescription] = useState("");
-    const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
+    const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: "", quantity: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
     const [timestamp, setTimestamp] = useState(null);
     const [stars, setStars] = useState();
@@ -22,37 +22,80 @@ const ViewRecipe = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const data = {
-            username: sessionStorage.getItem("username")
-        };
+        if (sessionStorage.getItem("last_name") === null || sessionStorage.getItem("last_name") === "undefined") {
+            fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setTitle(res.recipe.title);
+                setChef(res.recipe.chef);
+                setDescription(res.recipe.description);
 
-        fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then((res) => res.json())
-        .then((res) => {
-            setTitle(res.recipe.title);
-            setChef(res.recipe.chef);
-            setDescription(res.recipe.description);
-            setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
-            setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
-            setTimestamp(res.recipe.timestamp);
-            setStars(res.recipe.stars);
+                const parsedIngredients = res.recipe.ingredients.map((ingredient, index) => ({
+                    id: uuidv4(),
+                    value: ingredient,
+                    quantity: res.recipe.quantities[index]
+                }));
 
-            if (res.recipe.image) {
-                setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
-            }
+                setIngredients(parsedIngredients);
+                setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                setTimestamp(res.recipe.timestamp);
+                setStars(res.recipe.stars);
+    
+                if (res.recipe.image) {
+                    setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
+                }
+    
+                if (res.owner === true) {
+                    setIsOwner(true);
+                }
+            })
+            .catch(err => console.log(err));
+        } else {
+            const data = {
+                username: sessionStorage.getItem("username")
+            };
+    
+            fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setTitle(res.recipe.title);
+                setChef(res.recipe.chef);
+                setDescription(res.recipe.description);
 
-            if (res.owner === true) {
-                setIsOwner(true);
-            }
-        })
-        .catch(err => console.log(err));
+                const parsedIngredients = res.recipe.ingredients.map((ingredient, index) => ({
+                    id: uuidv4(),
+                    value: ingredient,
+                    quantity: res.recipe.quantities[index]
+                }));
+                
+                setIngredients(parsedIngredients);
+                setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                setTimestamp(res.recipe.timestamp);
+                setStars(res.recipe.stars);
+    
+                if (res.recipe.image) {
+                    setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
+                }
+    
+                if (res.owner === true) {
+                    setIsOwner(true);
+                }
+            })
+            .catch(err => console.log(err));
+        }
 
     }, [id]);
 
@@ -117,7 +160,7 @@ const ViewRecipe = () => {
                     <p>Ingredients:</p>
                     <ul>
                         {ingredients.map((ingredient) => (
-                            <li key={ingredient.id} className="ingredient">{ingredient.value}</li>
+                            <li key={ingredient.id} className="ingredient">{ingredient.quantity} {ingredient.value}</li>
                         ))}
                     </ul>
                 </div>

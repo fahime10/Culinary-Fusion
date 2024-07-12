@@ -10,27 +10,38 @@ const EditRecipe = () => {
     const [chef, setChef] = useState("");
     const [checked, setChecked] = useState(false);
     const [description, setDescription] = useState("");
+    const [quantities, setQuantities] = useState([""]);
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`http://localhost:9000/api/recipes/${id}`, {
-            method: "GET"
+        const data = {
+            username: sessionStorage.getItem("username")
+        };
+
+        fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
         })
         .then((res) => res.json())
         .then((res) => {
-            setTitle(res.title);
-            setChef(res.chef);
-            setChecked(res.private);
-            setDescription(res.description);
-            setIngredients(res.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
-            setSteps(res.steps.map(step => ({ id: uuidv4(), value: step})));
+            setTitle(res.recipe.title);
+            setChef(res.recipe.chef);
+            setChecked(res.recipe.private);
+            setDescription(res.recipe.description);
+            setQuantities(res.recipe.quantities);
+            setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
+            setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
 
-            if (res.image) {
-                setImage(res.image);
-                setImageUrl(`data:image/jpeg;base64,${res.image}`);
+            if (res.recipe.image) {
+                setImage(res.recipe.image);
+                setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
             }
         })
         .catch(err => console.log(err));
@@ -66,25 +77,30 @@ const EditRecipe = () => {
         setDescription(e.target.value);
     }
 
-    function addIngredient() {
-        setIngredients([...ingredients, { id: uuidv4(), value: ""}]);
+    function handleQuantityChange(index, event) {
+        const newQuantities = [...quantities];
+        newQuantities[index] = event.target.value;
+        setQuantities(newQuantities);
     }
 
-    function removeIngredient(id) {
+    function addIngredient() {
+        setIngredients([...ingredients, { id: uuidv4(), value: ""}]);
+        setQuantities([...quantities, ""]);
+    }
+
+    function removeIngredient(index) {
         if (ingredients.length > 1) {
-            setIngredients(ingredients.filter(ingredient => ingredient.id !== id));
+            setIngredients(ingredients.filter((_, i) => i !== index));
+            setQuantities(quantities.filter((_, i) => i !== index));
         } else {
             setIngredients([{ ...ingredients[0], value: "" }]);
+            setQuantities([""]);
         }
     }
 
-    function handleIngredientsChange(id, event) {
-        const newIngredients = ingredients.map((ingredient) => {
-            if (ingredient.id === id) {
-                return { ...ingredient, value: event.target.value };
-            }
-            return ingredient;
-        });
+    function handleIngredientsChange(index, event) {
+        const newIngredients = [...ingredients];
+        newIngredients[index].value = event.target.value;
         setIngredients(newIngredients);
     }
 
@@ -110,12 +126,17 @@ const EditRecipe = () => {
         setSteps(newSteps);
     }
 
-    function handleSave() {
+    function handleSave(event) {
+        event.preventDefault();
+        
         const data = new FormData();
         data.append("title", title);
         data.append("image", image);
         data.append("chef", chef);
         data.append("description", description);
+        data.append("username", sessionStorage.getItem("username"));
+        data.append("private", checked);
+        data.append("quantities", JSON.stringify(quantities));
         data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
         data.append("steps", JSON.stringify(steps.map(step => step.value)));
 
@@ -128,7 +149,7 @@ const EditRecipe = () => {
         navigate(`/recipe/${id}`);
     }
 
-    function redirectToViewRecipe(id) {
+    function redirectToViewRecipe() {
         navigate(`/recipe/${id}`);
     }
 
@@ -138,21 +159,22 @@ const EditRecipe = () => {
                 <h1 className="title">Edit recipe</h1>
             </div>
             <div className="edit-recipe">
-                <form className="forms" onSubmit={(e) => e.preventDefault()}>
-                    <label>Title:
-                        <input 
-                            type="text"
-                            name="title"
-                            required={true}
-                            maxLength={50}
-                            value={title}
-                            onChange={handleTitle}
-                        />
-                    </label>
+            <form className="forms" onSubmit={(event) => handleSave(event)}>
+                    <label htmlFor="edit-title">Title:</label>
+                    <textarea
+                        id="edit-title"
+                        name="title"
+                        required={true}
+                        value={title}
+                        rows={2}
+                        cols={30}
+                        maxLength={50}
+                        onChange={handleTitle}
+                    />
                     <label htmlFor="image-file">Image:</label>
-                    {imageUrl && <img src={imageUrl} style={{ width: "200px", height: "200px"}} />}
+                    {imageUrl && <img src={imageUrl} style={{ width: "200px", height: "200px" }} className="image-file" />}
                     <input
-                        id="image-file" 
+                        id="image-file"
                         type="file" 
                         onChange={handleImage} 
                     />
@@ -181,30 +203,39 @@ const EditRecipe = () => {
                         value={description}
                         onChange={handleDescription}
                     />
-                    <div className="edit-recipe-ingredients">
+                    <div className="add-recipe-ingredients">
                         <label htmlFor="ingredients">Ingredients:</label>
-                        {ingredients.map((ingredient) => (
-                            <div key={ingredient.id}>
+                        {ingredients.map((ingredient, index) => (
+                            <div key={ingredient.id} className="ingredients">
                                 <input 
+                                    type="text" 
+                                    name="quantity"
+                                    className="ingredient"
+                                    value={quantities[index]}
+                                    onChange={(event) => handleQuantityChange(index, event)}
+                                    placeholder="Quantity"
+                                />
+                                <textarea 
                                     id="ingredients"
-                                    type="text"
                                     className="ingredient"
                                     name="ingredients"
+                                    cols={20}
                                     value={ingredient.value}
                                     required={true}
-                                    onChange={(event) => handleIngredientsChange(ingredient.id, event)}
+                                    placeholder="Ingredient name"
+                                    onChange={(event) => handleIngredientsChange(index, event)}
                                 />
-                                <button onClick={() => removeIngredient(ingredient.id)}>Delete</button>
+                                <button type="button" onClick={() => removeIngredient(index)}>Delete</button>
                             </div>
                         ))}
-                        <button onClick={addIngredient}>Add one more ingredient</button>
+                        <button type="button" className="add" onClick={addIngredient}>Add one more ingredient</button>
                     </div>
-                    <div className="edit-recipe-steps">
+                    <div className="add-recipe-steps">
                         <label htmlFor="steps">Steps:</label>
                         {steps.map((step) => (
                             <div key={step.id}>
-                                <input
-                                    id="steps" 
+                                <input 
+                                    id="steps"
                                     type="text"
                                     className="step"
                                     name="steps"
@@ -212,13 +243,13 @@ const EditRecipe = () => {
                                     required={true}
                                     onChange={(event) => handleStepsChange(step.id, event)}
                                 />
-                                <button onClick={() => removeStep(step.id)}>Delete</button>
-                            </div>
+                                <button type="button" onClick={() => removeStep(step.id)}>Delete</button>
+                            </div> 
                         ))}
-                        <button onClick={addStep}>Add one more step</button>
+                        <button type="button" className="add" onClick={addStep}>Add one more step</button>
                     </div>
-                    <button type="button" onClick={() => {handleSave(); redirectToViewRecipe(id);}}>Save</button>
-                    <button type="button" onClick={() => navigate(-1)}>Cancel</button>
+                    <button type="submit">Save</button>
+                    <button type="button" className="cancel" onClick={redirectToViewRecipe}>Cancel</button>
                 </form>
             </div>
         </>

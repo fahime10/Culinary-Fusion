@@ -9,6 +9,7 @@ const RecipeSchema = new Schema({
     chef: { type: String, required: true },
     private: { type: Boolean, default: false },
     description: { type: String, required: true },
+    quantities: { type: [String] },
     ingredients: { type: [String], required: true },
     steps: { type: [String], required : true },
     timestamp: { type: Date, default: Date.now, required: true },

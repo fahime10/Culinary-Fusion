@@ -47,18 +47,23 @@ exports.login_user = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username });
 
         if (!user) {
-            res.send({ error: "Incorrect credentials" });
+            res.status(401).send({ error: "Incorrect credentials" });
             return;
         }
 
         const match = await bcrypt.compare(password, user.password);
 
         if (!match) {
-            res.send({ error: "Incorrect credentials" });
+            res.status(401).send({ error: "Incorrect credentials" });
             return;
         }
 
-        res.status(200).send({ username: user.username, name_title: user.name_title, last_name: user.last_name });
+        res.status(200).send({ 
+            username: user.username, 
+            name_title: user.name_title, 
+            last_name: user.last_name,
+            status: 200
+        });
 
     } catch (err) {
         console.log(err);

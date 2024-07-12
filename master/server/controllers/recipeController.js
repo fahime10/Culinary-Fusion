@@ -1,7 +1,9 @@
 const Recipe = require("../models/recipeModel");
 const User = require('../models/userModel');
+const Ingredient = require('../models/ingredientModel');
 const asyncHandler = require("express-async-handler");
 const multer = require("multer");
+const { index } = require("./indexController");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -10,7 +12,7 @@ exports.upload = upload.single('image');
 
 exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
-        const { title, chef, username, description, private, ingredients, steps, test } = req.body;
+        const { title, chef, username, description, private, quantities, ingredients, steps, test } = req.body;
         
         let image = null;
         if (req.file.buffer) {
@@ -20,6 +22,8 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username });
         const user_id = user._id;
 
+        let newIngredients = JSON.parse(ingredients);
+
         const newRecipe = new Recipe({
             user_id,
             title,
@@ -27,6 +31,7 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             chef,
             private,
             description,
+            quantities: JSON.parse(quantities),
             ingredients: JSON.parse(ingredients),
             steps: JSON.parse(steps),
             timestamp: new Date(),
@@ -35,6 +40,14 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
         });
 
         const saveRecipe = await newRecipe.save();
+
+        for (let ingredient of newIngredients) {
+            const newIngredient = await Ingredient({
+                recipe_id: saveRecipe._id,
+                ingredient: ingredient
+            });
+            await newIngredient.save();
+        }
         
         res.status(200).json(saveRecipe);
 
@@ -104,6 +117,14 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     
     try {
+        const recipe = await Recipe.findById(id);
+
+        if (!recipe) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+
+        await Ingredient.deleteMany({ recipe_id: id });
+
         await Recipe.findByIdAndDelete(id);
 
         res.sendStatus(200);
@@ -131,8 +152,10 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
 
         const user = await User.findOne({ username: username });
 
-        if (user._id.toString() === recipe.user_id.toString()) {
-            res.status(200).json({ recipe: recipeObj, owner: true });
+        if (user) {
+            if (user._id.toString() === recipe.user_id.toString()) {
+                res.status(200).json({ recipe: recipeObj, owner: true });
+            }
         } else {
             res.status(200).json({ recipe: recipeObj, owner: false });
         }
@@ -145,7 +168,7 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
 exports.recipe_edit = asyncHandler(async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { title, chef, description, ingredients, steps } = req.body;
+        const { title, chef, description, quantities, ingredients, steps } = req.body;
 
         let image = null;
         if (req.file && req.file.buffer) {
@@ -156,6 +179,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             title,
             chef,
             description,
+            quantities: JSON.parse(quantities),
             ingredients: JSON.parse(ingredients),
             steps: JSON.parse(steps)
         };
