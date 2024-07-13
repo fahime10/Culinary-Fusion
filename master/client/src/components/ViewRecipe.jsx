@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import  Dialog from "./Dialog";
 import { v4 as uuidv4 } from "uuid";
+import NoImageIcon from "../assets/no-image.png";
 //import { dataStructRecipe } from "./recipeDataStructure.js";
 
 const ViewRecipe = () => {
@@ -14,6 +15,9 @@ const ViewRecipe = () => {
     const [description, setDescription] = useState("");
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: "", quantity: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
+    const [categories, setCategories] = useState([""]);
+    const [cuisineTypes, setCuisineTypes] = useState([""]);
+    const [allergens, setAllergens] = useState([""]);
     const [timestamp, setTimestamp] = useState(null);
     const [stars, setStars] = useState();
 
@@ -44,6 +48,9 @@ const ViewRecipe = () => {
 
                 setIngredients(parsedIngredients);
                 setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                setCategories(res.recipe.categories);
+                setCuisineTypes(res.recipe.cuisine_types);
+                setAllergens(res.recipe.allergens);
                 setTimestamp(res.recipe.timestamp);
                 setStars(res.recipe.stars);
     
@@ -83,9 +90,12 @@ const ViewRecipe = () => {
                 
                 setIngredients(parsedIngredients);
                 setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                setCategories(res.recipe.categories);
+                setCuisineTypes(res.recipe.cuisine_types);
+                setAllergens(res.recipe.allergens);
                 setTimestamp(res.recipe.timestamp);
                 setStars(res.recipe.stars);
-    
+
                 if (res.recipe.image) {
                     setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
                 }
@@ -153,7 +163,7 @@ const ViewRecipe = () => {
             <div className="recipe-details">
                 <h1>{title}</h1>
                 <p>Stars: {stars}</p>
-                {imageUrl && <img src={imageUrl} /> }
+                {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
                 <p>{description}</p>
                 <p>Chef/s: {chef}</p>
                 <div className="ingredient-list">
@@ -173,6 +183,30 @@ const ViewRecipe = () => {
                     </ul>
                 </div>
                 <p>Added: {formatDate(timestamp)}</p>
+                <div>
+                    <p>Categories:</p>
+                    <ul>
+                        {categories.map((category) => (
+                            <li key={category} className="category">{category}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div>
+                    <p>Cuisine types:</p>
+                    <ul>
+                        {cuisineTypes.map((cuisineType) => (
+                            <li key={cuisineType} className="cuisine">{cuisineType}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div>
+                    <p>Allergens:</p>
+                    <ul>
+                        {allergens.map((allergen) => (
+                            <li key={allergen} className="allergen">{allergen}</li>
+                        ))}
+                    </ul>
+                </div>
             </div>
         </>
     );

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { dataStructRecipe } from "./recipeDataStructure.js";
 import SearchIcon from "../assets/search-icon.png";
+import NoImageIcon from "../assets/no-image.png";
 import MenuContainer from "./MenuContainer.jsx";
 
 const HomePage = () => {
@@ -134,9 +135,11 @@ const HomePage = () => {
                 {recipes.map((recipe) => (
                     <div key={recipe._id} id={recipe._id} className="recipe" onClick={() => viewRecipe(recipe._id)}>
                         <div className="recipe-title">{recipe.title}</div>
-                        <img
-                            src={`data:image/jpeg;base64,${recipe.image}`}
-                        />
+                        {recipe.image !== null || recipe.image ? (
+                            <img
+                                src={`data:image/jpeg;base64,${recipe.image}`}
+                            />
+                        ) : <img src={NoImageIcon} />}
                         <p className="description">{recipe.description}</p>
                     </div>
                 ))}

@@ -263,6 +263,22 @@ button:hover {
     width: 9rem;
 }
 
+.box {
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.box .box-title {
+    background-color: rgb(6, 208, 6);
+    padding: 0.5rem 0;
+}
+
+.checkboxes {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
 .add {
     align-self: center;
     margin-top: 1rem;

@@ -14,6 +14,65 @@ const EditRecipe = () => {
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
 
+    const [categories, setCategories] = useState({
+       "Appetizer": false,
+       "Salad": false,
+       "Soup": false,
+       "Main Course": false,
+       "Side dish": false,
+       "Dessert": false,
+       "Beverage": false, 
+       "Breads": false,
+       "Snack": false,
+       "Sandwich": false,
+       "Pasta and Noodles": false,
+       "Rice and Grains": false,
+       "Vegetarian and Vegan": false,
+       "Gluten-free": false,
+       "Dairy-free": false,
+       "Low carb": false,
+       "High protein": false,
+       "Quick and Easy": false,
+       "One Pot Meal": false,
+       "Barbecue": false
+    });
+
+    const [cuisineTypes, setCuisineTypes] = useState({
+        "Italian": false,
+        "Mexican": false,
+        "Chinese": false,
+        "Indian": false,
+        "Japanese": false,
+        "French": false,
+        "English": false,
+        "Thai": false,
+        "Greek": false,
+        "Spanish": false,
+        "Mediterranean": false,
+        "Korean": false,
+        "Vietnamese": false,
+        "Lebanese": false,
+        "Moroccan": false,
+        "Caribbean": false
+    });
+
+    const [allergens, setAllergens] = useState({
+        "Celery": false,
+        "Cereals containing gluten": false,
+        "Crustaceans (prawns, crabs, lobster)": false,
+        "Eggs": false,
+        "Milk": false,
+        "Fish": false,
+        "Lupin": false,
+        "Molluscs": false,
+        "Mustard": false,
+        "Peanuts": false,
+        "Sesame": false,
+        "Soybeans": false,
+        "Sulphur dioxide": false,
+        "Tree nuts (almonds, hazelnuts, walnuts, ...)": false
+    });
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,6 +97,30 @@ const EditRecipe = () => {
             setQuantities(res.recipe.quantities);
             setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
             setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+            
+            const categoryCheckedBoxes = { ...categories };
+            res.recipe.categories.forEach(category => {
+                if (Object.prototype.hasOwnProperty.call(categoryCheckedBoxes, category)) {
+                    categoryCheckedBoxes[category] = true;
+                }
+            });
+            setCategories(categoryCheckedBoxes);
+
+            const cuisineCheckboxes = { ...cuisineTypes };
+            res.recipe.cuisine_types.forEach(cuisineType => {
+                if (Object.prototype.hasOwnProperty.call(cuisineCheckboxes, cuisineType)) {
+                    cuisineCheckboxes[cuisineType] = true;
+                }
+            });
+            setCuisineTypes(cuisineCheckboxes);
+            
+            const allergensCheckboxes = { ...allergens };
+            res.recipe.allergens.forEach(allergen => {
+                if (Object.prototype.hasOwnProperty.call(allergensCheckboxes, allergen)) {
+                    allergensCheckboxes[allergen] = true;
+                }
+            });
+            setAllergens(allergensCheckboxes);
 
             if (res.recipe.image) {
                 setImage(res.recipe.image);
@@ -45,6 +128,7 @@ const EditRecipe = () => {
             }
         })
         .catch(err => console.log(err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     function handleTitle(e) {
@@ -126,8 +210,37 @@ const EditRecipe = () => {
         setSteps(newSteps);
     }
 
+    function handleCheckboxChange(group, name) {
+        switch(group) {
+            case "categories":
+                setCategories(prevState => ({
+                    ...prevState,
+                    [name]: !prevState[name]
+                }));
+                break;
+            case "cuisineTypes":
+                setCuisineTypes(prevState => ({
+                    ...prevState,
+                    [name]: !prevState[name]
+                }));
+                break;
+            case "allergens":
+                setAllergens(prevState => ({
+                    ...prevState,
+                    [name]: !prevState[name]
+                }));
+                break;
+            default:
+                break;
+        }
+    }
+
     function handleSave(event) {
         event.preventDefault();
+
+        const selectedCategories = Object.keys(categories).filter(key => categories[key]);
+        const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
+        const selectedAllergens = Object.keys(allergens).filter(key => allergens[key]);
         
         const data = new FormData();
         data.append("title", title);
@@ -139,6 +252,9 @@ const EditRecipe = () => {
         data.append("quantities", JSON.stringify(quantities));
         data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
         data.append("steps", JSON.stringify(steps.map(step => step.value)));
+        data.append("categories", JSON.stringify(selectedCategories));
+        data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
+        data.append("allergens", JSON.stringify(selectedAllergens));
 
         fetch(`http://localhost:9000/api/recipes/edit-recipe/${id}`, {
             method: "POST",
@@ -248,6 +364,51 @@ const EditRecipe = () => {
                             </div> 
                         ))}
                         <button type="button" className="add" onClick={addStep}>Add one more step</button>
+                    </div>
+                    <div className="box">
+                        <div className="box-title">Categories:</div>
+                        <div className="checkboxes">
+                            {Object.keys(categories).map(category => (
+                                <label key={category}>
+                                    <input  
+                                        type="checkbox"
+                                        checked={categories[category]}
+                                        onChange={() => handleCheckboxChange("categories", category)}
+                                    />
+                                    {category}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="box">
+                        <div className="box-title">Cuisine types:</div>
+                        <div className="checkboxes">
+                            {Object.keys(cuisineTypes).map(cuisineType => (
+                                <label key={cuisineType}>
+                                    <input  
+                                        type="checkbox"
+                                        checked={cuisineTypes[cuisineType]}
+                                        onChange={() => handleCheckboxChange("cuisineTypes", cuisineType)}
+                                    />
+                                    {cuisineType}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="box">
+                        <div className="box-title">Allergens:</div>
+                        <div className="checkboxes">
+                            {Object.keys(allergens).map(allergen => (
+                                <label key={allergen}>
+                                    <input  
+                                        type="checkbox"
+                                        checked={allergens[allergen]}
+                                        onChange={() => handleCheckboxChange("allergens", allergen)}
+                                    />
+                                    {allergen}
+                                </label>
+                            ))}
+                        </div>
                     </div>
                     <button type="submit">Save</button>
                     <button type="button" className="cancel" onClick={redirectToViewRecipe}>Cancel</button>

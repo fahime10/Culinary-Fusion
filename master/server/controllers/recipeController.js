@@ -12,17 +12,35 @@ exports.upload = upload.single('image');
 
 exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
-        const { title, chef, username, description, isPrivate, quantities, ingredients, steps, test } = req.body;
+        const { title, chef, username, description, isPrivate, quantities, ingredients, steps, categories, cuisine_types, allergens, test } = req.body;
         
         let image = null;
-        if (req.file.buffer) {
+        if (req.file && req.file.buffer) {
             image = req.file.buffer;
         }
 
         const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
         const user_id = user._id;
 
         let newIngredients = JSON.parse(ingredients);
+
+        let newCategories = [];
+        if (categories) {
+            newCategories = JSON.parse(categories);
+        }
+
+        let newCuisineTypes = [];
+        if (cuisine_types) {
+            newCuisineTypes = JSON.parse(cuisine_types);
+        }
+
+        let newAllergens = [];
+        if (allergens) {
+            newAllergens = JSON.parse(allergens);
+        }
 
         const newRecipe = new Recipe({
             user_id,
@@ -32,8 +50,11 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             private: isPrivate,
             description,
             quantities: JSON.parse(quantities),
-            ingredients: JSON.parse(ingredients),
+            ingredients: newIngredients,
             steps: JSON.parse(steps),
+            categories: newCategories,
+            cuisine_types: newCuisineTypes,
+            allergens: newAllergens,
             timestamp: new Date(),
             stars: 0,
             test
@@ -57,6 +78,7 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
     }
 });
 
+
 exports.recipes_get_all = asyncHandler(async (req, res, next) => {
     try {
         const allRecipes = await Recipe.find({ private: false }).exec();
@@ -64,7 +86,9 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
         // Retrieve all Base64 images from each record
         const Base64Images = allRecipes.map(recipe => {
             const recipeObj = recipe.toObject();
-            recipeObj.image = recipe.image.toString('base64');
+            if (recipe.image) {
+                recipeObj.image = recipe.image.toString('base64');
+            }
             return recipeObj;
         });
 
@@ -103,7 +127,9 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
 
         const Base64Images = distinctRecipes.map(recipe => {
             const recipeObj = recipe.toObject();
-            recipeObj.image = recipe.image.toString('base64');
+            if (recipe.image) {
+                recipeObj.image = recipe.image.toString('base64');
+            }
             return recipeObj;
         });
 
@@ -172,11 +198,26 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
 exports.recipe_edit = asyncHandler(async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { title, chef, description, quantities, ingredients, steps } = req.body;
+        const { title, chef, username, description, isPrivate, quantities, ingredients, steps, categories, cuisine_types, allergens } = req.body;
 
         let image = null;
         if (req.file && req.file.buffer) {
             image = req.file.buffer;
+        }
+
+        let newCategories = [];
+        if (categories) {
+            newCategories = JSON.parse(categories);
+        }
+
+        let newCuisineTypes = [];
+        if (cuisine_types) {
+            newCuisineTypes = JSON.parse(cuisine_types);
+        }
+
+        let newAllergens = [];
+        if (allergens) {
+            newAllergens = JSON.parse(allergens);
         }
 
         const updatedData = {
@@ -185,7 +226,10 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             description,
             quantities: JSON.parse(quantities),
             ingredients: JSON.parse(ingredients),
-            steps: JSON.parse(steps)
+            steps: JSON.parse(steps),
+            categories: newCategories,
+            cuisine_types: newCuisineTypes,
+            allergens: newAllergens
         };
 
         if (image) {
