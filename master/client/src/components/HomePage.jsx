@@ -78,15 +78,20 @@ const HomePage = () => {
     }
 
     function findRecipe(searchRecipe) {
-        if (searchRecipe !== "") {
-            const data = new FormData();
-            data.append("username", sessionStorage.getItem("username"));
-            data.append("last_name", lastName);
-            data.append("name_title", nameTitle);
+        if (searchRecipe.trim() !== "") {
+            const data = {
+                username: sessionStorage.getItem("username"),
+                last_name: sessionStorage.getItem("last_name"),
+                name_title: sessionStorage.getItem("name_title"),
+            };
 
             fetch(`http://localhost:9000/api/recipes/search/${searchRecipe}`, {
                 method: "POST",
-                body: data
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
             })
             .then((res) => res.json())
             .then((res) => setRecipes(res))

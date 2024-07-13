@@ -48,7 +48,7 @@ describe('Testing Recipe API', () => {
                 .field('title', 'Scrambled eggs')
                 .field('chef', 'John')
                 .field('username', 'james12345678901234')
-                .field('isPrivate', false)
+                .field('private', false)
                 .field('description', 'Simple, nutritious recipe')
                 .field('quantities', JSON.stringify(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']))
                 .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
@@ -59,7 +59,7 @@ describe('Testing Recipe API', () => {
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty('title', 'Scrambled eggs');
             expect(res.body).toHaveProperty('chef', 'John');
-            expect(res.body).toHaveProperty('isPrivate', false);
+            expect(res.body).toHaveProperty('private', false);
             expect(res.body).toHaveProperty('description', 'Simple, nutritious recipe');
             expect(res.body.quantities).toEqual(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']);
             expect(res.body.ingredients).toEqual(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']);

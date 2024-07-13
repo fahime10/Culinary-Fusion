@@ -198,13 +198,15 @@ const AddRecipe = () => {
                     <div className="add-recipe-steps">
                         <label htmlFor="steps">Steps:</label>
                         {steps.map((step) => (
-                            <div key={step.id}>
-                                <input 
+                            <div key={step.id} htmlFor="steps" className="steps">
+                                <textarea 
                                     id="steps"
                                     type="text"
                                     className="step"
                                     name="steps"
                                     value={step.value}
+                                    rows={5}
+                                    cols={30}
                                     required={true}
                                     onChange={(event) => handleStepsChange(step.id, event)}
                                 />

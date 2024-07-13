@@ -203,7 +203,7 @@ const EditRecipe = () => {
                         value={description}
                         onChange={handleDescription}
                     />
-                    <div className="add-recipe-ingredients">
+                    <div className="edit-recipe-ingredients">
                         <label htmlFor="ingredients">Ingredients:</label>
                         {ingredients.map((ingredient, index) => (
                             <div key={ingredient.id} className="ingredients">
@@ -230,15 +230,16 @@ const EditRecipe = () => {
                         ))}
                         <button type="button" className="add" onClick={addIngredient}>Add one more ingredient</button>
                     </div>
-                    <div className="add-recipe-steps">
+                    <div className="edit-recipe-steps">
                         <label htmlFor="steps">Steps:</label>
                         {steps.map((step) => (
-                            <div key={step.id}>
-                                <input 
+                            <div key={step.id} htmlFor="steps" className="steps">
+                                <textarea 
                                     id="steps"
-                                    type="text"
                                     className="step"
                                     name="steps"
+                                    rows={5}
+                                    cols={30}
                                     value={step.value}
                                     required={true}
                                     onChange={(event) => handleStepsChange(step.id, event)}

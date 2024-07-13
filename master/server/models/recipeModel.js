@@ -7,7 +7,7 @@ const RecipeSchema = new Schema({
     title: { type: String, minLength: 1, maxLength: 100, required: true },
     image: { type: Buffer },
     chef: { type: String, required: true },
-    isPrivate: { type: Boolean, default: false },
+    private: { type: Boolean, default: false },
     description: { type: String, required: true },
     quantities: { type: [String] },
     ingredients: { type: [String], required: true },

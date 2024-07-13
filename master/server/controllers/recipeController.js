@@ -156,6 +156,8 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
         if (user) {
             if (user._id.toString() === recipe.user_id.toString()) {
                 res.status(200).json({ recipe: recipeObj, owner: true });
+            } else {
+                res.status(200).json({ recipe: recipeObj, owner: false });
             }
         } else {
             res.status(200).json({ recipe: recipeObj, owner: false });
@@ -206,7 +208,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
 exports.search_recipe = asyncHandler(async (req, res, next) => {
     try {
         const { search } = req.params;
-
+        
         const { username, last_name, name_title } = req.body;
 
         let user = null;
@@ -216,12 +218,25 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
 
         const publicRecipes = await Recipe.find({ title: new RegExp(search, 'i'), private: false });
 
-        let userRecipes = [];
-        if (user) {
-            userRecipes = await Recipe.find({ user_id: user._id, title: new RegExp(search, 'i') });
+        const byIngredients = await Ingredient.find({ ingredient: new RegExp(search, 'i') }).populate('recipe_id');
+
+        let ingredientRecipes = [];
+        if (byIngredients.length > 0) {
+            ingredientRecipes = byIngredients.map(ingredient => ingredient.recipe_id).filter(recipe => !recipe.private);
         }
 
-        const recipes = [...publicRecipes, ...userRecipes];
+        let userRecipesByTitle = [];
+        let userRecipesByIngredients = [];
+
+        if (user) {
+            userRecipesByTitle = await Recipe.find({ user_id: user._id, title: new RegExp(search, 'i') });
+            
+            userRecipesByIngredients = byIngredients
+                .map(ingredient => ingredient.recipe_id)
+                .filter(recipe => recipe && recipe.user_id.toString() === user._id.toString() && recipe.private === true);
+        }
+
+        const recipes = [...publicRecipes, ...ingredientRecipes, ...userRecipesByTitle, ...userRecipesByIngredients];
 
         if (!recipes) {
             return;
