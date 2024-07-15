@@ -15,6 +15,8 @@ router.post('/recipes/:username', recipe_controller.recipe_get_own);
 
 router.post('/recipes/search/:search', recipe_controller.search_recipe);
 
+router.post('/recipes/filter/set', recipe_controller.filter_recipes);
+
 router.delete('/recipes/delete-recipe/:id', recipe_controller.recipe_delete);
 
 router.post('/recipes/recipe/:id', recipe_controller.get_recipe);

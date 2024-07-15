@@ -1,5 +1,6 @@
-import "../dialog.css";
 import { useRef, useEffect } from "react";
+import PropTypes from "prop-types";
+import "../dialog.css";
 
 const Dialog = ({ isOpen, onClose, title, content, funct }) => {
     const ref = useRef(null);
@@ -30,5 +31,13 @@ const Dialog = ({ isOpen, onClose, title, content, funct }) => {
         </>
     );
 }
+
+Dialog.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.bool.isRequired,
+    title: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired,
+    funct: PropTypes.func.isRequired
+};
 
 export default Dialog;

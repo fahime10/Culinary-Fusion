@@ -10,6 +10,32 @@ const upload = multer({ storage: storage });
 
 exports.upload = upload.single('image');
 
+const makeDistinct = (collection) => {
+    const distinctItems = [];
+    const seenIds = new Set();
+
+    for (const item of collection) {
+        if (!seenIds.has(item._id.toString())) {
+            seenIds.add(item._id.toString());
+            distinctItems.push(item);
+        }
+    }
+
+    return distinctItems;
+}
+
+const convertToObjects = (collection) => {
+    const objects = collection.map(item => {
+        const itemObj = item.toObject();
+        if (item.image) {
+            itemObj.image = item.image.toString('base64');
+        }
+        return itemObj;
+    });
+
+    return objects;
+}
+
 exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
         const { title, chef, username, description, isPrivate, quantities, ingredients, steps, categories, cuisine_types, allergens, test } = req.body;
@@ -83,16 +109,9 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
     try {
         const allRecipes = await Recipe.find({ private: false }).exec();
 
-        // Retrieve all Base64 images from each record
-        const Base64Images = allRecipes.map(recipe => {
-            const recipeObj = recipe.toObject();
-            if (recipe.image) {
-                recipeObj.image = recipe.image.toString('base64');
-            }
-            return recipeObj;
-        });
+        const result = convertToObjects(allRecipes);
 
-        res.status(200).json(Base64Images);
+        res.status(200).json(result);
 
     } catch (err) {
         res.status(400).json({ error: 'Something went wrong' });
@@ -107,6 +126,7 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username });
 
         if (!user) {
+            console.log(user);
             return res.status(404).json({ error: 'User not found' });
         }
 
@@ -115,25 +135,11 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
 
         const recipes = [...publicRecipes, ...userRecipes];
 
-        const distinctRecipes = [];
-        const seenIds = new Set();
+        const distinctRecipes = makeDistinct(recipes);
 
-        for (const recipe of recipes) {
-            if (!seenIds.has(recipe._id.toString())) {
-                seenIds.add(recipe._id.toString());
-                distinctRecipes.push(recipe);
-            }
-        }
+        const result = convertToObjects(distinctRecipes);
 
-        const Base64Images = distinctRecipes.map(recipe => {
-            const recipeObj = recipe.toObject();
-            if (recipe.image) {
-                recipeObj.image = recipe.image.toString('base64');
-            }
-            return recipeObj;
-        });
-
-        res.status(200).json(Base64Images);
+        res.status(200).json(result);
 
     } catch (err) {
         res.status(404).json({ error: err.message });
@@ -286,25 +292,56 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
             return;
         }
 
-        const distinctRecipes = [];
-        const seenIds = new Set();
+        const distinctRecipes = makeDistinct(recipes);
 
-        for (const recipe of recipes) {
-            if (!seenIds.has(recipe._id.toString())) {
-                seenIds.add(recipe._id.toString());
-                distinctRecipes.push(recipe);
+        const result = convertToObjects(distinctRecipes);
+
+        res.status(200).json(result);
+
+    } catch (err) {
+        res.status(404).json({ error: err.message });
+    }
+});
+
+exports.filter_recipes = asyncHandler(async (req, res, next) => {
+    const { username, categories, cuisine_types } = req.body;
+
+    try {
+        let filterConditions = { private: false };
+
+        if (categories.length > 0) {
+            filterConditions.categories = { $in: categories };
+        }
+
+        if (cuisine_types.length > 0) {
+            filterConditions.cuisine_types = { $in: cuisine_types };
+        }
+
+        let recipes = await Recipe.find(filterConditions);
+
+        if (username) {
+            const user = await User.findOne({ username: username });
+
+            if (user) {
+                const userFilter = {
+                    ...filterConditions,
+                    user_id: user._id
+                };
+
+                const userRecipes = await Recipe.find(userFilter);
+
+                recipes = [...recipes, ...userRecipes];
             }
         }
 
-        const Base64Images = distinctRecipes.map(recipe => {
-            const recipeObj = recipe.toObject();
-            recipeObj.image = recipe.image.toString('base64');
-            return recipeObj;
-        });
+        const distinctRecipes = makeDistinct(recipes);
 
-        res.status(200).json(Base64Images);
+        const result = convertToObjects(distinctRecipes);
+
+        res.status(200).json({ recipes: result, status: 200 });
 
     } catch (err) {
+        console.log(err);
         res.status(404).json({ error: err.message });
     }
 });
@@ -321,13 +358,9 @@ exports.personal_recipes = asyncHandler(async (req, res, next) => {
 
         const userRecipes = await Recipe.find({ user_id: user._id });
 
-        const Base64Images = userRecipes.map(recipe => {
-            const recipeObj = recipe.toObject();
-            recipeObj.image = recipe.image.toString('base64');
-            return recipeObj;
-        });
+        const result = convertToObjects(userRecipes);
 
-        res.status(200).json(Base64Images);
+        res.status(200).json(result);
 
     } catch (err) {
         console.log(err);
