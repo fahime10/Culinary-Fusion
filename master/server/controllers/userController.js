@@ -8,9 +8,13 @@ exports.add_user = asyncHandler(async (req, res, next) => {
                 preferred_cuisine_types, allergies, test } = req.body;
 
         const user = await User.findOne({ username: username });
-            
+        
+        if (!name_title || !first_name || !last_name || !username || !req.body.password) {
+            return res.status(400).json({ error: 'All fields must be filled' });
+        }
+
         if (user) {
-            return res.json({ error: "Username is already taken" });
+            return res.status(400).json({ error: 'Username is already taken' });
         } else {
             let password = req.body.password;
             bcrypt.hash(password, 10, async (err, hashedPassword) => {

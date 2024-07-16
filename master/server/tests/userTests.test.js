@@ -29,7 +29,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'james123456789012345',
                 password: 'pass',
-                dietary_preferences: '',
+                dietary_preferences: [],
                 test: true
             }
             
@@ -43,19 +43,41 @@ describe('Testing User API', () => {
             expect(res.body).toHaveProperty('first_name', 'James');
             expect(res.body).toHaveProperty('last_name', 'Smith');
             expect(res.body).toHaveProperty('username', 'james123456789012345');
+            expect(res.body.dietary_preferences).toEqual([]);
             expect(res.body).toHaveProperty('test', true);
         });
     });
 
+    describe('Test POST /api/users/add-user', () => {
+        it('should not add new user (username missing)', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: '',
+                password: 'pass',
+                dietary_preferences: [],
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(400);
+        });
+    });
+
     describe('Test POST /api/users/login', () => {
-        it('should add new user', async () => {
+        it('should login', async () => {
             const data = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
                 username: 'james12345678901',
                 password: 'pass',
-                dietary_preferences: '',
+                dietary_preferences: [],
                 test: true
             }
             
@@ -80,15 +102,49 @@ describe('Testing User API', () => {
         });
     });
 
+    describe('Test POST /api/users/login', () => {
+        it('should not login (wrong username)', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'james12345678901',
+                password: 'pass',
+                dietary_preferences: [],
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+
+            const newData = {
+                username: 'james12345678',
+                password: 'pass'
+            }
+
+            const newRes = await request
+                .post('/api/users/login')
+                .set('Content-Type', 'application/json')
+                .send(newData);
+
+            // expect automatic 401 to indicate unauthorized access
+            expect(newRes.status).toBe(401);
+        });
+    });
+
     describe('Test POST /api/users/:username', () => {
-        it('should add new user', async () => {
+        it('should provide user details', async () => {
             const data = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
                 username: 'jAmEs123456789012345',
                 password: 'pass',
-                dietary_preferences: '',
+                dietary_preferences: [],
                 test: true
             }
             
@@ -107,7 +163,7 @@ describe('Testing User API', () => {
             expect(newRes.body).toHaveProperty('first_name', 'James');
             expect(newRes.body).toHaveProperty('last_name', 'Smith');
             expect(newRes.body).toHaveProperty('username', 'jAmEs123456789012345');
-            expect(newRes.body).toHaveProperty('dietary_preferences', '');
+            expect(newRes.body.dietary_preferences).toEqual([]);
         });
     });
 
@@ -119,7 +175,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'jAs123456789012345',
                 password: 'pass',
-                dietary_preferences: '',
+                dietary_preferences: [],
                 test: true
             }
             
@@ -142,7 +198,7 @@ describe('Testing User API', () => {
                 last_name: 'S',
                 username: 'jAs123456789012345',
                 password: 'pass',
-                dietary_preferences: 'none',
+                dietary_preferences: ['Dairy-free'],
                 test: true
             }
 

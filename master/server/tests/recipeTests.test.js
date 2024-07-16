@@ -33,7 +33,7 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'james12345678901234',
                 password: 'pass',
-                dietary_preferences: '',
+                dietary_preferences: [],
                 test: true
             }
             
@@ -79,6 +79,75 @@ describe('Testing Recipe API', () => {
         });
     });
 
+    describe('Test POST /api/recipes/add-recipe', () => {
+        it('should not add new recipe (missing required title)', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'james12345678901234',
+                password: 'pass',
+                dietary_preferences: [],
+                test: true
+            }
+            
+            const user = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            const res = await request
+                .post('/api/recipes/add-recipe')
+                .set('Content-Type', 'multipart/form-data')
+                .field('chef', 'John')
+                .field('username', 'james12345678901234')
+                .field('private', false)
+                .field('description', 'Simple, nutritious recipe')
+                .field('quantities', JSON.stringify(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']))
+                .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
+                .field('steps', JSON.stringify(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']))
+                .field('test', true)
+                .attach('image', Buffer.from('test image'), 'test-image.jpg');
+
+            expect(res.status).toBe(400);
+        });
+    });
+
+    describe('Test POST /api/recipes/add-recipe', () => {
+        it('should not add new recipe (missing required username)', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'James',
+                last_name: 'Smith',
+                username: 'james12345678901234',
+                password: 'pass',
+                dietary_preferences: [],
+                test: true
+            }
+            
+            const user = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            const res = await request
+                .post('/api/recipes/add-recipe')
+                .set('Content-Type', 'multipart/form-data')
+                .field('title', 'Scrambled eggs')
+                .field('chef', 'John')
+                .field('private', false)
+                .field('description', 'Simple, nutritious recipe')
+                .field('quantities', JSON.stringify(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']))
+                .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
+                .field('steps', JSON.stringify(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']))
+                .field('test', true)
+                .attach('image', Buffer.from('test image'), 'test-image.jpg');
+
+            // expect automatic 404 status because username is not found
+            expect(res.status).toBe(404);
+        });
+    });
+
     describe('Test DELETE /api/recipes/delete-recipe/:id', () => {
         it('should delete recipe', async () => {
             const data = {
@@ -87,7 +156,7 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'james1234567890123',
                 password: 'pass',
-                dietary_preferences: '',
+                dietary_preferences: [],
                 test: true
             }
             
@@ -131,7 +200,7 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'JAMES1234567890123',
                 password: 'pass',
-                dietary_preferences: '',
+                dietary_preferences: [],
                 test: true
             }
             
