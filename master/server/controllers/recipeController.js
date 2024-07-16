@@ -229,6 +229,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
         const updatedData = {
             title,
             chef,
+            private: isPrivate,
             description,
             quantities: JSON.parse(quantities),
             ingredients: JSON.parse(ingredients),

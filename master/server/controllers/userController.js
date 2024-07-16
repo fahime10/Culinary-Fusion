@@ -4,10 +4,11 @@ const bcrypt = require("bcryptjs");
 
 exports.add_user = asyncHandler(async (req, res, next) => {
     try {
-        const { name_title, first_name, last_name, username, dietary_preferences, test } = req.body;
+        const { name_title, first_name, last_name, username, dietary_preferences, preferred_categories, 
+                preferred_cuisine_types, allergies, test } = req.body;
 
         const user = await User.findOne({ username: username });
-
+            
         if (user) {
             return res.json({ error: "Username is already taken" });
         } else {
@@ -24,6 +25,9 @@ exports.add_user = asyncHandler(async (req, res, next) => {
                         username,
                         password: hashedPassword,
                         dietary_preferences,
+                        preferred_categories,
+                        preferred_cuisine_types,
+                        allergies,
                         test
                     });
 
@@ -87,7 +91,10 @@ exports.user_details = asyncHandler(async (req, res, next) => {
             first_name: user.first_name,
             last_name: user.last_name,
             username: user.username,
-            dietary_preferences: user.dietary_preferences
+            dietary_preferences: user.dietary_preferences,
+            preferred_categories: user.preferred_categories,
+            preferred_cuisine_types: user.preferred_cuisine_types,
+            allergies: user.allergies
         });
 
     } catch (err) {
@@ -99,7 +106,8 @@ exports.user_details = asyncHandler(async (req, res, next) => {
 exports.edit_user = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
 
-    const { name_title, first_name, last_name, dietary_preferences } = req.body;
+    const { name_title, first_name, last_name, dietary_preferences, 
+            preferred_categories, preferred_cuisine_types, allergies } = req.body;
 
     try {
         const user = await User.findOne({ username: username });
@@ -118,7 +126,10 @@ exports.edit_user = asyncHandler(async (req, res, next) => {
                 first_name,
                 last_name,
                 username: req.body.username,
-                dietary_preferences
+                dietary_preferences,
+                preferred_categories, 
+                preferred_cuisine_types, 
+                allergies
             };
 
             const editedUsername = await User.findByIdAndUpdate(user._id, updatedData, { new: true });
@@ -143,10 +154,10 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
     try {
         await User.deleteOne({ username: username });
 
-        res.status(204).json({ status: 200 });
+        res.status(204).json({ message: 'Successfully deleted' });
 
     } catch (err) {
         console.log(err);
         res.status(404).json({ error: 'Unable to delete account' });
     }
-})
+});
