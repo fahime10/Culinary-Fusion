@@ -13,7 +13,7 @@ exports.add_user = asyncHandler(async (req, res, next) => {
                 preferred_cuisine_types, allergies, test } = req.body;
 
         const user = await User.findOne({ username: username });
-        
+
         if (!name_title || !first_name || !last_name || !username || !req.body.password) {
             return res.status(400).json({ error: 'All fields must be filled' });
         }
@@ -22,37 +22,47 @@ exports.add_user = asyncHandler(async (req, res, next) => {
             return res.status(400).json({ error: 'Username is already taken' });
         } else {
             let password = req.body.password;
+            let passcode = req.body.passcode;
+
             bcrypt.hash(password, 10, async (err, hashedPassword) => {
                 if (err) {
                     res.status(500);
                     return;
                 } else {
-                    const newUser = new User({
-                        name_title,
-                        first_name,
-                        last_name,
-                        username,
-                        password: hashedPassword,
-                        dietary_preferences,
-                        preferred_categories,
-                        preferred_cuisine_types,
-                        allergies,
-                        test
+                    bcrypt.hash(passcode, 10, async (err, hashedPasscode) => {
+                        if (err) {
+                            res.status(500);
+                            return;
+                        } else {
+                            const newUser = new User({
+                                name_title,
+                                first_name,
+                                last_name,
+                                username,
+                                password: hashedPassword,
+                                passcode: hashedPasscode,
+                                dietary_preferences,
+                                preferred_categories,
+                                preferred_cuisine_types,
+                                allergies,
+                                test
+                            });
+        
+                            const savedUser = await newUser.save();
+        
+                            const token = 
+                                jwt.sign({ 
+                                    id: savedUser._id, 
+                                    username: savedUser.username, 
+                                    name_title: savedUser.name_title,
+                                    last_name: savedUser.last_name 
+                                }, 
+                                SECRET_KEY, 
+                                { expiresIn: '1h' }
+                            );
+                            res.status(200).json({ token });
+                        }
                     });
-
-                    const savedUser = await newUser.save();
-
-                    const token = 
-                        jwt.sign({ 
-                            id: savedUser._id, 
-                            username: savedUser.username, 
-                            name_title: savedUser.name_title,
-                            last_name: savedUser.last_name 
-                        }, 
-                        SECRET_KEY, 
-                        { expiresIn: '1h' }
-                    );
-                    res.status(200).json({ token });
                 }
             });
         }
@@ -130,7 +140,7 @@ exports.user_details = asyncHandler(async (req, res, next) => {
 exports.edit_user = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
 
-    const { name_title, first_name, last_name, dietary_preferences, 
+    const { name_title, first_name, last_name, passcode, dietary_preferences, 
             preferred_categories, preferred_cuisine_types, allergies } = req.body;
 
     try {
@@ -141,30 +151,43 @@ exports.edit_user = asyncHandler(async (req, res, next) => {
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;
-        } else if (foundUsername && (user.username !== foundUsername.username)) {
+        } 
+        
+        if (foundUsername && (user.username !== foundUsername.username)) {
             res.status(404).json({ error: 'Username is already taken' });
             return;
-        } else {
-            const updatedData = {
-                name_title,
-                first_name,
-                last_name,
-                username: req.body.username,
-                dietary_preferences,
-                preferred_categories, 
-                preferred_cuisine_types, 
-                allergies
-            };
+        } 
 
-            const editedUsername = await User.findByIdAndUpdate(user._id, updatedData, { new: true });
+        let updatedData = {
+            name_title,
+            first_name,
+            last_name,
+            username: req.body.username,
+            dietary_preferences,
+            preferred_categories, 
+            preferred_cuisine_types, 
+            allergies
+        };
 
-            res.status(200).json({ 
-                message: 'Updated successfully',
-                name_title: editedUsername.name_title,
-                last_name: editedUsername.last_name,
-                username: editedUsername.username
-            });
+        console.log(passcode);
+        if (passcode) {
+            try {
+                const hashedPasscode = await bcrypt.hash(passcode, 10);
+                updatedData.passcode = hashedPasscode;
+            } catch (err) {
+                res.status(500);
+                return;
+            }
         }
+
+        const editedUsername = await User.findByIdAndUpdate(user._id, updatedData, { new: true });
+
+        res.status(200).json({ 
+            message: 'Updated successfully',
+            name_title: editedUsername.name_title,
+            last_name: editedUsername.last_name,
+            username: editedUsername.username
+        });
 
     } catch (err) {
         console.log(err);
@@ -183,5 +206,44 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
     } catch (err) {
         console.log(err);
         res.status(404).json({ error: 'Unable to delete account' });
+    }
+});
+
+exports.forgotten_password = asyncHandler(async (req, res, next) => {
+    const { username, passcode, new_password } = req.body;
+
+    try {
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            res.status(401).send({ error: 'User not found' });
+            return;
+        }
+
+        const match = await bcrypt.compare(passcode, user.passcode);
+
+        if (!match) {
+            res.status(401).send({ error: 'Passcode does not match with username' });
+            return;
+        }
+
+        bcrypt.hash(new_password, 10, async (err, hashedPassword) => {
+            if (err) {
+                res.status(500);
+                return;
+            } else {
+                const updatedData = {
+                    password: hashedPassword
+                };
+
+                await User.findByIdAndUpdate(user._id, updatedData, { new: true });
+
+                res.status(200).json({ message: 'Password updated' });
+            }
+        });
+
+    } catch (err) {
+        console.log(err);
+        res.status(404).json({ error: err.message });
     }
 });

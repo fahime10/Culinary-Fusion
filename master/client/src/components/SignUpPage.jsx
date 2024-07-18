@@ -7,6 +7,7 @@ const SignUpPage = () => {
     const [lastName, setLastName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [passcode, setPasscode] = useState("");
 
     const [error, setError] = useState("");
     const errorRef = useRef(null);
@@ -126,6 +127,10 @@ const SignUpPage = () => {
         setPassword(e.target.value);
     }
 
+    function handlePasscode(e) {
+        setPasscode(e.target.value);
+    }
+
     function handleCheckboxChange(group, name) {
         switch(group) {
             case "dietaryPreferences":
@@ -171,6 +176,7 @@ const SignUpPage = () => {
             last_name: lastName,
             username: username,
             password: password,
+            passcode: passcode,
             dietary_preferences: selectedDietaryPreferences,
             preferred_categories: selectedCategories,
             preferred_cuisine_types: selectedCuisineTypes,
@@ -251,6 +257,16 @@ const SignUpPage = () => {
                             onChange={handlePassword}
                         />
                     </label>
+                    <label htmlFor="passcode">Please provide a passcode to use when you forget your password:</label>
+                    <input
+                        id="passcode"
+                        type="text"
+                        name="passcode"
+                        required={true}
+                        minLength={1}
+                        onChange={handlePasscode}
+                        style={{marginBottom: "1rem"}}
+                    />
                     <div className="box">
                         <div className="box-title">Dietary preferences:</div>
                         <div className="checkboxes">
@@ -314,7 +330,7 @@ const SignUpPage = () => {
                     <div ref={errorRef} style={{ display: "none", color: "red" }}>
                         <p>{error}</p>
                     </div>
-                    <button>Save</button>
+                    <button style={{marginBottom: "1rem"}}>Save</button>
                     <button type="button" onClick={() => navigate("/")}>Cancel</button>
                 </form>
             </div>

@@ -8,6 +8,7 @@ const UserProfile = () => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [username, setUsername] = useState("");
+    const [passcode, setPasscode] = useState("");
 
     const [dietaryPreferences, setDietaryPreferences] = useState({
         "Vegetarian": false,
@@ -205,6 +206,10 @@ const UserProfile = () => {
         setUsername(e.target.value);
     }
 
+    function handlePasscode(e) {
+        setPasscode(e.target.value);
+    }
+
     function handleCheckboxChange(group, name) {
         switch(group) {
             case "dietaryPreferences":
@@ -264,6 +269,7 @@ const UserProfile = () => {
                 first_name: firstName,
                 last_name: lastName,
                 username: username,
+                passcode: passcode,
                 dietary_preferences: selectedDietaryPreferences,
                 preferred_categories: selectedCategories,
                 preferred_cuisine_types: selectedCuisineTypes,
@@ -380,6 +386,15 @@ const UserProfile = () => {
                             minLength={3}
                             maxLength={20}
                             onChange={handleUsername}
+                            disabled={isNotEnabled}
+                        />
+                    </label>
+                    <label>
+                        If you have forgotten your passcode, you can input a new one here:
+                        <input
+                            type="text"
+                            name="passcode"
+                            onChange={handlePasscode}
                             disabled={isNotEnabled}
                         />
                     </label>

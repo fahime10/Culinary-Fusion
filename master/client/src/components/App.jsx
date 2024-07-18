@@ -9,6 +9,7 @@ import SignUpPage from "./SignUpPage";
 import LoginPage from "./LoginPage";
 import PersonalCollection from "./PersonalCollection";
 import UserProfile from "./UserProfile";
+import ForgottenPassword from "./ForgottenPassword";
 
 function App() {
   const [response, setResponse] = useState("");
@@ -34,6 +35,7 @@ function App() {
           <Route path="/login-page" element={<LoginPage />} />
           <Route path="/personal-collection" element={<PersonalCollection />} />
           <Route path="/user-profile" element={<UserProfile />} />
+          <Route path="/forgotten-password" element={<ForgottenPassword />} />
         </Routes>
       </BrowserRouter>
     </>

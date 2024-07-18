@@ -8,6 +8,7 @@ const UserSchema = new Schema({
     last_name: { type: String, minLength: 1, maxLength: 50, required: true },
     username: { type: String, minLength: 1, maxLength: 20, required: true, unique: true },
     password: { type: String, required: true },
+    passcode: { type: String, required: true },
     dietary_preferences: { type: [String], default: [] },
     preferred_categories: { type: [String], default: [] },
     preferred_cuisine_types: { type: [String], default: [] },

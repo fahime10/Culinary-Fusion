@@ -85,7 +85,8 @@ const LoginPage = () => {
                     <div ref={errorRef} style={{ display: "none", color: "red" }}>
                         <p>{error}</p>
                     </div>
-                    <button>Login</button>
+                    <button type="button" style={{margin: "1rem 0 0 0"}} onClick={() => navigate("/forgotten-password")}>Forgotten password?</button>
+                    <button style={{margin: "1rem 0"}}>Login</button>
                     <button type="button" onClick={redirectToHomepage}>Cancel</button>
                 </form>
             </div>

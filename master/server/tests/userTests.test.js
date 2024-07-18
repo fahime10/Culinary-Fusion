@@ -29,6 +29,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'james123456789012345',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: [],
                 test: true
             }
@@ -39,12 +40,7 @@ describe('Testing User API', () => {
                 .send(data);
 
             expect(res.status).toBe(200);
-            expect(res.body).toHaveProperty('name_title', 'Mr');
-            expect(res.body).toHaveProperty('first_name', 'James');
-            expect(res.body).toHaveProperty('last_name', 'Smith');
-            expect(res.body).toHaveProperty('username', 'james123456789012345');
-            expect(res.body.dietary_preferences).toEqual([]);
-            expect(res.body).toHaveProperty('test', true);
+            expect(res.body).toHaveProperty('token');
         });
     });
 
@@ -56,6 +52,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: '',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: [],
                 test: true
             }
@@ -77,6 +74,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'james12345678901',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: [],
                 test: true
             }
@@ -110,6 +108,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'james12345678901',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: [],
                 test: true
             }
@@ -144,6 +143,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'jAmEs123456789012345',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: [],
                 test: true
             }
@@ -175,6 +175,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'jAs123456789012345',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: [],
                 test: true
             }
@@ -198,6 +199,7 @@ describe('Testing User API', () => {
                 last_name: 'S',
                 username: 'jAs123456789012345',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: ['Dairy-free'],
                 test: true
             }
@@ -223,6 +225,7 @@ describe('Testing User API', () => {
                 last_name: 'Smith',
                 username: 'mEs1234567890123457',
                 password: 'pass',
+                passcode: 'pass',
                 dietary_preferences: '',
                 test: true
             }
@@ -246,6 +249,130 @@ describe('Testing User API', () => {
 
             const resQuery = await User.findOne({ username: data.username });
             expect(resQuery).toBeNull();
+        });
+    });
+
+    describe('Test POST /api/forgotten-password/change', () => {
+        it('should change the password', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'Jameson',
+                last_name: 'Smith',
+                username: 'Es1234567890123457',
+                password: 'pass',
+                passcode: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+            
+            const newRes = await request
+                .post(`/api/users/${data.username}`)
+                .set('Content-Type', 'application/json');
+            
+            expect(newRes.status).toBe(200);
+
+            const secondData = {
+                username: 'Es1234567890123457',
+                passcode: 'pass',
+                new_password: 'password',
+            };
+
+            const extraRes = await request
+                .post('/api/users/forgotten-password/change')
+                .set('Content-Type', 'application/json')
+                .send(secondData);
+
+            expect(extraRes.status).toBe(200);
+            expect(extraRes.body).toHaveProperty('message', 'Password updated');
+        });
+    });
+
+    describe('Test POST /api/forgotten-password/change', () => {
+        it('should not change the password (passcode is wrong)', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'Jameson',
+                last_name: 'Smith',
+                username: 's1234567890123457',
+                password: 'pass',
+                passcode: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+            
+            const newRes = await request
+                .post(`/api/users/${data.username}`)
+                .set('Content-Type', 'application/json');
+            
+            expect(newRes.status).toBe(200);
+
+            const secondData = {
+                username: 's1234567890123457',
+                passcode: 'password',
+                new_password: 'password',
+            };
+
+            const extraRes = await request
+                .post('/api/users/forgotten-password/change')
+                .set('Content-Type', 'application/json')
+                .send(secondData);
+
+            expect(extraRes.status).toBe(401);
+        });
+    });
+
+    describe('Test POST /api/forgotten-password/change', () => {
+        it('should not change the password (username is wrong)', async () => {
+            const data = {
+                name_title: 'Mr',
+                first_name: 'Jameson',
+                last_name: 'Smith',
+                username: 'qwe1234567890123457',
+                password: 'pass',
+                passcode: 'pass',
+                dietary_preferences: '',
+                test: true
+            }
+            
+            const res = await request
+                .post('/api/users/add-user')
+                .set('Content-Type', 'application/json')
+                .send(data);
+
+            expect(res.status).toBe(200);
+            
+            const newRes = await request
+                .post(`/api/users/${data.username}`)
+                .set('Content-Type', 'application/json');
+            
+            expect(newRes.status).toBe(200);
+
+            const secondData = {
+                username: 'qwert1234567890123457',
+                passcode: 'password',
+                new_password: 'password',
+            };
+
+            const extraRes = await request
+                .post('/api/users/forgotten-password/change')
+                .set('Content-Type', 'application/json')
+                .send(secondData);
+
+            expect(extraRes.status).toBe(401);
         });
     });
 });
