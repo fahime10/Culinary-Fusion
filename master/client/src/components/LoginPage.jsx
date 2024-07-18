@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+
     const [error, setError] = useState("");
+    const errorRef = useRef(null);
 
     const navigate = useNavigate();
 
@@ -15,6 +17,15 @@ const LoginPage = () => {
     function handlePassword(e) {
         setPassword(e.target.value);
     }
+
+    useEffect(() => {
+        if (error) {
+            errorRef.current.style.display = "block";
+        } else {
+            errorRef.current.style.display = "none";
+        }
+
+    }, [error]);
 
     function handleLogin(event) {
         event.preventDefault();
@@ -32,20 +43,13 @@ const LoginPage = () => {
             },
             body: JSON.stringify(data)
         })
+        .then((res) => res.json())
         .then((res) => {
-            if (res.status !== 200) {
-                throw new Error(res.statusText);
-            }
-            return res.json();
-        })
-        .then((res) => {
-            if (res.username) {
-                sessionStorage.setItem("username", res.username);
-                sessionStorage.setItem("name_title", res.name_title);
-                sessionStorage.setItem("last_name", res.last_name);
-                navigate("/");
-            } else {
+            if (res.error) {
                 setError(res.error);
+            } else {
+                sessionStorage.setItem("token", res.token);
+                navigate("/");
             }
         })
         .catch(err => console.log(err));
@@ -78,7 +82,9 @@ const LoginPage = () => {
                         required={true}
                         onChange={handlePassword}
                     />
-                    <p className="error-credentials">{error}</p>
+                    <div ref={errorRef} style={{ display: "none", color: "red" }}>
+                        <p>{error}</p>
+                    </div>
                     <button>Login</button>
                     <button type="button" onClick={redirectToHomepage}>Cancel</button>
                 </form>

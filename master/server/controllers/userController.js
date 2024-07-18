@@ -1,6 +1,11 @@
-const User = require("../models/userModel");
-const asyncHandler = require("express-async-handler");
-const bcrypt = require("bcryptjs");
+const User = require('../models/userModel');
+const asyncHandler = require('express-async-handler');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+require('dotenv').config();
+
+const SECRET_KEY = process.env.SECRET_KEY;
 
 exports.add_user = asyncHandler(async (req, res, next) => {
     try {
@@ -35,9 +40,19 @@ exports.add_user = asyncHandler(async (req, res, next) => {
                         test
                     });
 
-                    const saveUser = await newUser.save();
+                    const savedUser = await newUser.save();
 
-                    res.status(200).json(saveUser);
+                    const token = 
+                        jwt.sign({ 
+                            id: savedUser._id, 
+                            username: savedUser.username, 
+                            name_title: savedUser.name_title,
+                            last_name: savedUser.last_name 
+                        }, 
+                        SECRET_KEY, 
+                        { expiresIn: '1h' }
+                    );
+                    res.status(200).json({ token });
                 }
             });
         }
@@ -55,23 +70,28 @@ exports.login_user = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username });
 
         if (!user) {
-            res.status(401).send({ error: "Incorrect credentials" });
+            res.status(401).send({ error: 'Incorrect credentials' });
             return;
         }
 
         const match = await bcrypt.compare(password, user.password);
 
         if (!match) {
-            res.status(401).send({ error: "Incorrect credentials" });
+            res.status(401).send({ error: 'Incorrect credentials' });
             return;
         }
 
-        res.status(200).send({ 
-            username: user.username, 
-            name_title: user.name_title, 
-            last_name: user.last_name,
-            status: 200
-        });
+        const token = 
+            jwt.sign({ 
+                id: user._id, 
+                username: user.username, 
+                name_title: user.name_title,
+                last_name: user.last_name 
+            },
+            SECRET_KEY, 
+            { expiresIn: '1h' }
+        );
+        res.status(200).send({ token: token });
 
     } catch (err) {
         console.log(err);

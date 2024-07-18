@@ -190,9 +190,7 @@ const SignUpPage = () => {
             if (res.error) {
                 setError(res.error);
             } else {
-                sessionStorage.setItem("username", res.username);
-                sessionStorage.setItem("name_title", res.name_title);
-                sessionStorage.setItem("last_name", res.last_name);
+                sessionStorage.setItem("token", res.token);
                 navigate("/");
             }
         })
@@ -234,9 +232,6 @@ const SignUpPage = () => {
                             onChange={handleLastName}
                         />
                     </label>
-                    <div ref={errorRef} style={{ display: "none", color: "red" }}>
-                        <p>{error}</p>
-                    </div>
                     <label>Username:
                         <input
                             type="text"
@@ -315,6 +310,9 @@ const SignUpPage = () => {
                                 </label>
                             ))}
                         </div>
+                    </div>
+                    <div ref={errorRef} style={{ display: "none", color: "red" }}>
+                        <p>{error}</p>
                     </div>
                     <button>Save</button>
                     <button type="button" onClick={() => navigate("/")}>Cancel</button>

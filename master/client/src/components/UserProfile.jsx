@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Dialog from "./Dialog";
+import { jwtDecode } from "jwt-decode";
 
 const UserProfile = () => {
     const [nameTitle, setNameTitle] = useState("");
@@ -105,60 +106,62 @@ const UserProfile = () => {
     const cuisineTypesRef = useRef(cuisineTypes);
     const allergiesRef = useRef(allergies);
 
-    const userUsername = sessionStorage.getItem("username");
-
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`http://localhost:9000/api/users/${userUsername}`, {
-            method: "POST"
-        })
-        .then((res) => res.json())
-        .then((res) => {
-            setNameTitle(res.name_title);
-            setFirstName(res.first_name);
-            setLastName(res.last_name);
-            setUsername(res.username);
-            
-            const dietaryPreferencesCheckedBoxes = { ...dietaryPreferences };
-            res.dietary_preferences.forEach(dietaryPreference => {
-                if (Object.prototype.hasOwnProperty.call(dietaryPreferencesCheckedBoxes, dietaryPreference)) {
-                    dietaryPreferencesCheckedBoxes[dietaryPreference] = true;
-                }
-            });
-            setDietaryPreferences(dietaryPreferencesCheckedBoxes);
-            dietararyPreferencesRef.current = dietaryPreferencesCheckedBoxes;
+        const userDetails = retrieveUserDetails();
 
-            const categoriesCheckedBoxes = { ...categories };
-            res.preferred_categories.forEach(category => {
-                if (Object.prototype.hasOwnProperty.call(categoriesCheckedBoxes, category)) {
-                    categoriesCheckedBoxes[category] = true;
-                }
-            });
-            setCategories(categoriesCheckedBoxes);
-            categoriesRef.current = categoriesCheckedBoxes;
+        if (userDetails) {
+            fetch(`http://localhost:9000/api/users/${userDetails.username}`, {
+                method: "POST"
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setNameTitle(res.name_title);
+                setFirstName(res.first_name);
+                setLastName(res.last_name);
+                setUsername(res.username);
+                
+                const dietaryPreferencesCheckedBoxes = { ...dietaryPreferences };
+                res.dietary_preferences.forEach(dietaryPreference => {
+                    if (Object.prototype.hasOwnProperty.call(dietaryPreferencesCheckedBoxes, dietaryPreference)) {
+                        dietaryPreferencesCheckedBoxes[dietaryPreference] = true;
+                    }
+                });
+                setDietaryPreferences(dietaryPreferencesCheckedBoxes);
+                dietararyPreferencesRef.current = dietaryPreferencesCheckedBoxes;
+    
+                const categoriesCheckedBoxes = { ...categories };
+                res.preferred_categories.forEach(category => {
+                    if (Object.prototype.hasOwnProperty.call(categoriesCheckedBoxes, category)) {
+                        categoriesCheckedBoxes[category] = true;
+                    }
+                });
+                setCategories(categoriesCheckedBoxes);
+                categoriesRef.current = categoriesCheckedBoxes;
+    
+                const cuisineTypesCheckedBoxes = { ...cuisineTypes };
+                res.preferred_cuisine_types.forEach(cuisineType => {
+                    if (Object.prototype.hasOwnProperty.call(cuisineTypesCheckedBoxes, cuisineType)) {
+                        cuisineTypesCheckedBoxes[cuisineType] = true;
+                    }
+                });
+                setCuisineTypes(cuisineTypesCheckedBoxes);
+                cuisineTypesRef.current = cuisineTypesCheckedBoxes;
+    
+                const allergiesCheckedBoxes = { ...allergies };
+                res.allergies.forEach(allergy => {
+                    if (Object.prototype.hasOwnProperty.call(allergiesCheckedBoxes, allergy)) {
+                        allergiesCheckedBoxes[allergy] = true;
+                    }
+                });
+                setAllergies(allergiesCheckedBoxes);
+                allergiesRef.current = allergiesCheckedBoxes;
+            })
+            .catch(err => console.log(err));
+        }
 
-            const cuisineTypesCheckedBoxes = { ...cuisineTypes };
-            res.preferred_cuisine_types.forEach(cuisineType => {
-                if (Object.prototype.hasOwnProperty.call(cuisineTypesCheckedBoxes, cuisineType)) {
-                    cuisineTypesCheckedBoxes[cuisineType] = true;
-                }
-            });
-            setCuisineTypes(cuisineTypesCheckedBoxes);
-            cuisineTypesRef.current = cuisineTypesCheckedBoxes;
-
-            const allergiesCheckedBoxes = { ...allergies };
-            res.allergies.forEach(allergy => {
-                if (Object.prototype.hasOwnProperty.call(allergiesCheckedBoxes, allergy)) {
-                    allergiesCheckedBoxes[allergy] = true;
-                }
-            });
-            setAllergies(allergiesCheckedBoxes);
-            allergiesRef.current = allergiesCheckedBoxes;
-        })
-        .catch(err => console.log(err));
-
-    }, [userUsername]);
+    }, [setUsername]);
 
     useEffect(() => {
         if (message) {
@@ -174,6 +177,17 @@ const UserProfile = () => {
         }
 
     }, [message, error]);
+
+    function retrieveUserDetails() {
+        if (sessionStorage.getItem("token")) {
+            const token = sessionStorage.getItem("token");
+
+            const decodedToken = jwtDecode(token);
+
+            return decodedToken;
+        }
+        return null;
+    }
 
     function handleNameTitle(e) {
         setNameTitle(e.target.value);
@@ -237,44 +251,49 @@ const UserProfile = () => {
     function handleEdit(event) {
         event.preventDefault();
 
-        const selectedDietaryPreferences = Object.keys(dietaryPreferences).filter(key => dietaryPreferences[key]);
-        const selectedCategories = Object.keys(categories).filter(key => categories[key]);
-        const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
-        const selectedAllergens = Object.keys(allergies).filter(key => allergies[key]);
+        const userDetails = retrieveUserDetails();
 
-        const data = {
-            name_title: nameTitle,
-            first_name: firstName,
-            last_name: lastName,
-            username: username,
-            dietary_preferences: selectedDietaryPreferences,
-            preferred_categories: selectedCategories,
-            preferred_cuisine_types: selectedCuisineTypes,
-            allergies: selectedAllergens
-        }
+        if (userDetails) {
+            const selectedDietaryPreferences = Object.keys(dietaryPreferences).filter(key => dietaryPreferences[key]);
+            const selectedCategories = Object.keys(categories).filter(key => categories[key]);
+            const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
+            const selectedAllergens = Object.keys(allergies).filter(key => allergies[key]);
 
-        fetch(`http://localhost:9000/api/users/edit-user/${userUsername}`, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then((res) => res.json())
-        .then((res) => {
-            if (res.error) {
-                setMessage("");
-                setError(res.error);
-            } else {
-                setError("");
-                setMessage(res.message);
-                sessionStorage.setItem("name_title", res.name_title);
-                sessionStorage.setItem("last_name", res.last_name);
-                sessionStorage.setItem("username", res.username);
+            const data = {
+                name_title: nameTitle,
+                first_name: firstName,
+                last_name: lastName,
+                username: username,
+                dietary_preferences: selectedDietaryPreferences,
+                preferred_categories: selectedCategories,
+                preferred_cuisine_types: selectedCuisineTypes,
+                allergies: selectedAllergens
             }
-        })
-        .catch(err => console.log(err));
+
+            fetch(`http://localhost:9000/api/users/edit-user/${userDetails.username}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                if (res.error) {
+                    setMessage("");
+                    setError(res.error);
+                } else {
+                    setError("");
+                    setMessage(res.message);
+                    sessionStorage.setItem("name_title", res.name_title);
+                    sessionStorage.setItem("last_name", res.last_name);
+                    sessionStorage.setItem("username", res.username);
+                }
+            })
+            .catch(err => console.log(err));
+        }
+        
     }
 
     function toggleDialog() {
@@ -282,27 +301,31 @@ const UserProfile = () => {
     }
 
     function handleDelete() {
-        fetch(`http://localhost:9000/api/users/delete-user/${userUsername}`, {
-            method: "DELETE"
-        })
-        .then((res) => {
-            console.log(res);
-            if (res.status === 204) {
-                sessionStorage.removeItem("username");
-                sessionStorage.removeItem("last_name");
-                sessionStorage.removeItem("name_title");
-                navigate("/");
+        const userDetails = retrieveUserDetails();
 
-            } else {
-                return res.json();
-            }
-        })
-        .then((res) => {
-            if (res && res.error) {
-                console.log(res.error);
-            }
-        })
-        .catch(err => console.log(err));
+        if (userDetails) {
+            fetch(`http://localhost:9000/api/users/delete-user/${userDetails.username}`, {
+                method: "DELETE"
+            })
+            .then((res) => {
+                console.log(res);
+                if (res.status === 204) {
+                    sessionStorage.removeItem("username");
+                    sessionStorage.removeItem("last_name");
+                    sessionStorage.removeItem("name_title");
+                    navigate("/");
+    
+                } else {
+                    return res.json();
+                }
+            })
+            .then((res) => {
+                if (res && res.error) {
+                    console.log(res.error);
+                }
+            })
+            .catch(err => console.log(err));
+        }
     }
 
     return (
@@ -313,9 +336,6 @@ const UserProfile = () => {
             <div className="edit-user">
                 <button type="button" id="toggleButton" className="edit-button" onClick={(e) => toggleEnabled(e)}>Edit: Off</button>
                 <form className="forms" onSubmit={(event) => handleEdit(event)}>
-                    <div ref={messageRef} style={{ display: "none", color: "green" }}>
-                        <p>{message}</p>
-                    </div>
                     <select value={nameTitle} onChange={handleNameTitle} required={true} disabled={isNotEnabled}>
                         <option value="" disabled>Please select an option</option>
                         <option value="Mr">Mr</option>
@@ -426,6 +446,9 @@ const UserProfile = () => {
                                 </label>
                             ))}
                         </div>
+                    </div>
+                    <div ref={messageRef} style={{ display: "none", color: "green" }}>
+                        <p>{message}</p>
                     </div>
                     <button disabled={isNotEnabled}>Save</button>
                     <button type="button" onClick={() => navigate(-1)}>Cancel</button>

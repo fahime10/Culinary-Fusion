@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import  Dialog from "./Dialog";
 import { v4 as uuidv4 } from "uuid";
 import NoImageIcon from "../assets/no-image.png";
+import { jwtDecode } from "jwt-decode";
 //import { dataStructRecipe } from "./recipeDataStructure.js";
 
 const ViewRecipe = () => {
@@ -26,7 +27,7 @@ const ViewRecipe = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (sessionStorage.getItem("last_name") === null || sessionStorage.getItem("last_name") === "undefined") {
+        if (sessionStorage.getItem("token") === null || sessionStorage.getItem("token") === "undefined") {
             fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
                 method: "POST",
                 headers: {
@@ -64,50 +65,66 @@ const ViewRecipe = () => {
             })
             .catch(err => console.log(err));
         } else {
-            const data = {
-                username: sessionStorage.getItem("username")
-            };
-    
-            fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            })
-            .then((res) => res.json())
-            .then((res) => {
-                setTitle(res.recipe.title);
-                setChef(res.recipe.chef);
-                setDescription(res.recipe.description);
+            const userDetails = retrieveUserDetails();
 
-                const parsedIngredients = res.recipe.ingredients.map((ingredient, index) => ({
-                    id: uuidv4(),
-                    value: ingredient,
-                    quantity: res.recipe.quantities[index]
-                }));
-                
-                setIngredients(parsedIngredients);
-                setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
-                setCategories(res.recipe.categories);
-                setCuisineTypes(res.recipe.cuisine_types);
-                setAllergens(res.recipe.allergens);
-                setTimestamp(res.recipe.timestamp);
-                setStars(res.recipe.stars);
-
-                if (res.recipe.image) {
-                    setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
-                }
+            if (userDetails) {
+                const data = {
+                    username: userDetails.username
+                };
+        
+                fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((res) => res.json())
+                .then((res) => {
+                    setTitle(res.recipe.title);
+                    setChef(res.recipe.chef);
+                    setDescription(res.recipe.description);
     
-                if (res.owner === true) {
-                    setIsOwner(true);
-                }
-            })
-            .catch(err => console.log(err));
+                    const parsedIngredients = res.recipe.ingredients.map((ingredient, index) => ({
+                        id: uuidv4(),
+                        value: ingredient,
+                        quantity: res.recipe.quantities[index]
+                    }));
+                    
+                    setIngredients(parsedIngredients);
+                    setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                    setCategories(res.recipe.categories);
+                    setCuisineTypes(res.recipe.cuisine_types);
+                    setAllergens(res.recipe.allergens);
+                    setTimestamp(res.recipe.timestamp);
+                    setStars(res.recipe.stars);
+    
+                    if (res.recipe.image) {
+                        setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
+                    }
+        
+                    if (res.owner === true) {
+                        setIsOwner(true);
+                    }
+                })
+                .catch(err => console.log(err));
+            }
+            
         }
 
     }, [id]);
+
+    function retrieveUserDetails() {
+        if (sessionStorage.getItem("token")) {
+            const token = sessionStorage.getItem("token");
+
+            const decodedToken = jwtDecode(token);
+
+            return decodedToken;
+        }
+        return null;
+    }
 
     function formatDate(timestamp) {
         const date = new Date(timestamp);

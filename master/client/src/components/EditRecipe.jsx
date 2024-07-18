@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
+import { jwtDecode } from "jwt-decode";
 
 const EditRecipe = () => {
     const { id } = useParams();
@@ -79,60 +80,76 @@ const EditRecipe = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const data = {
-            username: sessionStorage.getItem("username")
-        };
+        const userDetails = retrieveUserDetails();
 
-        fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then((res) => res.json())
-        .then((res) => {
-            setTitle(res.recipe.title);
-            setChef(res.recipe.chef);
-            setChecked(res.recipe.private);
-            setDescription(res.recipe.description);
-            setQuantities(res.recipe.quantities);
-            setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
-            setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
-            
-            const categoryCheckedBoxes = { ...categories };
-            res.recipe.categories.forEach(category => {
-                if (Object.prototype.hasOwnProperty.call(categoryCheckedBoxes, category)) {
-                    categoryCheckedBoxes[category] = true;
+        if (userDetails) {
+            const data = {
+                username: userDetails.username
+            };
+    
+            fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setTitle(res.recipe.title);
+                setChef(res.recipe.chef);
+                setChecked(res.recipe.private);
+                setDescription(res.recipe.description);
+                setQuantities(res.recipe.quantities);
+                setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
+                setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                
+                const categoryCheckedBoxes = { ...categories };
+                res.recipe.categories.forEach(category => {
+                    if (Object.prototype.hasOwnProperty.call(categoryCheckedBoxes, category)) {
+                        categoryCheckedBoxes[category] = true;
+                    }
+                });
+                setCategories(categoryCheckedBoxes);
+    
+                const cuisineCheckboxes = { ...cuisineTypes };
+                res.recipe.cuisine_types.forEach(cuisineType => {
+                    if (Object.prototype.hasOwnProperty.call(cuisineCheckboxes, cuisineType)) {
+                        cuisineCheckboxes[cuisineType] = true;
+                    }
+                });
+                setCuisineTypes(cuisineCheckboxes);
+                
+                const allergensCheckboxes = { ...allergens };
+                res.recipe.allergens.forEach(allergen => {
+                    if (Object.prototype.hasOwnProperty.call(allergensCheckboxes, allergen)) {
+                        allergensCheckboxes[allergen] = true;
+                    }
+                });
+                setAllergens(allergensCheckboxes);
+    
+                if (res.recipe.image) {
+                    setImage(res.recipe.image);
+                    setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
                 }
-            });
-            setCategories(categoryCheckedBoxes);
-
-            const cuisineCheckboxes = { ...cuisineTypes };
-            res.recipe.cuisine_types.forEach(cuisineType => {
-                if (Object.prototype.hasOwnProperty.call(cuisineCheckboxes, cuisineType)) {
-                    cuisineCheckboxes[cuisineType] = true;
-                }
-            });
-            setCuisineTypes(cuisineCheckboxes);
-            
-            const allergensCheckboxes = { ...allergens };
-            res.recipe.allergens.forEach(allergen => {
-                if (Object.prototype.hasOwnProperty.call(allergensCheckboxes, allergen)) {
-                    allergensCheckboxes[allergen] = true;
-                }
-            });
-            setAllergens(allergensCheckboxes);
-
-            if (res.recipe.image) {
-                setImage(res.recipe.image);
-                setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
-            }
-        })
-        .catch(err => console.log(err));
+            })
+            .catch(err => console.log(err));
+        }
+        
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
+
+    function retrieveUserDetails() {
+        if (sessionStorage.getItem("token")) {
+            const token = sessionStorage.getItem("token");
+
+            const decodedToken = jwtDecode(token);
+
+            return decodedToken;
+        }
+        return null;
+    }
 
     function handleTitle(e) {
         setTitle(e.target.value);
@@ -241,31 +258,35 @@ const EditRecipe = () => {
     function handleSave(event) {
         event.preventDefault();
 
-        const selectedCategories = Object.keys(categories).filter(key => categories[key]);
-        const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
-        const selectedAllergens = Object.keys(allergens).filter(key => allergens[key]);
-        
-        const data = new FormData();
-        data.append("title", title);
-        data.append("image", image);
-        data.append("chef", chef);
-        data.append("description", description);
-        data.append("username", sessionStorage.getItem("username"));
-        data.append("isPrivate", checked);
-        data.append("quantities", JSON.stringify(quantities));
-        data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
-        data.append("steps", JSON.stringify(steps.map(step => step.value)));
-        data.append("categories", JSON.stringify(selectedCategories));
-        data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
-        data.append("allergens", JSON.stringify(selectedAllergens));
+        const userDetails = retrieveUserDetails();
 
-        fetch(`http://localhost:9000/api/recipes/edit-recipe/${id}`, {
-            method: "POST",
-            body: data
-        })
-        .catch(err => console.log(err));
+        if (userDetails) {
+            const selectedCategories = Object.keys(categories).filter(key => categories[key]);
+            const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
+            const selectedAllergens = Object.keys(allergens).filter(key => allergens[key]);
+            
+            const data = new FormData();
+            data.append("title", title);
+            data.append("image", image);
+            data.append("chef", chef);
+            data.append("description", description);
+            data.append("username", userDetails.username);
+            data.append("isPrivate", checked);
+            data.append("quantities", JSON.stringify(quantities));
+            data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
+            data.append("steps", JSON.stringify(steps.map(step => step.value)));
+            data.append("categories", JSON.stringify(selectedCategories));
+            data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
+            data.append("allergens", JSON.stringify(selectedAllergens));
 
-        navigate(`/recipe/${id}`);
+            fetch(`http://localhost:9000/api/recipes/edit-recipe/${id}`, {
+                method: "POST",
+                body: data
+            })
+            .catch(err => console.log(err));
+
+            navigate(`/recipe/${id}`);
+        }
     }
 
     function redirectToViewRecipe() {

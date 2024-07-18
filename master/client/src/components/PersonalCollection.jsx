@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const PersonalCollection = () => {
     const [recipes, setRecipes] = useState([]);
@@ -7,20 +8,35 @@ const PersonalCollection = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const username = sessionStorage.getItem("username");
+        const userDetails = retrieveUserDetails();
 
-        fetch(`http://localhost:9000/api/recipes/own/${username}`, {
-            method: "POST"
-        })
-        .then((res) => res.json())
-        .then((res) => {
-            setRecipes(res);
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+        if (userDetails) {
+            const username = userDetails.username;
+
+            fetch(`http://localhost:9000/api/recipes/own/${username}`, {
+                method: "POST"
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setRecipes(res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        }
 
     }, []);
+
+    function retrieveUserDetails() {
+        if (sessionStorage.getItem("token")) {
+            const token = sessionStorage.getItem("token");
+
+            const decodedToken = jwtDecode(token);
+
+            return decodedToken;
+        }
+        return null;
+    }
 
     function viewRecipe(id) {
         navigate(`/recipe/${id}`);

@@ -10,7 +10,6 @@ import LoginPage from "./LoginPage";
 import PersonalCollection from "./PersonalCollection";
 import UserProfile from "./UserProfile";
 
-
 function App() {
   const [response, setResponse] = useState("");
 
@@ -41,4 +40,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

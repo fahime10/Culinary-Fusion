@@ -4,6 +4,7 @@ import SearchIcon from "../assets/search-icon.png";
 import NoImageIcon from "../assets/no-image.png";
 import MenuContainer from "./MenuContainer.jsx";
 import DropDownMenu from "./DropDownMenu.jsx";
+import { jwtDecode } from "jwt-decode";
 
 const HomePage = () => {
     const [recipes, setRecipes] = useState([]);
@@ -54,9 +55,20 @@ const HomePage = () => {
         "Moroccan": false,
         "Caribbean": false
     });
+
+    function retrieveUserDetails() {
+        if (sessionStorage.getItem("token")) {
+            const token = sessionStorage.getItem("token");
+
+            const decodedToken = jwtDecode(token);
+
+            return decodedToken;
+        }
+        return null;
+    }
     
     function fetchRecipes() {
-        if (sessionStorage.getItem("last_name") === null || sessionStorage.getItem("last_name") === "undefined") {
+        if (sessionStorage.getItem("token") === null || sessionStorage.getItem("token") === "undefined") {
             fetch("http://localhost:9000/api/recipes", {
                 method: "GET"
             })
@@ -69,7 +81,9 @@ const HomePage = () => {
             });
 
         } else {
-            const username = sessionStorage.getItem("username");
+            const userDetails = retrieveUserDetails();
+            
+            const username = userDetails.username;
             fetch(`http://localhost:9000/api/recipes/${username}`, {
                 method: "POST"
             })
@@ -83,12 +97,15 @@ const HomePage = () => {
         }
     }
 
+    // Retrieve data if there is a token
     useEffect(() => {
         fetchRecipes();
 
-        if (sessionStorage.getItem("name_title") !== "undefined" && sessionStorage.getItem("last_name") !== "undefined") {
-            setNameTitle(sessionStorage.getItem("name_title"));
-            setLastName(sessionStorage.getItem("last_name"));
+        const userDetails = retrieveUserDetails();
+
+        if (userDetails) {
+            setNameTitle(userDetails.name_title);
+            setLastName(userDetails.last_name);
         }
 
     }, []);
@@ -131,9 +148,7 @@ const HomePage = () => {
     }, [fetchFilteredRecipes]);
 
     function handleLogout() {
-        sessionStorage.removeItem("username");
-        sessionStorage.removeItem("name_title");
-        sessionStorage.removeItem("last_name");
+        sessionStorage.removeItem("token");
         window.location.reload();
     }
 
@@ -148,11 +163,17 @@ const HomePage = () => {
 
     function findRecipe(searchRecipe) {
         if (searchRecipe.trim() !== "") {
-            const data = {
-                username: sessionStorage.getItem("username"),
-                last_name: sessionStorage.getItem("last_name"),
-                name_title: sessionStorage.getItem("name_title"),
-            };
+            let data = {};
+
+            const userDetails = retrieveUserDetails();
+
+            if (userDetails) {
+                data = {
+                    username: userDetails.username,
+                    last_name: userDetails.last_name,
+                    name_title: userDetails.name_title
+                };
+            }
 
             fetch(`http://localhost:9000/api/recipes/search/${searchRecipe}`, {
                 method: "POST",

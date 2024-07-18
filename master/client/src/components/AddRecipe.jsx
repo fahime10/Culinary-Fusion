@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
+import { jwtDecode } from "jwt-decode";
 
 const AddRecipe = () => {
     const [title, setTitle] = useState("");
@@ -181,33 +182,48 @@ const AddRecipe = () => {
         }
     }
 
+    function retrieveUserDetails() {
+        if (sessionStorage.getItem("token")) {
+            const token = sessionStorage.getItem("token");
+
+            const decodedToken = jwtDecode(token);
+
+            return decodedToken;
+        }
+        return null;
+    }
+
     function handleSave(event) {
         event.preventDefault();
 
-        const selectedCategories = Object.keys(categories).filter(key => categories[key]);
-        const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
-        const selectedAllergens = Object.keys(allergens).filter(key => allergens[key]);
+        const userDetails = retrieveUserDetails();
 
-        const data = new FormData();
-        data.append("title", title);
-        data.append("image", image);
-        data.append("chef", chef);
-        data.append("description", description);
-        data.append("username", sessionStorage.getItem("username"));
-        data.append("isPrivate", checked);
-        data.append("quantities", JSON.stringify(quantities));
-        data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
-        data.append("steps", JSON.stringify(steps.map(step => step.value)));
-        data.append("categories", JSON.stringify(selectedCategories));
-        data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
-        data.append("allergens", JSON.stringify(selectedAllergens));
+        if (userDetails) {
+            const selectedCategories = Object.keys(categories).filter(key => categories[key]);
+            const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
+            const selectedAllergens = Object.keys(allergens).filter(key => allergens[key]);
 
-        fetch("http://localhost:9000/api/recipes/add-recipe", {
-            method: "POST",
-            body: data
-        })
-        .then((res) => res.json())
-        .then(navigate("/"));
+            const data = new FormData();
+            data.append("title", title);
+            data.append("image", image);
+            data.append("chef", chef);
+            data.append("description", description);
+            data.append("username", userDetails.username);
+            data.append("isPrivate", checked);
+            data.append("quantities", JSON.stringify(quantities));
+            data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
+            data.append("steps", JSON.stringify(steps.map(step => step.value)));
+            data.append("categories", JSON.stringify(selectedCategories));
+            data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
+            data.append("allergens", JSON.stringify(selectedAllergens));
+
+            fetch("http://localhost:9000/api/recipes/add-recipe", {
+                method: "POST",
+                body: data
+            })
+            .then((res) => res.json())
+            .then(navigate("/"));
+        }
     }
 
     return (
