@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
+import { getRecipe, setRecipe } from "../indexedDb";
 
 const AddRecipe = () => {
     const [title, setTitle] = useState("");
@@ -193,7 +194,7 @@ const AddRecipe = () => {
         return null;
     }
 
-    function handleSave(event) {
+    async function handleSave(event) {
         event.preventDefault();
 
         const userDetails = retrieveUserDetails();
@@ -217,12 +218,61 @@ const AddRecipe = () => {
             data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
             data.append("allergens", JSON.stringify(selectedAllergens));
 
-            fetch("http://localhost:9000/api/recipes/add-recipe", {
-                method: "POST",
-                body: data
-            })
-            .then((res) => res.json())
-            .then(navigate("/"));
+            try {
+                const response = await fetch("http://localhost:9000/api/recipes/add-recipe", {
+                    method: "POST",
+                    body: data
+                });
+
+                const res = await response.json();
+
+                console.log(res);
+                const cachedUserData = await getRecipe("user_recipes");
+
+                let userRecipesArray = [];
+                let timestamp;
+
+                if (cachedUserData) {
+                    userRecipesArray = Object.keys(cachedUserData)
+                        .filter(key => !isNaN(key))
+                        .map(key => cachedUserData[key]);
+                    
+                    timestamp = cachedUserData.timestamp;
+                }
+
+                userRecipesArray.push(res);
+
+                await setRecipe("user_recipes", {
+                    ...userRecipesArray,
+                    timestamp: timestamp
+                });
+
+                if (!checked) {
+                    const cachedPublicData = await getRecipe("public_recipes");
+                    
+                    let publicRecipesArray = [];
+                    let timestamp;
+
+                    if (cachedPublicData) {
+                        publicRecipesArray = Object.keys(cachedPublicData)
+                            .filter(key => !isNaN(key))
+                            .map(key => cachedPublicData[key]);
+
+                        timestamp = cachedPublicData.timestamp;
+                    }
+
+                    publicRecipesArray.push(res);
+
+                    await setRecipe("public_recipes", {
+                        ...publicRecipesArray,
+                        timestamp: timestamp
+                    });
+                }
+                
+                navigate("/");
+            } catch (error) {
+                console.log(error);
+            }
         }
     }
 

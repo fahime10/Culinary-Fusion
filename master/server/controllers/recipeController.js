@@ -88,6 +88,11 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
 
         const saveRecipe = await newRecipe.save();
 
+        const recipeObj = saveRecipe.toObject();
+        if (recipeObj.image) {
+            recipeObj.image = recipeObj.image.toString('base64');
+        }
+
         for (let ingredient of newIngredients) {
             const newIngredient = await Ingredient({
                 recipe_id: saveRecipe._id,
@@ -97,7 +102,7 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             await newIngredient.save();
         }
         
-        res.status(200).json(saveRecipe);
+        res.status(200).json(recipeObj);
 
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -245,11 +250,16 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
 
         const editedRecipe = await Recipe.findByIdAndUpdate(id, updatedData, { new: true });
 
+        const recipeObj = editedRecipe.toObject();
+        if (recipeObj.image) {
+            recipeObj.image = recipeObj.image.toString('base64');
+        }
+
         if (!editedRecipe) {
             return res.status(404).json({ err: 'Something went wrong' });
         }
 
-        res.status(200).json(editedRecipe);
+        res.status(200).json(recipeObj);
 
     } catch (err) {
         console.log(err);

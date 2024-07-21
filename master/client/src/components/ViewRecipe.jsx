@@ -4,11 +4,9 @@ import  Dialog from "./Dialog";
 import { v4 as uuidv4 } from "uuid";
 import NoImageIcon from "../assets/no-image.png";
 import { jwtDecode } from "jwt-decode";
-//import { dataStructRecipe } from "./recipeDataStructure.js";
 
 const ViewRecipe = () => {
     const { id } = useParams();
-    //const recipe = dataStructRecipe.find(recipe => recipe._id === id);
     const [dialog, setDialog] = useState(false);
     const [title, setTitle] = useState("");
     const [imageUrl, setImageUrl] = useState(null);
@@ -27,7 +25,8 @@ const ViewRecipe = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (sessionStorage.getItem("token") === null || sessionStorage.getItem("token") === "undefined") {
+        const token = sessionStorage.getItem("token");
+        if (!token || token === "undefined") {
             fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
                 method: "POST",
                 headers: {

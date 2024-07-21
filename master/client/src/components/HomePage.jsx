@@ -5,8 +5,12 @@ import NoImageIcon from "../assets/no-image.png";
 import MenuContainer from "./MenuContainer.jsx";
 import DropDownMenu from "./DropDownMenu.jsx";
 import { jwtDecode } from "jwt-decode";
+import { getRecipe, setRecipe, clearRecipes } from "../indexedDb";
 
 const HomePage = () => {
+    // 10 minutes in milliseconds
+    const TEN_MINUTES = 10 * 60 * 1000;
+
     const [recipes, setRecipes] = useState([]);
     const [nameTitle, setNameTitle] = useState("");
     const [lastName, setLastName] = useState("");
@@ -64,32 +68,58 @@ const HomePage = () => {
 
             return decodedToken;
         }
-        return null;
+        return "";
     }
     
-    function fetchRecipes() {
-        if (sessionStorage.getItem("token") === null || sessionStorage.getItem("token") === "undefined") {
+    async function fetchRecipes() {
+        const token = sessionStorage.getItem("token");
+        const now = new Date().getTime();
+    
+        if (!token || token === "undefined") {
+            const cachedData = await getRecipe("public_recipes");
+
+            if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
+                const recipes = Object.keys(cachedData)
+                    .filter(key => !isNaN(key))
+                    .map(key => cachedData[key]);
+    
+                setRecipes(recipes);
+                return;
+            }
+    
             fetch("http://localhost:9000/api/recipes", {
                 method: "GET"
             })
             .then((res) => res.json())
             .then((res) => {
                 setRecipes(res);
+                setRecipe("public_recipes", res);
             })
             .catch((err) => {
                 console.log(err);
             });
-
+    
         } else {
+            const cachedData = await getRecipe("user_recipes");
+            if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
+                const recipes = Object.keys(cachedData)
+                    .filter(key => !isNaN(key))
+                    .map(key => cachedData[key]);
+    
+                setRecipes(recipes);
+                return;
+            }
+    
             const userDetails = retrieveUserDetails();
-            
             const username = userDetails.username;
+    
             fetch(`http://localhost:9000/api/recipes/${username}`, {
                 method: "POST"
             })
             .then((res) => res.json())
             .then((res) => {
                 setRecipes(res);
+                setRecipe("user_recipes", res);
             })
             .catch((err) => {
                 console.log(err);
@@ -99,6 +129,13 @@ const HomePage = () => {
 
     // Retrieve data if there is a token
     useEffect(() => {
+        async function initialize() {
+            if (!sessionStorage.getItem("initialized")) {
+                await clearRecipes();
+                sessionStorage.setItem("initialized", "true");
+            }
+        }
+
         fetchRecipes();
 
         const userDetails = retrieveUserDetails();
@@ -107,6 +144,8 @@ const HomePage = () => {
             setNameTitle(userDetails.name_title);
             setLastName(userDetails.last_name);
         }
+
+        initialize();
 
     }, []);
 
@@ -118,8 +157,10 @@ const HomePage = () => {
         const selectedCategories = Object.keys(categories).filter(key => categories[key]);
         const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
 
+        const userDetails = retrieveUserDetails();
+
         const data = {
-            username: sessionStorage.getItem("username"),
+            username: userDetails.username,
             categories: selectedCategories,
             cuisine_types: selectedCuisineTypes
         }
@@ -144,11 +185,18 @@ const HomePage = () => {
     }, [categories, cuisineTypes]);
 
     useEffect(() => {
-        fetchFilteredRecipes();
+        const noFilters = Object.values(categories).every(val => !val) && Object.values(cuisineTypes).every(val => !val);
+
+        if (noFilters) {
+            fetchRecipes();
+        } else {
+            fetchFilteredRecipes();
+        }
     }, [fetchFilteredRecipes]);
 
     function handleLogout() {
         sessionStorage.removeItem("token");
+        clearRecipes();
         window.location.reload();
     }
 
