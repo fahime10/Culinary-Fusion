@@ -4,6 +4,7 @@ import  Dialog from "./Dialog";
 import { v4 as uuidv4 } from "uuid";
 import NoImageIcon from "../assets/no-image.png";
 import { jwtDecode } from "jwt-decode";
+import { getRecipe, setRecipe } from "../indexedDb";
 
 const ViewRecipe = () => {
     const { id } = useParams();
@@ -24,18 +25,70 @@ const ViewRecipe = () => {
 
     const navigate = useNavigate();
 
+    function setRecipeState(recipe) {
+        const userDetails = retrieveUserDetails();
+        setTitle(recipe.title);
+        setChef(recipe.chef);
+        setDescription(recipe.description);
+
+        const parsedIngredients = recipe.ingredients.map((ingredient, index) => ({
+            id: uuidv4(),
+            value: ingredient,
+            quantity: recipe.quantities[index]
+        }));
+
+        setIngredients(parsedIngredients);
+        setSteps(recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+        setCategories(recipe.categories);
+        setCuisineTypes(recipe.cuisine_types);
+        setAllergens(recipe.allergens);
+        setTimestamp(recipe.timestamp);
+        setStars(recipe.stars);
+                
+        if (recipe.image) {
+            setImageUrl(`data:image/jpeg;base64,${recipe.image}`);
+        }
+
+        if (userDetails.id === recipe.user_id) {
+            setIsOwner(true);
+        }
+    }
+
     useEffect(() => {
         const token = sessionStorage.getItem("token");
-        if (!token || token === "undefined") {
-            fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
+        const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
+
+        async function fetchRecipe() {
+            try {
+                const cachedData = await getRecipe(key);
+
+                if (cachedData && cachedData.timestamp) {
+                    const recipes = Object.keys(cachedData)
+                        .filter(key => !isNaN(key))
+                        .map(key => cachedData[key]);
+
+                    const recipe = recipes.find(recipe => recipe._id === id);
+
+                    if (recipe) {
+                        setRecipeState(recipe);
+                        return;
+                    }
                 }
-            })
-            .then((res) => res.json())
-            .then((res) => {
+
+                const userDetails = token && token !== "undefined" ? retrieveUserDetails() : null;
+                const data = userDetails ? { username: userDetails.username } : null;
+                
+                const response = await fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: data ? JSON.stringify(data) : undefined
+                });
+
+                const res = await response.json();
+
                 setTitle(res.recipe.title);
                 setChef(res.recipe.chef);
                 setDescription(res.recipe.description);
@@ -53,64 +106,21 @@ const ViewRecipe = () => {
                 setAllergens(res.recipe.allergens);
                 setTimestamp(res.recipe.timestamp);
                 setStars(res.recipe.stars);
-    
+        
                 if (res.recipe.image) {
                     setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
                 }
-    
+        
                 if (res.owner === true) {
                     setIsOwner(true);
                 }
-            })
-            .catch(err => console.log(err));
-        } else {
-            const userDetails = retrieveUserDetails();
 
-            if (userDetails) {
-                const data = {
-                    username: userDetails.username
-                };
-        
-                fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
-                    method: "POST",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then((res) => res.json())
-                .then((res) => {
-                    setTitle(res.recipe.title);
-                    setChef(res.recipe.chef);
-                    setDescription(res.recipe.description);
-    
-                    const parsedIngredients = res.recipe.ingredients.map((ingredient, index) => ({
-                        id: uuidv4(),
-                        value: ingredient,
-                        quantity: res.recipe.quantities[index]
-                    }));
-                    
-                    setIngredients(parsedIngredients);
-                    setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
-                    setCategories(res.recipe.categories);
-                    setCuisineTypes(res.recipe.cuisine_types);
-                    setAllergens(res.recipe.allergens);
-                    setTimestamp(res.recipe.timestamp);
-                    setStars(res.recipe.stars);
-    
-                    if (res.recipe.image) {
-                        setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
-                    }
-        
-                    if (res.owner === true) {
-                        setIsOwner(true);
-                    }
-                })
-                .catch(err => console.log(err));
+            } catch (error) {
+                console.log(error);
             }
-            
         }
+
+        fetchRecipe();
 
     }, [id]);
 
@@ -147,14 +157,38 @@ const ViewRecipe = () => {
         setDialog(!dialog);
     }
 
-    function deleteRecipe(id) {
-        fetch(`http://localhost:9000/api/recipes/delete-recipe/${id}`, {
-            method: "DELETE",
-        })
-        .catch((err) => {
-            console.log(err);
-        })
-        .finally(navigate("/"));
+    async function deleteRecipe(id) {
+        async function updateCache(key) {
+            const cachedData = await getRecipe(key);
+
+            if (cachedData) {
+                const recipes = Object.keys(cachedData)
+                    .filter(key => !isNaN(key))
+                    .map(key => cachedData[key]);
+
+                const updatedRecipes = recipes.filter(recipe => recipe._id !== id);
+
+                await setRecipe(key, {
+                    ...updatedRecipes
+                });
+            }
+        }
+
+        try {
+            const response = await fetch(`http://localhost:9000/api/recipes/delete-recipe/${id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                const token = sessionStorage.getItem("token");
+                const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
+
+                await updateCache(key);
+                navigate("/");
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     return (

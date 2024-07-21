@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
+import { getRecipe, setRecipe } from "../indexedDb";
 
 const EditRecipe = () => {
     const { id } = useParams();
@@ -80,62 +81,119 @@ const EditRecipe = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const userDetails = retrieveUserDetails();
+        async function fetchRecipe() {
+            const token = sessionStorage.getItem("token");
+            const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
 
-        if (userDetails) {
-            const data = {
-                username: userDetails.username
-            };
-    
-            fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            })
-            .then((res) => res.json())
-            .then((res) => {
-                setTitle(res.recipe.title);
-                setChef(res.recipe.chef);
-                setChecked(res.recipe.private);
-                setDescription(res.recipe.description);
-                setQuantities(res.recipe.quantities);
-                setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
-                setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
-                
-                const categoryCheckedBoxes = { ...categories };
-                res.recipe.categories.forEach(category => {
-                    if (Object.prototype.hasOwnProperty.call(categoryCheckedBoxes, category)) {
-                        categoryCheckedBoxes[category] = true;
+            const cachedData = await getRecipe(key);
+
+            if (cachedData) {
+                const recipes = Object.keys(cachedData)
+                    .filter(key => !isNaN(key))
+                    .map(key => cachedData[key]);
+
+                const recipe = recipes.find(recipe => recipe._id === id);
+
+                if (recipe) {
+                    setTitle(recipe.title);
+                    setChef(recipe.chef);
+                    setChecked(recipe.private);
+                    setDescription(recipe.description);
+                    setQuantities(recipe.quantities);
+                    setIngredients(recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
+                    setSteps(recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                    
+                    const categoryCheckedBoxes = { ...categories };
+                    recipe.categories.forEach(category => {
+                        if (Object.prototype.hasOwnProperty.call(categoryCheckedBoxes, category)) {
+                            categoryCheckedBoxes[category] = true;
+                        }
+                    });
+                    setCategories(categoryCheckedBoxes);
+        
+                    const cuisineCheckboxes = { ...cuisineTypes };
+                    recipe.cuisine_types.forEach(cuisineType => {
+                        if (Object.prototype.hasOwnProperty.call(cuisineCheckboxes, cuisineType)) {
+                            cuisineCheckboxes[cuisineType] = true;
+                        }
+                    });
+                    setCuisineTypes(cuisineCheckboxes);
+                    
+                    const allergensCheckboxes = { ...allergens };
+                    recipe.allergens.forEach(allergen => {
+                        if (Object.prototype.hasOwnProperty.call(allergensCheckboxes, allergen)) {
+                            allergensCheckboxes[allergen] = true;
+                        }
+                    });
+                    setAllergens(allergensCheckboxes);
+        
+                    if (recipe.image) {
+                        setImage(recipe.image);
+                        setImageUrl(`data:image/jpeg;base64,${recipe.image}`);
                     }
-                });
-                setCategories(categoryCheckedBoxes);
-    
-                const cuisineCheckboxes = { ...cuisineTypes };
-                res.recipe.cuisine_types.forEach(cuisineType => {
-                    if (Object.prototype.hasOwnProperty.call(cuisineCheckboxes, cuisineType)) {
-                        cuisineCheckboxes[cuisineType] = true;
-                    }
-                });
-                setCuisineTypes(cuisineCheckboxes);
-                
-                const allergensCheckboxes = { ...allergens };
-                res.recipe.allergens.forEach(allergen => {
-                    if (Object.prototype.hasOwnProperty.call(allergensCheckboxes, allergen)) {
-                        allergensCheckboxes[allergen] = true;
-                    }
-                });
-                setAllergens(allergensCheckboxes);
-    
-                if (res.recipe.image) {
-                    setImage(res.recipe.image);
-                    setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
+                    return;
                 }
-            })
-            .catch(err => console.log(err));
+            }
+
+            const userDetails = retrieveUserDetails();
+
+            if (userDetails) {
+                const data = {
+                    username: userDetails.username
+                };
+        
+                fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((res) => res.json())
+                .then((res) => {
+                    setTitle(res.recipe.title);
+                    setChef(res.recipe.chef);
+                    setChecked(res.recipe.private);
+                    setDescription(res.recipe.description);
+                    setQuantities(res.recipe.quantities);
+                    setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
+                    setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+                    
+                    const categoryCheckedBoxes = { ...categories };
+                    res.recipe.categories.forEach(category => {
+                        if (Object.prototype.hasOwnProperty.call(categoryCheckedBoxes, category)) {
+                            categoryCheckedBoxes[category] = true;
+                        }
+                    });
+                    setCategories(categoryCheckedBoxes);
+        
+                    const cuisineCheckboxes = { ...cuisineTypes };
+                    res.recipe.cuisine_types.forEach(cuisineType => {
+                        if (Object.prototype.hasOwnProperty.call(cuisineCheckboxes, cuisineType)) {
+                            cuisineCheckboxes[cuisineType] = true;
+                        }
+                    });
+                    setCuisineTypes(cuisineCheckboxes);
+                    
+                    const allergensCheckboxes = { ...allergens };
+                    res.recipe.allergens.forEach(allergen => {
+                        if (Object.prototype.hasOwnProperty.call(allergensCheckboxes, allergen)) {
+                            allergensCheckboxes[allergen] = true;
+                        }
+                    });
+                    setAllergens(allergensCheckboxes);
+        
+                    if (res.recipe.image) {
+                        setImage(res.recipe.image);
+                        setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
+                    }
+                })
+                .catch(err => console.log(err));
+            }
         }
+
+        fetchRecipe();
         
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
@@ -255,7 +313,7 @@ const EditRecipe = () => {
         }
     }
 
-    function handleSave(event) {
+    async function handleSave(event) {
         event.preventDefault();
 
         const userDetails = retrieveUserDetails();
@@ -279,13 +337,42 @@ const EditRecipe = () => {
             data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
             data.append("allergens", JSON.stringify(selectedAllergens));
 
-            fetch(`http://localhost:9000/api/recipes/edit-recipe/${id}`, {
-                method: "POST",
-                body: data
-            })
-            .catch(err => console.log(err));
 
-            navigate(`/recipe/${id}`);
+            try {
+                const response = await fetch(`http://localhost:9000/api/recipes/edit-recipe/${id}`, {
+                    method: "POST",
+                    body: data
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+                    
+                    const token = sessionStorage.getItem("token");
+                    const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
+
+                    const cachedData = await getRecipe(key);
+                    
+                    if (cachedData) {
+                        const recipes = Object.keys(cachedData)
+                            .filter(key => !isNaN(key))
+                            .map(key => cachedData[key]);
+
+                        const recipeIndex = recipes.findIndex(recipe => recipe._id === id);
+
+                        if (recipeIndex > -1) {
+                            recipes[recipeIndex] = res;
+                        } else {
+                            recipes.push(res);
+                        }
+
+                        await setRecipe(key, recipes);
+
+                        navigate(`/recipe/${id}`);
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
         }
     }
 

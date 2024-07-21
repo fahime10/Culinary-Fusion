@@ -39,20 +39,6 @@ export async function setRecipe(key, val) {
     }
 }
 
-export async function deleteRecipe(key) {
-    try {
-        const db = await dbPromise;
-        const t = db.transaction("recipes", "readwrite");
-        const store = t.objectStore("recipes");
-        await store.delete(key);
-        await t.done;
-
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }
-}
-
 export async function clearRecipes() {
     try {
         const db = await dbPromise;
