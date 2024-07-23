@@ -8,6 +8,7 @@ import { getRecipe, setRecipe } from "../indexedDb";
 
 const ViewRecipe = () => {
     const { id } = useParams();
+    const [logged, setLogged] = useState(false);
     const [dialog, setDialog] = useState(false);
     const [title, setTitle] = useState("");
     const [imageUrl, setImageUrl] = useState(null);
@@ -19,9 +20,12 @@ const ViewRecipe = () => {
     const [cuisineTypes, setCuisineTypes] = useState([""]);
     const [allergens, setAllergens] = useState([""]);
     const [timestamp, setTimestamp] = useState(null);
-    const [stars, setStars] = useState();
 
     const [isOwner, setIsOwner] = useState(false);
+
+    const [hoveredStar, setHoveredStar] = useState(null);
+    const [average, setAverage] = useState(0);
+    const [userRating, setUserRating] = useState(0);
 
     const navigate = useNavigate();
 
@@ -43,7 +47,6 @@ const ViewRecipe = () => {
         setCuisineTypes(recipe.cuisine_types);
         setAllergens(recipe.allergens);
         setTimestamp(recipe.timestamp);
-        setStars(recipe.stars);
                 
         if (recipe.image) {
             setImageUrl(`data:image/jpeg;base64,${recipe.image}`);
@@ -57,6 +60,10 @@ const ViewRecipe = () => {
     useEffect(() => {
         const token = sessionStorage.getItem("token");
         const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
+
+        if (token) {
+            setLogged(true);
+        }
 
         async function fetchRecipe() {
             try {
@@ -105,7 +112,6 @@ const ViewRecipe = () => {
                 setCuisineTypes(res.recipe.cuisine_types);
                 setAllergens(res.recipe.allergens);
                 setTimestamp(res.recipe.timestamp);
-                setStars(res.recipe.stars);
         
                 if (res.recipe.image) {
                     setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
@@ -122,6 +128,31 @@ const ViewRecipe = () => {
 
         fetchRecipe();
 
+        const userDetails = retrieveUserDetails();
+
+        const data = {
+            user_id: userDetails.id,
+            recipe_id: id
+        };
+
+        fetch("http://localhost:9000/api/stars/rating-recipe", {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            if (res.average) {
+                setAverage(res.average);
+                setUserRating(res.user_rating);
+            }
+        })
+        .catch(err => console.log(err));
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     function retrieveUserDetails() {
@@ -133,6 +164,14 @@ const ViewRecipe = () => {
             return decodedToken;
         }
         return null;
+    }
+
+    function handleMouseEnter(index) {
+        setHoveredStar(index);
+    }
+
+    function handleMouseLeave() {
+        setHoveredStar(null);
     }
 
     function formatDate(timestamp) {
@@ -191,6 +230,43 @@ const ViewRecipe = () => {
         }
     }
 
+    function handleStarClick(index) {
+        const token = sessionStorage.getItem("token");
+
+        if (token) {
+            rateRecipe(index);
+        }
+    }
+
+    function rateRecipe(stars) {
+        const token = sessionStorage.getItem("token");
+        const userDetails = retrieveUserDetails();
+
+        if (token) {
+            const data = {
+                user_id: userDetails.id,
+                recipe_id: id,
+                stars: stars
+            };
+
+            fetch("http://localhost:9000/api/stars", {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                if (res.average) {
+                    setAverage(res.average);
+                }
+            })
+            .catch(err => console.log(err));
+        }
+    }
+
     return (
         <>
             <div className="top">
@@ -212,7 +288,28 @@ const ViewRecipe = () => {
             </Dialog>
             <div className="recipe-details">
                 <h1>{title}</h1>
-                <p>Stars: {stars}</p>
+                <div className="stars">
+                    <p>Stars:</p>
+                    {[1, 2, 3, 4, 5].map((index) =>  {
+                        const isFilled = index <= Math.round(average);
+                        const isSelected = index <= userRating;
+                        const isHovered = index <= hoveredStar;
+                    
+                    return (
+                        <span 
+                            key={index}
+                            className={`star ${isFilled ? "average": ""} ${isHovered ? "highlighted" : ""}`}
+                            onMouseEnter={() => handleMouseEnter(index)}
+                            onMouseLeave={handleMouseLeave}
+                            onClick={() => handleStarClick(index)}
+                            style={{ 
+                                cursor: logged ? "pointer" : "not-allowed", 
+                                border: isSelected ? "2px solid gold" : "none",
+                                color: isFilled && !isHovered && !isSelected ? "green" : ""
+                            }}
+                        ></span>
+                    )})}
+                </div>
                 {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
                 <p>{description}</p>
                 <p>Chef/s: {chef}</p>

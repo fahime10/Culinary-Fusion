@@ -185,6 +185,37 @@ button:hover {
     border-color: brown;
 }
 
+.stars {
+    display: flex;
+    align-items: center;
+}
+
+.stars span {
+    font-size: 2rem;
+    margin-left: 1rem;
+    cursor: pointer;
+    transition: color 0.3s, border 0.3s;
+}
+
+.stars .average::before {
+    content: "\2605";
+    color: green;
+}
+
+.stars span::before {
+    content: "\2606";
+    color: grey;
+}
+
+.stars span.highlighted::before {
+    content: "\2605";
+    color: gold;
+}
+
+.stars span:hover::before {
+    color: gold;
+}
+
 .top {
     display: flex;
     background-color: rgb(166, 220, 59);

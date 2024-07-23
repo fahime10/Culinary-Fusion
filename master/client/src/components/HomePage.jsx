@@ -147,6 +147,7 @@ const HomePage = () => {
 
         initialize();
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     function viewRecipe(id) {
@@ -192,6 +193,7 @@ const HomePage = () => {
         } else {
             fetchFilteredRecipes();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchFilteredRecipes]);
 
     function handleLogout() {

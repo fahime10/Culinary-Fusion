@@ -13,7 +13,6 @@ const RecipeSchema = new Schema({
     ingredients: { type: [String], required: true },
     steps: { type: [String], required : true },
     timestamp: { type: Date, default: Date.now, required: true },
-    stars: { type: Number, default: 0 },
     categories: { type: [String], default: null },
     cuisine_types: { type: [String], default: null },
     allergens: { type: [String], default: null },

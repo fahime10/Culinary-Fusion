@@ -1,4 +1,4 @@
-const Recipe = require("../models/recipeModel");
+const Recipe = require('../models/recipeModel');
 const User = require('../models/userModel');
 const Ingredient = require('../models/ingredientModel');
 const asyncHandler = require("express-async-handler");
@@ -82,7 +82,6 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             cuisine_types: newCuisineTypes,
             allergens: newAllergens,
             timestamp: new Date(),
-            stars: 0,
             test
         });
 

@@ -4,6 +4,7 @@ const router = express.Router();
 const index_controller = require('../controllers/indexController');
 const recipe_controller = require('../controllers/recipeController');
 const user_controller = require('../controllers/userController');
+const star_controller = require('../controllers/starController');
 
 router.get('/', index_controller.index);
 
@@ -36,5 +37,9 @@ router.post('/users/edit-user/:username', user_controller.edit_user);
 router.delete('/users/delete-user/:username', user_controller.delete_user);
 
 router.post('/users/forgotten-password/change', user_controller.forgotten_password);
+
+router.post('/stars', star_controller.add_star_rating);
+
+router.post('/stars/rating-recipe', star_controller.rating_average);
 
 module.exports = router;
