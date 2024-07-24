@@ -1,6 +1,7 @@
 const Recipe = require('../models/recipeModel');
 const User = require('../models/userModel');
 const Ingredient = require('../models/ingredientModel');
+const Star = require('../models/starModel');
 const asyncHandler = require("express-async-handler");
 const multer = require("multer");
 const { index } = require("./indexController");
@@ -113,7 +114,7 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
     try {
         const allRecipes = await Recipe.find({ private: false }).exec();
 
-        const result = convertToObjects(allRecipes);
+        const result = await convertToObjects(allRecipes);
 
         res.status(200).json(result);
 
@@ -141,7 +142,7 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
 
         const distinctRecipes = makeDistinct(recipes);
 
-        const result = convertToObjects(distinctRecipes);
+        const result = await convertToObjects(distinctRecipes);
 
         res.status(200).json(result);
 
@@ -305,7 +306,7 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
 
         const distinctRecipes = makeDistinct(recipes);
 
-        const result = convertToObjects(distinctRecipes);
+        const result = await convertToObjects(distinctRecipes);
 
         res.status(200).json(result);
 
@@ -347,7 +348,7 @@ exports.filter_recipes = asyncHandler(async (req, res, next) => {
 
         const distinctRecipes = makeDistinct(recipes);
 
-        const result = convertToObjects(distinctRecipes);
+        const result = await convertToObjects(distinctRecipes);
 
         res.status(200).json({ recipes: result, status: 200 });
 
@@ -369,7 +370,7 @@ exports.personal_recipes = asyncHandler(async (req, res, next) => {
 
         const userRecipes = await Recipe.find({ user_id: user._id });
 
-        const result = convertToObjects(userRecipes);
+        const result = await convertToObjects(userRecipes);
 
         res.status(200).json(result);
 

@@ -42,4 +42,6 @@ router.post('/stars', star_controller.add_star_rating);
 
 router.post('/stars/rating-recipe', star_controller.rating_average);
 
+router.post('/stars/get-all-ratings', star_controller.get_all_ratings);
+
 module.exports = router;

@@ -96,27 +96,8 @@ const ViewRecipe = () => {
 
                 const res = await response.json();
 
-                setTitle(res.recipe.title);
-                setChef(res.recipe.chef);
-                setDescription(res.recipe.description);
+                setRecipeState(res.recipe);
 
-                const parsedIngredients = res.recipe.ingredients.map((ingredient, index) => ({
-                    id: uuidv4(),
-                    value: ingredient,
-                    quantity: res.recipe.quantities[index]
-                }));
-
-                setIngredients(parsedIngredients);
-                setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
-                setCategories(res.recipe.categories);
-                setCuisineTypes(res.recipe.cuisine_types);
-                setAllergens(res.recipe.allergens);
-                setTimestamp(res.recipe.timestamp);
-        
-                if (res.recipe.image) {
-                    setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
-                }
-        
                 if (res.owner === true) {
                     setIsOwner(true);
                 }
@@ -130,10 +111,13 @@ const ViewRecipe = () => {
 
         const userDetails = retrieveUserDetails();
 
-        const data = {
-            user_id: userDetails.id,
+        let data = {
             recipe_id: id
         };
+
+        if (userDetails) {
+            data.user_id = userDetails.id;
+        }
 
         fetch("http://localhost:9000/api/stars/rating-recipe", {
             method: "POST",
@@ -261,6 +245,7 @@ const ViewRecipe = () => {
             .then((res) => {
                 if (res.average) {
                     setAverage(res.average);
+                    setUserRating(stars);
                 }
             })
             .catch(err => console.log(err));

@@ -84,6 +84,7 @@ const HomePage = () => {
                     .map(key => cachedData[key]);
     
                 setRecipes(recipes);
+                await fetchRecipeDetails(recipes.map(recipe => recipe._id));
                 return;
             }
     
@@ -107,6 +108,7 @@ const HomePage = () => {
                     .map(key => cachedData[key]);
     
                 setRecipes(recipes);
+                await fetchRecipeDetails(recipes.map(recipe => recipe._id));
                 return;
             }
     
@@ -124,6 +126,37 @@ const HomePage = () => {
             .catch((err) => {
                 console.log(err);
             });
+        }
+    }
+
+    // Separate function to retrieve stars asynchronously and to avoid binding stars values into the cache
+    // to have real time updates on user feedback
+    async function fetchRecipeDetails(recipeIds) {
+        const data = {
+            recipe_ids: recipeIds
+        };
+
+        try {
+            const response = await fetch("http://localhost:9000/api/stars/get-all-ratings", {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            const ratings = await response.json();
+            const ratingMap = new Map(ratings.map(rating => [rating.recipe_id, rating.average]));
+
+            setRecipes((prevRecipes) => 
+                prevRecipes.map(recipe => ({
+                    ...recipe,
+                    average: ratingMap.get(recipe._id) || 0
+                }))
+            );
+        } catch (error) {
+            console.log(error);
         }
     }
 
@@ -154,7 +187,7 @@ const HomePage = () => {
         navigate(`/recipe/${id}`);
     }
 
-    const fetchFilteredRecipes = useCallback(() => {
+    const fetchFilteredRecipes = useCallback(async () => {
         const selectedCategories = Object.keys(categories).filter(key => categories[key]);
         const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
 
@@ -166,23 +199,23 @@ const HomePage = () => {
             cuisine_types: selectedCuisineTypes
         }
 
-        fetch("http://localhost:9000/api/recipes/filter/set", {
+        const response = await fetch("http://localhost:9000/api/recipes/filter/set", {
             method: "POST",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(data)
-        })
-        .then(res => res.json())
-        .then(res => {
-            if (res.status === 200) {
-                setRecipes(res.recipes);
-            } else {
-                console.log(res.error);
-            }
-        })
-        .catch(err => console.log(err));
+        });
+
+        const res = await response.json();
+
+        if (res.status === 200) {
+            setRecipes(res.recipes);
+            const recipeIds = res.recipes.map(recipe => recipe._id);
+            await fetchRecipeDetails(recipeIds);
+        }
+
     }, [categories, cuisineTypes]);
 
     useEffect(() => {
@@ -193,6 +226,7 @@ const HomePage = () => {
         } else {
             fetchFilteredRecipes();
         }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchFilteredRecipes]);
 
@@ -211,7 +245,7 @@ const HomePage = () => {
         }
     }
 
-    function findRecipe(searchRecipe) {
+    async function findRecipe(searchRecipe) {
         if (searchRecipe.trim() !== "") {
             let data = {};
 
@@ -225,17 +259,20 @@ const HomePage = () => {
                 };
             }
 
-            fetch(`http://localhost:9000/api/recipes/search/${searchRecipe}`, {
+            const response = await fetch(`http://localhost:9000/api/recipes/search/${searchRecipe}`, {
                 method: "POST",
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(data)
-            })
-            .then((res) => res.json())
-            .then((res) => setRecipes(res))
-            .catch(err => console.log(err));
+            });
+
+            const res = await response.json();
+
+            setRecipes(res);
+            const recipeIds = res.map(recipe => recipe._id);
+            await fetchRecipeDetails(recipeIds);
         }
     }
 
@@ -285,6 +322,18 @@ const HomePage = () => {
                                 />
                             ) : <img src={NoImageIcon} />}
                             <p className="description">{recipe.description}</p>
+                            <div className="stars">
+                                {[1, 2, 3, 4, 5].map((index) => {
+                                    const isFilled = index <= Math.round(recipe.average);
+                                    return (
+                                        <span 
+                                            key={index}
+                                            className={`star ${isFilled ? "average": ""}`}
+                                            style={{ color: isFilled ? "gold" : "grey"}}
+                                        ></span>
+                                    );
+                                })}
+                            </div>
                         </div>
                     ))}
                 </div>
