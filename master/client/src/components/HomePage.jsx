@@ -5,7 +5,7 @@ import NoImageIcon from "../assets/no-image.png";
 import MenuContainer from "./MenuContainer.jsx";
 import DropDownMenu from "./DropDownMenu.jsx";
 import { jwtDecode } from "jwt-decode";
-import { getRecipe, setRecipe, clearRecipes } from "../indexedDb";
+import { getRecipe, setRecipe, clearRecipes, clearUserRecipes } from "../indexedDb";
 
 const HomePage = () => {
     // 10 minutes in milliseconds
@@ -87,45 +87,46 @@ const HomePage = () => {
                 await fetchRecipeDetails(recipes.map(recipe => recipe._id));
                 return;
             }
-    
-            fetch("http://localhost:9000/api/recipes", {
+
+            const response = await fetch("http://localhost:9000/api/recipes", {
                 method: "GET"
-            })
-            .then((res) => res.json())
-            .then((res) => {
-                setRecipes(res);
-                setRecipe("public_recipes", res);
-            })
-            .catch((err) => {
-                console.log(err);
             });
+
+            const res = await response.json();
+
+            setRecipes(res);
+            setRecipe("public_recipes", res);
+            await fetchRecipeDetails(res.map(recipe => recipe._id));
     
         } else {
+            const isUserEdited = sessionStorage.getItem("editedUser");
             const cachedData = await getRecipe("user_recipes");
-            if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
-                const recipes = Object.keys(cachedData)
-                    .filter(key => !isNaN(key))
-                    .map(key => cachedData[key]);
-    
-                setRecipes(recipes);
-                await fetchRecipeDetails(recipes.map(recipe => recipe._id));
-                return;
+
+            if (isUserEdited === "false") {
+                if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
+                    const recipes = Object.keys(cachedData)
+                        .filter(key => !isNaN(key))
+                        .map(key => cachedData[key]);
+        
+                    setRecipes(recipes);
+                    await fetchRecipeDetails(recipes.map(recipe => recipe._id));
+                    return;
+                }
             }
     
             const userDetails = retrieveUserDetails();
             const username = userDetails.username;
-    
-            fetch(`http://localhost:9000/api/recipes/${username}`, {
+
+            const response = await fetch(`http://localhost:9000/api/recipes/${username}`, {
                 method: "POST"
-            })
-            .then((res) => res.json())
-            .then((res) => {
-                setRecipes(res);
-                setRecipe("user_recipes", res);
-            })
-            .catch((err) => {
-                console.log(err);
             });
+
+            const res = await response.json();
+
+            setRecipes(res);
+            setRecipe("user_recipes", res);
+            await fetchRecipeDetails(res.map(recipe => recipe._id));
+            sessionStorage.setItem("editedUser", false);
         }
     }
 
@@ -165,7 +166,11 @@ const HomePage = () => {
         async function initialize() {
             if (!sessionStorage.getItem("initialized")) {
                 await clearRecipes();
-                sessionStorage.setItem("initialized", "true");
+                sessionStorage.setItem("initialized", true);
+            }
+
+            if (!sessionStorage.getItem("editedUser")) {
+                sessionStorage.setItem("editedUser", false);
             }
         }
 
@@ -232,7 +237,7 @@ const HomePage = () => {
 
     function handleLogout() {
         sessionStorage.removeItem("token");
-        clearRecipes();
+        clearUserRecipes();
         window.location.reload();
     }
 

@@ -12,7 +12,7 @@ exports.add_user = asyncHandler(async (req, res, next) => {
         const { name_title, first_name, last_name, username, dietary_preferences, preferred_categories, 
                 preferred_cuisine_types, allergies, test } = req.body;
 
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
         if (!name_title || !first_name || !last_name || !username || !req.body.password) {
             return res.status(400).json({ error: 'All fields must be filled' });
@@ -77,7 +77,7 @@ exports.login_user = asyncHandler(async (req, res, next) => {
     try {
         const { username, password } = req.body;
 
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
         if (!user) {
             res.status(401).send({ error: 'Incorrect credentials' });
@@ -113,7 +113,7 @@ exports.user_details = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
 
     try {
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
         if (!user) {
             res.status(404).json({ error: 'User not found' });
@@ -144,9 +144,9 @@ exports.edit_user = asyncHandler(async (req, res, next) => {
             preferred_categories, preferred_cuisine_types, allergies } = req.body;
 
     try {
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
-        const foundUsername = await User.findOne({ username: req.body.username });
+        const foundUsername = await User.findOne({ username: req.body.username }).lean();
 
         if (!user) {
             res.status(404).json({ error: 'User not found' });
@@ -169,7 +169,6 @@ exports.edit_user = asyncHandler(async (req, res, next) => {
             allergies
         };
 
-        console.log(passcode);
         if (passcode) {
             try {
                 const hashedPasscode = await bcrypt.hash(passcode, 10);
@@ -180,14 +179,20 @@ exports.edit_user = asyncHandler(async (req, res, next) => {
             }
         }
 
-        const editedUsername = await User.findByIdAndUpdate(user._id, updatedData, { new: true });
+        const editedUser = await User.findByIdAndUpdate(user._id, updatedData, { new: true }).lean();
 
-        res.status(200).json({ 
-            message: 'Updated successfully',
-            name_title: editedUsername.name_title,
-            last_name: editedUsername.last_name,
-            username: editedUsername.username
-        });
+        const token = 
+            jwt.sign({ 
+                id: editedUser._id, 
+                username: editedUser.username, 
+                name_title: editedUser.name_title,
+                last_name: editedUser.last_name 
+            },
+            SECRET_KEY, 
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).send({ message: 'Updated successfully' , token: token });
 
     } catch (err) {
         console.log(err);
@@ -213,7 +218,7 @@ exports.forgotten_password = asyncHandler(async (req, res, next) => {
     const { username, passcode, new_password } = req.body;
 
     try {
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
         if (!user) {
             res.status(401).send({ error: 'User not found' });
@@ -236,7 +241,7 @@ exports.forgotten_password = asyncHandler(async (req, res, next) => {
                     password: hashedPassword
                 };
 
-                await User.findByIdAndUpdate(user._id, updatedData, { new: true });
+                await User.findByIdAndUpdate(user._id, updatedData, { new: true }).lean();
 
                 res.status(200).json({ message: 'Password updated' });
             }

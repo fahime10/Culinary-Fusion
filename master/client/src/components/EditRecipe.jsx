@@ -16,6 +16,28 @@ const EditRecipe = () => {
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
 
+    const [diet, setDiet] = useState({
+        "Vegetarian": false,
+        "Vegan": false,
+        "Pescatarian": false,
+        "Gluten-free": false,
+        "Dairy-free": false,
+        "Low carb": false,
+        "High protein": false,
+        "Paleo": false,
+        "Halal": false,
+        "Kosher": false,
+        "Low sodium": false,
+        "Sugar free": false,
+        "Nut-Free": false,
+        "Soy-free": false,
+        "Low FODMAP": false,
+        "Whole30": false,
+        "Raw food": false,
+        "Anti-inflammatory": false,
+        "Lactose-free": false
+    });
+
     const [categories, setCategories] = useState({
        "Appetizer": false,
        "Salad": false,
@@ -103,6 +125,14 @@ const EditRecipe = () => {
                     setIngredients(recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
                     setSteps(recipe.steps.map(step => ({ id: uuidv4(), value: step})));
                     
+                    const dietCheckedBoxes = { ...diet };
+                    recipe.diet.forEach(type_of_diet => {
+                        if (Object.prototype.hasOwnProperty.call(dietCheckedBoxes, type_of_diet)) {
+                            dietCheckedBoxes[type_of_diet] = true;
+                        }
+                    });
+                    setDiet(dietCheckedBoxes);
+
                     const categoryCheckedBoxes = { ...categories };
                     recipe.categories.forEach(category => {
                         if (Object.prototype.hasOwnProperty.call(categoryCheckedBoxes, category)) {
@@ -290,6 +320,12 @@ const EditRecipe = () => {
 
     function handleCheckboxChange(group, name) {
         switch(group) {
+            case "diet":
+                setDiet(prevState => ({
+                    ...prevState,
+                    [name]: !prevState[name]
+                }));
+                break;
             case "categories":
                 setCategories(prevState => ({
                     ...prevState,
@@ -319,6 +355,7 @@ const EditRecipe = () => {
         const userDetails = retrieveUserDetails();
 
         if (userDetails) {
+            const selectedDiet = Object.keys(diet).filter(key => diet[key]);
             const selectedCategories = Object.keys(categories).filter(key => categories[key]);
             const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
             const selectedAllergens = Object.keys(allergens).filter(key => allergens[key]);
@@ -333,6 +370,7 @@ const EditRecipe = () => {
             data.append("quantities", JSON.stringify(quantities));
             data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
             data.append("steps", JSON.stringify(steps.map(step => step.value)));
+            data.append("diet", JSON.stringify(selectedDiet));
             data.append("categories", JSON.stringify(selectedCategories));
             data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
             data.append("allergens", JSON.stringify(selectedAllergens));
@@ -426,7 +464,7 @@ const EditRecipe = () => {
                         id="description"
                         name="text" 
                         rows={10}
-                        cols={30}
+                        cols={65}
                         value={description}
                         onChange={handleDescription}
                     />
@@ -475,6 +513,21 @@ const EditRecipe = () => {
                             </div> 
                         ))}
                         <button type="button" className="add" onClick={addStep}>Add one more step</button>
+                    </div>
+                    <div className="box">
+                        <div className="box-title">Type of diet:</div>
+                        <div className="checkboxes">
+                            {Object.keys(diet).map(type_of_diet => (
+                                <label key={type_of_diet}>
+                                    <input 
+                                        type="checkbox"
+                                        checked={diet[type_of_diet]}
+                                        onChange={() => handleCheckboxChange("diet", type_of_diet)}
+                                    />
+                                    {type_of_diet}
+                                </label>
+                            ))}
+                        </div>
                     </div>
                     <div className="box">
                         <div className="box-title">Categories:</div>

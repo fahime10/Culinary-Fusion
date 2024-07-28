@@ -18,7 +18,7 @@ button:hover {
 .grid-container {
     display: grid;
     grid-template-columns: 1fr 5fr;
-    grid-template-rows: 1fr 4fr;
+    grid-template-rows: 1fr 9fr;
 }
 
 .top-bar {
@@ -142,7 +142,8 @@ button:hover {
 
 .recipes {
     display: grid;
-    margin: 1rem;
+    margin: 1rem; 
+    height: 15rem;
     grid-template-columns: repeat(4, 1fr);
     row-gap: 1rem;
 }
@@ -264,6 +265,10 @@ button:hover {
     margin-right: 3rem;
 }
 
+.step {
+    width: 20rem;
+}
+
 .ingredient-list, .step-list {
     border: 2px solid black;
     border-radius: 5px;
@@ -272,6 +277,10 @@ button:hover {
 
 .ingredient-list > *, .step-list > * {
     margin-left: 1rem;
+}
+
+.step-list ol > * {
+    width: auto;
 }
 
 .add-recipe label {
@@ -286,6 +295,7 @@ button:hover {
     border: 2px solid black;
     margin: 1rem 0;
     padding: 1rem;
+    width: 30rem;
 }
 
 .add-recipe-steps > *, 

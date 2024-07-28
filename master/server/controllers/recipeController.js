@@ -4,7 +4,6 @@ const Ingredient = require('../models/ingredientModel');
 const Star = require('../models/starModel');
 const asyncHandler = require("express-async-handler");
 const multer = require("multer");
-const { index } = require("./indexController");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -27,32 +26,98 @@ const makeDistinct = (collection) => {
 
 const convertToObjects = (collection) => {
     const objects = collection.map(item => {
-        const itemObj = item.toObject();
-        if (item.image) {
-            itemObj.image = item.image.toString('base64');
+        if (item.image && Buffer.isBuffer(item.image)) {
+            item.image = item.image.toString('base64');
         }
-        return itemObj;
+        return item;
     });
 
     return objects;
 }
 
+const recommendedRecipes = async (recipes, user) => {
+    const recipe_ids = recipes.map(recipe => recipe._id);
+
+    const allRatings = await Star.find({ recipe_id: { $in: recipe_ids }}).lean();
+
+    const positiveRatings = allRatings.filter(rating => rating.stars > 2);
+
+    const preferredCategories = new Set();
+    const preferredCuisineTypes = new Set();
+
+    const userDietaryPreferences = new Set(user.dietary_preferences);
+    const userPreferredCategories = new Set(user.preferred_categories);
+    const userPreferredCuisineTypes = new Set(user.preferred_cuisine_types);
+
+    // Find out what categories and cuisine types the user might like based on stars feedback
+    positiveRatings.forEach(rating => {
+        const recipe = recipes.find(recipe => recipe._id.equals(rating.recipe_id));
+
+        if (recipe) {
+            recipe.categories.forEach(category => preferredCategories.add(category));
+            recipe.cuisine_types.forEach(cuisine_type => preferredCuisineTypes.add(cuisine_type));
+        }
+    });
+
+    // Filter recipes by matching the preferred categories and cuisine types, as well as removing any recipes
+    // that the user may be allergic to and take into account the type of diet of the user
+    const filterRecipes = recipes.filter(recipe => {
+        const diet = recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
+        const categoriesMatch = recipe.categories.some(category => userPreferredCategories.has(category) || preferredCategories.has(category));
+        const cuisineTypesMatch = recipe.cuisine_types.some(cuisine_type => userPreferredCuisineTypes.has(cuisine_type) || preferredCuisineTypes.has(cuisine_type));
+        const noAllergies = !user.allergies.some(allergy => recipe.allergens.includes(allergy));
+
+        return (
+            categoriesMatch || cuisineTypesMatch) && noAllergies && diet;
+    });
+
+    // Randomize recipes and get up to 20 recipes
+    let randomRecipes = [];
+    if (filterRecipes.length === 0) {
+        randomRecipes = randomizeRecipes(recipes, 20);
+    } else {
+        randomRecipes = randomizeRecipes(filterRecipes, 20);
+    }
+
+    return randomRecipes;
+}
+
+// Simpler variation of the Fisher-Yates Shuffle algorithm
+const randomizeRecipes = (recipes, count) => {
+    const result = [];
+
+    while (result.length < count && recipes.length > 0) {
+        const randomIndex = Math.floor(Math.random() * recipes.length);
+        result.push(recipes.splice(randomIndex, 1)[0]);
+    }
+
+    return result;
+}
+
 exports.add_recipe = asyncHandler(async (req, res, next) => {
     try {
-        const { title, chef, username, description, isPrivate, quantities, ingredients, steps, categories, cuisine_types, allergens, test } = req.body;
+        const { 
+            title, chef, username, description, isPrivate, quantities, 
+            ingredients, steps, diet, categories, cuisine_types, allergens, test 
+        } = req.body;
         
         let image = null;
         if (req.file && req.file.buffer) {
             image = req.file.buffer;
         }
 
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
         const user_id = user._id;
 
         let newIngredients = JSON.parse(ingredients);
+
+        let newDiet = [];
+        if (diet) {
+            newDiet = JSON.parse(diet);
+        }
 
         let newCategories = [];
         if (categories) {
@@ -79,6 +144,7 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             quantities: JSON.parse(quantities),
             ingredients: newIngredients,
             steps: JSON.parse(steps),
+            diet: newDiet,
             categories: newCategories,
             cuisine_types: newCuisineTypes,
             allergens: newAllergens,
@@ -112,9 +178,11 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
 
 exports.recipes_get_all = asyncHandler(async (req, res, next) => {
     try {
-        const allRecipes = await Recipe.find({ private: false }).exec();
+        const allRecipes = await Recipe.find({ private: false }).sort({ timestamp: -1 }).lean();
 
-        const result = await convertToObjects(allRecipes);
+        const randomRecipes = randomizeRecipes(allRecipes, 20);
+
+        const result = await convertToObjects(randomRecipes);
 
         res.status(200).json(result);
 
@@ -128,21 +196,25 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
 
     try {
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
         if (!user) {
             console.log(user);
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const publicRecipes = await Recipe.find({ private: false });
-        const userRecipes = await Recipe.find({ user_id: user._id });
+        const publicRecipes = await Recipe.find({ private: false }).lean();
+        const userRecipes = await Recipe.find({ user_id: user._id }).lean();
 
         const recipes = [...publicRecipes, ...userRecipes];
 
+        recipes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
         const distinctRecipes = makeDistinct(recipes);
 
-        const result = await convertToObjects(distinctRecipes);
+        const recommended = await recommendedRecipes(distinctRecipes, user);
+
+        const result = await convertToObjects(recommended);
 
         res.status(200).json(result);
 
@@ -155,7 +227,7 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     
     try {
-        const recipe = await Recipe.findById(id);
+        const recipe = await Recipe.findById(id).lean();
 
         if (!recipe) {
             return res.status(404).json({ error: 'Recipe not found' });
@@ -177,27 +249,26 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
     const { username } = req.body;
 
     try {
-        const recipe = await Recipe.findById(id).exec();
+        const recipe = await Recipe.findById(id).lean();
 
         if (!recipe) {
             return res.status(404).json({ error: "Recipe not found" });
         }
 
-        const recipeObj = recipe.toObject();
-        if (recipe.image) {
-            recipeObj.image = recipe.image.toString('base64');
+        if (recipe.image && Buffer.isBuffer(recipe.image)) {
+            recipe.image = recipe.image.toString('base64');
         }
 
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
         if (user) {
             if (user._id.toString() === recipe.user_id.toString()) {
-                res.status(200).json({ recipe: recipeObj, owner: true });
+                res.status(200).json({ recipe: recipe, owner: true });
             } else {
-                res.status(200).json({ recipe: recipeObj, owner: false });
+                res.status(200).json({ recipe: recipe, owner: false });
             }
         } else {
-            res.status(200).json({ recipe: recipeObj, owner: false });
+            res.status(200).json({ recipe: recipe, owner: false });
         }
 
     } catch (err) {
@@ -209,11 +280,18 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
 exports.recipe_edit = asyncHandler(async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { title, chef, username, description, isPrivate, quantities, ingredients, steps, categories, cuisine_types, allergens } = req.body;
+        const { 
+            title, chef, description, isPrivate, quantities, 
+            ingredients, steps, diet, categories, cuisine_types, allergens } = req.body;
 
         let image = null;
         if (req.file && req.file.buffer) {
             image = req.file.buffer;
+        }
+
+        let newDiet = [];
+        if (diet) {
+            newDiet = JSON.parse(diet);
         }
 
         let newCategories = [];
@@ -239,6 +317,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             quantities: JSON.parse(quantities),
             ingredients: JSON.parse(ingredients),
             steps: JSON.parse(steps),
+            diet: newDiet,
             categories: newCategories,
             cuisine_types: newCuisineTypes,
             allergens: newAllergens
@@ -248,18 +327,17 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             updatedData.image = image;
         }
 
-        const editedRecipe = await Recipe.findByIdAndUpdate(id, updatedData, { new: true });
+        const editedRecipe = await Recipe.findByIdAndUpdate(id, updatedData, { new: true }).lean();
 
-        const recipeObj = editedRecipe.toObject();
-        if (recipeObj.image) {
-            recipeObj.image = recipeObj.image.toString('base64');
+        if (editedRecipe.image && Buffer.isBuffer(editedRecipe.image)) {
+            editedRecipe.image = editedRecipe.image.toString('base64');
         }
 
         if (!editedRecipe) {
             return res.status(404).json({ err: 'Something went wrong' });
         }
 
-        res.status(200).json(recipeObj);
+        res.status(200).json(editedRecipe);
 
     } catch (err) {
         console.log(err);
@@ -275,12 +353,12 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
 
         let user = null;
         if (username && last_name && name_title) {
-            user = await User.findOne({ name_title: name_title, last_name: last_name, username: username });
+            user = await User.findOne({ name_title: name_title, last_name: last_name, username: username }).lean();
         }
 
-        const publicRecipes = await Recipe.find({ title: new RegExp(search, 'i'), private: false });
+        const publicRecipes = await Recipe.find({ title: new RegExp(search, 'i'), private: false }).lean();
 
-        const byIngredients = await Ingredient.find({ ingredient: new RegExp(search, 'i') }).populate('recipe_id');
+        const byIngredients = await Ingredient.find({ ingredient: new RegExp(search, 'i') }).populate('recipe_id').lean();
 
         let ingredientRecipes = [];
         if (byIngredients.length > 0) {
@@ -291,7 +369,7 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
         let userRecipesByIngredients = [];
 
         if (user) {
-            userRecipesByTitle = await Recipe.find({ user_id: user._id, title: new RegExp(search, 'i') });
+            userRecipesByTitle = await Recipe.find({ user_id: user._id, title: new RegExp(search, 'i') }).lean();
             
             userRecipesByIngredients = byIngredients
                 .map(ingredient => ingredient.recipe_id)
@@ -308,7 +386,9 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
 
         const result = await convertToObjects(distinctRecipes);
 
-        res.status(200).json(result);
+        const randomRecipes = randomizeRecipes(result, 20);
+
+        res.status(200).json(randomRecipes);
 
     } catch (err) {
         res.status(404).json({ error: err.message });
@@ -329,10 +409,10 @@ exports.filter_recipes = asyncHandler(async (req, res, next) => {
             filterConditions.cuisine_types = { $in: cuisine_types };
         }
 
-        let recipes = await Recipe.find(filterConditions);
+        let recipes = await Recipe.find(filterConditions).lean();
 
         if (username) {
-            const user = await User.findOne({ username: username });
+            const user = await User.findOne({ username: username }).lean();
 
             if (user) {
                 const userFilter = {
@@ -340,7 +420,7 @@ exports.filter_recipes = asyncHandler(async (req, res, next) => {
                     user_id: user._id
                 };
 
-                const userRecipes = await Recipe.find(userFilter);
+                const userRecipes = await Recipe.find(userFilter).lean();
 
                 recipes = [...recipes, ...userRecipes];
             }
@@ -362,13 +442,13 @@ exports.personal_recipes = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
     
     try {
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ username: username }).lean();
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const userRecipes = await Recipe.find({ user_id: user._id });
+        const userRecipes = await Recipe.find({ user_id: user._id }).lean();
 
         const result = await convertToObjects(userRecipes);
 

@@ -16,6 +16,7 @@ const ViewRecipe = () => {
     const [description, setDescription] = useState("");
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: "", quantity: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
+    const [diet, setDiet] = useState([""]);
     const [categories, setCategories] = useState([""]);
     const [cuisineTypes, setCuisineTypes] = useState([""]);
     const [allergens, setAllergens] = useState([""]);
@@ -43,6 +44,7 @@ const ViewRecipe = () => {
 
         setIngredients(parsedIngredients);
         setSteps(recipe.steps.map(step => ({ id: uuidv4(), value: step})));
+        setDiet(recipe.diet);
         setCategories(recipe.categories);
         setCuisineTypes(recipe.cuisine_types);
         setAllergens(recipe.allergens);
@@ -308,35 +310,43 @@ const ViewRecipe = () => {
                 </div>
                 <div className="step-list">
                     <p>Steps:</p>
-                    <ul>
+                    <ol>
                         {steps.map((step) => (
                             <li key={step.id} className="step">{step.value}</li>
                         ))}
-                    </ul>
+                    </ol>
                 </div>
                 <p>Added: {formatDate(timestamp)}</p>
                 <div>
+                    <p>Type of diet:</p>
+                    <ul>
+                        {diet.length > 0 ? diet.map((typeOfDiet) => (
+                            <li key={typeOfDiet} className="typeOfDiet">{typeOfDiet}</li>
+                        )) : "No type of diet mentioned" }
+                    </ul>
+                </div>
+                <div>
                     <p>Categories:</p>
                     <ul>
-                        {categories.map((category) => (
+                        {categories.length > 0 ? categories.map((category) => (
                             <li key={category} className="category">{category}</li>
-                        ))}
+                        )) : "No category mentioned" }
                     </ul>
                 </div>
                 <div>
                     <p>Cuisine types:</p>
                     <ul>
-                        {cuisineTypes.map((cuisineType) => (
+                        {cuisineTypes.length > 0 ? cuisineTypes.map((cuisineType) => (
                             <li key={cuisineType} className="cuisine">{cuisineType}</li>
-                        ))}
+                        )) : "No cuisine type mentioned"}
                     </ul>
                 </div>
                 <div>
                     <p>Allergens:</p>
                     <ul>
-                        {allergens.map((allergen) => (
+                        {allergens.length > 0 ? allergens.map((allergen) => (
                             <li key={allergen} className="allergen">{allergen}</li>
-                        ))}
+                        )) : "No allergens mentioned. Please do check the ingredients" }
                     </ul>
                 </div>
             </div>

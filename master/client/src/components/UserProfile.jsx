@@ -292,9 +292,8 @@ const UserProfile = () => {
                 } else {
                     setError("");
                     setMessage(res.message);
-                    sessionStorage.setItem("name_title", res.name_title);
-                    sessionStorage.setItem("last_name", res.last_name);
-                    sessionStorage.setItem("username", res.username);
+                    sessionStorage.setItem("token", res.token);
+                    sessionStorage.setItem("editedUser", true);
                 }
             })
             .catch(err => console.log(err));
@@ -466,7 +465,7 @@ const UserProfile = () => {
                         <p>{message}</p>
                     </div>
                     <button disabled={isNotEnabled}>Save</button>
-                    <button type="button" onClick={() => navigate(-1)}>Cancel</button>
+                    <button type="button" onClick={() => navigate(-1)}>Back</button>
                     <button type="button" onClick={toggleDialog}>Delete account</button>
                     <Dialog
                         isOpen={dialog} 
