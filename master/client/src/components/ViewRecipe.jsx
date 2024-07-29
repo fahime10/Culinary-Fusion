@@ -5,9 +5,12 @@ import { v4 as uuidv4 } from "uuid";
 import NoImageIcon from "../assets/no-image.png";
 import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe } from "../indexedDb";
+import LoadingSpinner from "./LoadingSpinner";
+import Footer from "./Footer";
 
 const ViewRecipe = () => {
     const { id } = useParams();
+    const [loading, setLoading] = useState(true);
     const [logged, setLogged] = useState(false);
     const [dialog, setDialog] = useState(false);
     const [title, setTitle] = useState("");
@@ -68,6 +71,8 @@ const ViewRecipe = () => {
         }
 
         async function fetchRecipe() {
+            setLoading(true);
+            
             try {
                 const cachedData = await getRecipe(key);
 
@@ -106,6 +111,8 @@ const ViewRecipe = () => {
 
             } catch (error) {
                 console.log(error);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -256,100 +263,105 @@ const ViewRecipe = () => {
 
     return (
         <>
-            <div className="top">
-                {isOwner ? (
-                    <button onClick={() => redirectToEditRecipe(id)}>Edit Recipe</button>
-                ) : null}
-                {isOwner ? (
-                    <button onClick={toggleDialog}>Delete Recipe</button>
-                ) : null}
-                <button onClick={returnToHomepage}>Home</button>
-            </div>
-            <Dialog
-                isOpen={dialog} 
-                onClose={toggleDialog} 
-                title="Attention" 
-                content="Are you sure you want to delete this recipe?"
-                funct={() => deleteRecipe(id)}
-            >
-            </Dialog>
-            <div className="recipe-details">
-                <h1>{title}</h1>
-                <div className="stars">
-                    <p>Stars:</p>
-                    {[1, 2, 3, 4, 5].map((index) =>  {
-                        const isFilled = index <= Math.round(average);
-                        const isSelected = index <= userRating;
-                        const isHovered = index <= hoveredStar;
-                    
-                    return (
-                        <span 
-                            key={index}
-                            className={`star ${isFilled ? "average": ""} ${isHovered ? "highlighted" : ""}`}
-                            onMouseEnter={() => handleMouseEnter(index)}
-                            onMouseLeave={handleMouseLeave}
-                            onClick={() => handleStarClick(index)}
-                            style={{ 
-                                cursor: logged ? "pointer" : "not-allowed", 
-                                border: isSelected ? "2px solid gold" : "none",
-                                color: isFilled && !isHovered && !isSelected ? "green" : ""
-                            }}
-                        ></span>
-                    )})}
-                </div>
-                {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
-                <p>{description}</p>
-                <p>Chef/s: {chef}</p>
-                <div className="ingredient-list">
-                    <p>Ingredients:</p>
-                    <ul>
-                        {ingredients.map((ingredient) => (
-                            <li key={ingredient.id} className="ingredient">{ingredient.quantity} {ingredient.value}</li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="step-list">
-                    <p>Steps:</p>
-                    <ol>
-                        {steps.map((step) => (
-                            <li key={step.id} className="step">{step.value}</li>
-                        ))}
-                    </ol>
-                </div>
-                <p>Added: {formatDate(timestamp)}</p>
+            {loading ? <LoadingSpinner /> : 
                 <div>
-                    <p>Type of diet:</p>
-                    <ul>
-                        {diet.length > 0 ? diet.map((typeOfDiet) => (
-                            <li key={typeOfDiet} className="typeOfDiet">{typeOfDiet}</li>
-                        )) : "No type of diet mentioned" }
-                    </ul>
+                    <div className="top">
+                        {isOwner ? (
+                            <button onClick={() => redirectToEditRecipe(id)}>Edit Recipe</button>
+                        ) : null}
+                        {isOwner ? (
+                            <button onClick={toggleDialog}>Delete Recipe</button>
+                        ) : null}
+                        <button onClick={returnToHomepage}>Home</button>
+                    </div>
+                    <Dialog
+                        isOpen={dialog} 
+                        onClose={toggleDialog} 
+                        title="Attention" 
+                        content="Are you sure you want to delete this recipe?"
+                        funct={() => deleteRecipe(id)}
+                    >
+                    </Dialog>
+                    <div className="recipe-details">
+                        <h1>{title}</h1>
+                        <div className="stars">
+                            <p>Stars:</p>
+                            {[1, 2, 3, 4, 5].map((index) =>  {
+                                const isFilled = index <= Math.round(average);
+                                const isSelected = index <= userRating;
+                                const isHovered = index <= hoveredStar;
+                            
+                            return (
+                                <span 
+                                    key={index}
+                                    className={`star ${isFilled ? "average": ""} ${isHovered ? "highlighted" : ""}`}
+                                    onMouseEnter={() => handleMouseEnter(index)}
+                                    onMouseLeave={handleMouseLeave}
+                                    onClick={() => handleStarClick(index)}
+                                    style={{ 
+                                        cursor: logged ? "pointer" : "not-allowed", 
+                                        border: isSelected ? "2px solid gold" : "none",
+                                        color: isFilled && !isHovered && !isSelected ? "green" : ""
+                                    }}
+                                ></span>
+                            )})}
+                        </div>
+                        {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
+                        <p>{description}</p>
+                        <p>Chef/s: {chef}</p>
+                        <div className="ingredient-list">
+                            <p>Ingredients:</p>
+                            <ul>
+                                {ingredients.map((ingredient) => (
+                                    <li key={ingredient.id} className="ingredient">{ingredient.quantity} {ingredient.value}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="step-list">
+                            <p>Steps:</p>
+                            <ol>
+                                {steps.map((step) => (
+                                    <li key={step.id} className="step">{step.value}</li>
+                                ))}
+                            </ol>
+                        </div>
+                        <p>Added: {formatDate(timestamp)}</p>
+                        <div>
+                            <p>Type of diet:</p>
+                            <ul>
+                                {diet.length > 0 ? diet.map((typeOfDiet) => (
+                                    <li key={typeOfDiet} className="typeOfDiet">{typeOfDiet}</li>
+                                )) : "No type of diet mentioned" }
+                            </ul>
+                        </div>
+                        <div>
+                            <p>Categories:</p>
+                            <ul>
+                                {categories.length > 0 ? categories.map((category) => (
+                                    <li key={category} className="category">{category}</li>
+                                )) : "No category mentioned" }
+                            </ul>
+                        </div>
+                        <div>
+                            <p>Cuisine types:</p>
+                            <ul>
+                                {cuisineTypes.length > 0 ? cuisineTypes.map((cuisineType) => (
+                                    <li key={cuisineType} className="cuisine">{cuisineType}</li>
+                                )) : "No cuisine type mentioned"}
+                            </ul>
+                        </div>
+                        <div>
+                            <p>Allergens:</p>
+                            <ul>
+                                {allergens.length > 0 ? allergens.map((allergen) => (
+                                    <li key={allergen} className="allergen">{allergen}</li>
+                                )) : "No allergens mentioned. Please do check the ingredients" }
+                            </ul>
+                        </div>
+                        <Footer />
+                    </div>
                 </div>
-                <div>
-                    <p>Categories:</p>
-                    <ul>
-                        {categories.length > 0 ? categories.map((category) => (
-                            <li key={category} className="category">{category}</li>
-                        )) : "No category mentioned" }
-                    </ul>
-                </div>
-                <div>
-                    <p>Cuisine types:</p>
-                    <ul>
-                        {cuisineTypes.length > 0 ? cuisineTypes.map((cuisineType) => (
-                            <li key={cuisineType} className="cuisine">{cuisineType}</li>
-                        )) : "No cuisine type mentioned"}
-                    </ul>
-                </div>
-                <div>
-                    <p>Allergens:</p>
-                    <ul>
-                        {allergens.length > 0 ? allergens.map((allergen) => (
-                            <li key={allergen} className="allergen">{allergen}</li>
-                        )) : "No allergens mentioned. Please do check the ingredients" }
-                    </ul>
-                </div>
-            </div>
+            }
         </>
     );
 }

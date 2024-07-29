@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import Footer from "./Footer";
 
 const SignUpPage = () => {
     const [nameTitle, setNameTitle] = useState("");
@@ -333,6 +334,7 @@ const SignUpPage = () => {
                     <button style={{marginBottom: "1rem"}}>Save</button>
                     <button type="button" onClick={() => navigate("/")}>Cancel</button>
                 </form>
+                <Footer />
             </div>
         </>
     );

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe } from "../indexedDb";
+import Footer from "./Footer";
 
 const AddRecipe = () => {
     const [title, setTitle] = useState("");
@@ -330,7 +331,7 @@ const AddRecipe = () => {
                         type="file" 
                         onChange={handleImage} 
                     />
-                    <label>Chef:
+                    <label>Chef/s:
                         <input 
                             type="text"
                             name="chef"
@@ -463,6 +464,7 @@ const AddRecipe = () => {
                     <button type="submit">Save</button>
                     <button type="button" className="cancel" onClick={() => navigate(-1)}>Cancel</button>
                 </form>
+                <Footer />
             </div>
         </>
     );

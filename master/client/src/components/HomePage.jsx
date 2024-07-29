@@ -4,6 +4,8 @@ import SearchIcon from "../assets/search-icon.png";
 import NoImageIcon from "../assets/no-image.png";
 import MenuContainer from "./MenuContainer.jsx";
 import DropDownMenu from "./DropDownMenu.jsx";
+import LoadingSpinner from "./LoadingSpinner.jsx";
+import Footer from "./Footer.jsx";
 import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe, clearRecipes, clearUserRecipes } from "../indexedDb";
 
@@ -11,6 +13,7 @@ const HomePage = () => {
     // 10 minutes in milliseconds
     const TEN_MINUTES = 10 * 60 * 1000;
 
+    const [loading, setLoading] = useState(true);
     const [recipes, setRecipes] = useState([]);
     const [nameTitle, setNameTitle] = useState("");
     const [lastName, setLastName] = useState("");
@@ -72,9 +75,10 @@ const HomePage = () => {
     }
     
     async function fetchRecipes() {
+        setLoading(true);
         const token = sessionStorage.getItem("token");
         const now = new Date().getTime();
-    
+
         if (!token || token === "undefined") {
             const cachedData = await getRecipe("public_recipes");
 
@@ -85,6 +89,8 @@ const HomePage = () => {
     
                 setRecipes(recipes);
                 await fetchRecipeDetails(recipes.map(recipe => recipe._id));
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                setLoading(false);
                 return;
             }
 
@@ -97,12 +103,15 @@ const HomePage = () => {
             setRecipes(res);
             setRecipe("public_recipes", res);
             await fetchRecipeDetails(res.map(recipe => recipe._id));
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            setLoading(false);
     
-        } else {
+        } else {       
             const isUserEdited = sessionStorage.getItem("editedUser");
             const cachedData = await getRecipe("user_recipes");
 
             if (isUserEdited === "false") {
+                setLoading(true);
                 if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
                     const recipes = Object.keys(cachedData)
                         .filter(key => !isNaN(key))
@@ -110,6 +119,8 @@ const HomePage = () => {
         
                     setRecipes(recipes);
                     await fetchRecipeDetails(recipes.map(recipe => recipe._id));
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    setLoading(false);
                     return;
                 }
             }
@@ -126,6 +137,8 @@ const HomePage = () => {
             setRecipes(res);
             setRecipe("user_recipes", res);
             await fetchRecipeDetails(res.map(recipe => recipe._id));
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            setLoading(false);
             sessionStorage.setItem("editedUser", false);
         }
     }
@@ -161,7 +174,6 @@ const HomePage = () => {
         }
     }
 
-    // Retrieve data if there is a token
     useEffect(() => {
         async function initialize() {
             if (!sessionStorage.getItem("initialized")) {
@@ -174,7 +186,18 @@ const HomePage = () => {
             }
         }
 
-        fetchRecipes();
+        async function fetchRecipesDelayed() {
+            setLoading(true);
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            await fetchRecipes();
+
+            setLoading(false);
+        }
+
+        setLoading(true);
+        initialize();
 
         const userDetails = retrieveUserDetails();
 
@@ -183,7 +206,7 @@ const HomePage = () => {
             setLastName(userDetails.last_name);
         }
 
-        initialize();
+        fetchRecipesDelayed();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -216,10 +239,16 @@ const HomePage = () => {
         const res = await response.json();
 
         if (res.status === 200) {
-            setRecipes(res.recipes);
-            const recipeIds = res.recipes.map(recipe => recipe._id);
-            await fetchRecipeDetails(recipeIds);
+            if (res.recipes.length > 0) {
+                setRecipes(res.recipes);
+                const recipeIds = res.recipes.map(recipe => recipe._id);
+                await fetchRecipeDetails(recipeIds);
+            } else {
+                setRecipes([]);
+            }
         }
+
+        setLoading(false);
 
     }, [categories, cuisineTypes]);
 
@@ -228,8 +257,10 @@ const HomePage = () => {
 
         if (noFilters) {
             fetchRecipes();
+            setLoading(false);
         } else {
             fetchFilteredRecipes();
+            setLoading(false);
         }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -283,66 +314,69 @@ const HomePage = () => {
 
     return (
         <>
-            <div className="grid-container">
-                <div className="top-bar">
-                    <h1 className="title">Culinary Fusion</h1>
-                    {lastName === "undefined" || !lastName ? (
-                        <button className="first" onClick={() => navigate("/sign-up")}>Sign up</button>
-                    ) : null}
-                    {lastName !== "undefined" && lastName ? (
-                        <button className="first" onClick={() => navigate("/add-recipe")}>Add new recipe</button>
-                    ) : null}
-                    {lastName === "undefined" || !lastName ? (
-                        <button className="second" onClick={() => navigate("/login-page")}>Login</button>
-                    ) : null}
-                    {lastName !== "undefined" && lastName ? (
-                        <button className="second" onClick={handleLogout}>Logout</button>
-                    ) : null}
-                    <p className="greeting">Hello {nameTitle} {lastName}</p>
-                    <div className="search-bar">
-                        <input
-                            type="text"
-                            placeholder="Search for a recipe"
-                            onChange={handleSearchRecipe}
-                        />
-                        <img src={SearchIcon} onClick={() => findRecipe(searchRecipe)} />
-                    </div>
-                    {lastName !== "undefined" && lastName ? (
-                        <div className="account">
-                            <MenuContainer />
+            {loading ?  (<LoadingSpinner />) : 
+                <div className="grid-container">
+                    <div className="top-bar">
+                        <h1 className="title">Culinary Fusion</h1>
+                        {lastName === "undefined" || !lastName ? (
+                            <button className="first" onClick={() => navigate("/sign-up")}>Sign up</button>
+                        ) : null}
+                        {lastName !== "undefined" && lastName ? (
+                            <button className="first" onClick={() => navigate("/add-recipe")}>Add new recipe</button>
+                        ) : null}
+                        {lastName === "undefined" || !lastName ? (
+                            <button className="second" onClick={() => navigate("/login-page")}>Login</button>
+                        ) : null}
+                        {lastName !== "undefined" && lastName ? (
+                            <button className="second" onClick={handleLogout}>Logout</button>
+                        ) : null}
+                        <p className="greeting">Hello {nameTitle} {lastName}</p>
+                        <div className="search-bar">
+                            <input
+                                type="text"
+                                placeholder="Search for a recipe"
+                                onChange={handleSearchRecipe}
+                            />
+                            <img src={SearchIcon} onClick={() => findRecipe(searchRecipe)} />
                         </div>
-                    ) : null}
-                </div>
-                <div className="side-bar">
-                    <DropDownMenu title="Categories" options={categories} setOptions={setCategories} />
-                    <DropDownMenu title="Cuisine types" options={cuisineTypes} setOptions={setCuisineTypes} />
-                </div>
-                <div className="recipes">
-                    {recipes.map((recipe) => (
-                        <div key={recipe._id} id={recipe._id} className="recipe" onClick={() => viewRecipe(recipe._id)}>
-                            <div className="recipe-title">{recipe.title}</div>
-                            {recipe.image !== null || recipe.image ? (
-                                <img
-                                    src={`data:image/jpeg;base64,${recipe.image}`}
-                                />
-                            ) : <img src={NoImageIcon} />}
-                            <p className="description">{recipe.description}</p>
-                            <div className="stars">
-                                {[1, 2, 3, 4, 5].map((index) => {
-                                    const isFilled = index <= Math.round(recipe.average);
-                                    return (
-                                        <span 
-                                            key={index}
-                                            className={`star ${isFilled ? "average": ""}`}
-                                            style={{ color: isFilled ? "gold" : "grey"}}
-                                        ></span>
-                                    );
-                                })}
+                        {lastName !== "undefined" && lastName ? (
+                            <div className="account">
+                                <MenuContainer />
                             </div>
-                        </div>
-                    ))}
+                        ) : null}
+                    </div>
+                    <div className="side-bar">
+                        <DropDownMenu title="Categories" options={categories} setOptions={setCategories} />
+                        <DropDownMenu title="Cuisine types" options={cuisineTypes} setOptions={setCuisineTypes} />
+                    </div>
+                    <div className="recipes">
+                        {recipes.length > 0 ? recipes.map((recipe) => (
+                            <div key={recipe._id} id={recipe._id} className="recipe" onClick={() => viewRecipe(recipe._id)}>
+                                <div className="recipe-title">{recipe.title}</div>
+                                {recipe.image !== null || recipe.image ? (
+                                    <img
+                                        src={`data:image/jpeg;base64,${recipe.image}`}
+                                    />
+                                ) : <img src={NoImageIcon} />}
+                                <p className="description">{recipe.description}</p>
+                                <div className="stars">
+                                    {[1, 2, 3, 4, 5].map((index) => {
+                                        const isFilled = index <= Math.round(recipe.average);
+                                        return (
+                                            <span 
+                                                key={index}
+                                                className={`star ${isFilled ? "average": ""}`}
+                                                style={{ color: isFilled ? "gold" : "grey"}}
+                                            ></span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )): <p>No recipes found</p>}
+                    </div>
+                    <Footer />
                 </div>
-            </div>
+            }
         </>
     );
 };

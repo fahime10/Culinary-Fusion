@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe } from "../indexedDb";
+import Footer from "./Footer";
 
 const EditRecipe = () => {
     const { id } = useParams();
@@ -443,7 +444,7 @@ const EditRecipe = () => {
                         type="file" 
                         onChange={handleImage} 
                     />
-                    <label>Chef:
+                    <label>Chef/s:
                         <input 
                             type="text"
                             name="chef"
@@ -578,6 +579,7 @@ const EditRecipe = () => {
                     <button type="button" className="cancel" onClick={redirectToViewRecipe}>Cancel</button>
                 </form>
             </div>
+            <Footer />
         </>
     );
 }

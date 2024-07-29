@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import Footer from "./Footer";
 
 const ForgottenPassword = () => {
     const [username, setUsername] = useState("");
@@ -113,6 +114,7 @@ const ForgottenPassword = () => {
                 <button style={{ margin: "1rem 0" }}>Change</button>
                 <button type="button" onClick={() => navigate("/")}>Cancel</button>
             </form>
+            <Footer />
         </>
     );
 };

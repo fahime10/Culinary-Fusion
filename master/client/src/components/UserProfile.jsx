@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Dialog from "./Dialog";
+import Footer from "./Footer";
 import { jwtDecode } from "jwt-decode";
 
 const UserProfile = () => {
@@ -162,6 +163,7 @@ const UserProfile = () => {
             .catch(err => console.log(err));
         }
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setUsername]);
 
     useEffect(() => {
@@ -465,8 +467,8 @@ const UserProfile = () => {
                         <p>{message}</p>
                     </div>
                     <button disabled={isNotEnabled}>Save</button>
-                    <button type="button" onClick={() => navigate(-1)}>Back</button>
-                    <button type="button" onClick={toggleDialog}>Delete account</button>
+                    <button type="button" onClick={() => navigate(-1)} style={{ marginTop: "1rem" }}>Back</button>
+                    <button type="button" onClick={toggleDialog} style={{ marginTop: "1rem" }}>Delete account</button>
                     <Dialog
                         isOpen={dialog} 
                         onClose={toggleDialog} 
@@ -476,6 +478,7 @@ const UserProfile = () => {
                     >
                     </Dialog>
                 </form>
+                <Footer />
             </div>
         </>
     );
