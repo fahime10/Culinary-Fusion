@@ -211,9 +211,7 @@ describe('Testing User API', () => {
 
             expect(extraRes.status).toBe(200);
             expect(extraRes.body).toHaveProperty('message', 'Updated successfully');
-            expect(extraRes.body).toHaveProperty('name_title', secondData.name_title);
-            expect(extraRes.body).toHaveProperty('last_name', secondData.last_name);
-            expect(extraRes.body).toHaveProperty('username', secondData.username);
+            expect(extraRes.body).toHaveProperty('token');
         });
     });
 

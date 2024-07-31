@@ -4,6 +4,7 @@ const Ingredient = require('../models/ingredientModel');
 const Star = require('../models/starModel');
 const asyncHandler = require("express-async-handler");
 const multer = require("multer");
+const mongoose = require('mongoose');
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -49,7 +50,6 @@ const recommendedRecipes = async (recipes, user) => {
     const userPreferredCategories = new Set(user.preferred_categories);
     const userPreferredCuisineTypes = new Set(user.preferred_cuisine_types);
 
-    // Find out what categories and cuisine types the user might like based on stars feedback
     positiveRatings.forEach(rating => {
         const recipe = recipes.find(recipe => recipe._id.equals(rating.recipe_id));
 
@@ -59,27 +59,42 @@ const recommendedRecipes = async (recipes, user) => {
         }
     });
 
+    // List popular recipes that the user might be interested in, and take into account the diet and
+    // allergies
+    const filterPositiveRecipes = recipes.filter(recipe => {
+        const diet = recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
+        const noAllergies = !user.allergies.some(allergy => recipe.allergens.includes(allergy));
+
+        return noAllergies && diet;
+    });
+
     // Filter recipes by matching the preferred categories and cuisine types, as well as removing any recipes
-    // that the user may be allergic to and take into account the type of diet of the user
+    // that the user may be allergic to and take into account the type of diet
     const filterRecipes = recipes.filter(recipe => {
         const diet = recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
         const categoriesMatch = recipe.categories.some(category => userPreferredCategories.has(category) || preferredCategories.has(category));
         const cuisineTypesMatch = recipe.cuisine_types.some(cuisine_type => userPreferredCuisineTypes.has(cuisine_type) || preferredCuisineTypes.has(cuisine_type));
         const noAllergies = !user.allergies.some(allergy => recipe.allergens.includes(allergy));
 
-        return (
-            categoriesMatch || cuisineTypesMatch) && noAllergies && diet;
+        return (categoriesMatch || cuisineTypesMatch) && noAllergies && diet;
     });
 
-    // Randomize recipes and get up to 20 recipes
     let randomRecipes = [];
-    if (filterRecipes.length === 0) {
+    let randomPositiveRecipes = [];
+    let result = [];
+    
+    if (filterRecipes.length === 0 && filterPositiveRecipes.length === 0) {
         randomRecipes = randomizeRecipes(recipes, 20);
+        result.push(...randomRecipes);
     } else {
-        randomRecipes = randomizeRecipes(filterRecipes, 20);
+        randomRecipes = randomizeRecipes(filterRecipes, 5);
+        randomPositiveRecipes = randomizeRecipes(filterPositiveRecipes, 15);
+        result.push(...randomRecipes);
+        result.push(...randomPositiveRecipes);
+        result = makeDistinct(result);
     }
 
-    return randomRecipes;
+    return result;
 }
 
 // Simpler variation of the Fisher-Yates Shuffle algorithm
@@ -175,16 +190,37 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
     }
 });
 
-
 exports.recipes_get_all = asyncHandler(async (req, res, next) => {
-    try {
-        const allRecipes = await Recipe.find({ private: false }).sort({ timestamp: -1 }).lean();
+    const { cache } = req.body;
 
+    try {
+        let allRecipes;
+
+        const match = { private: false };
+        if (cache.length !== 0) {
+            const cacheObjectIds = cache
+                .filter(id => mongoose.Types.ObjectId.isValid(id))
+                .map(id => new mongoose.Types.ObjectId(id));
+            
+            match._id = { $nin: cacheObjectIds };
+        }
+
+        allRecipes = await Recipe.aggregate([
+            { $match: match },
+            { $sort: { timestamp: -1 }},
+            { $sample: { size: 100 }}
+        ]);
+        
         const randomRecipes = randomizeRecipes(allRecipes, 20);
 
         const result = await convertToObjects(randomRecipes);
 
-        res.status(200).json(result);
+        let limit = false;
+        if (result.length < 20) {
+            limit = true;
+        }
+
+        res.status(200).json({ result: result, limit: limit });
 
     } catch (err) {
         res.status(400).json({ error: 'Something went wrong' });
@@ -194,6 +230,7 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
 
 exports.recipe_get_own = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
+    const { cache } = req.body;
 
     try {
         const user = await User.findOne({ username: username }).lean();
@@ -203,23 +240,91 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const publicRecipes = await Recipe.find({ private: false }).lean();
-        const userRecipes = await Recipe.find({ user_id: user._id }).lean();
+        const match = { private: false };
+        if (cache.length !== 0) {
+            const cacheObjectIds = cache
+                .filter(id => mongoose.Types.ObjectId.isValid(id))
+                .map(id => new mongoose.Types.ObjectId(id));
+            
+            match._id = { $nin: cacheObjectIds };
+        }
 
-        const recipes = [...publicRecipes, ...userRecipes];
+        const publicRecipes = await Recipe.aggregate([
+            { $match: match },
+            { $sort: { timestamp: -1 }},
+            { $sample: { size: 50 }}
+        ]);
+
+        const userMatch = { user_id: user._id };
+        if (cache.length !== 0) {
+            const userObjectIds = cache
+                .filter(id => mongoose.Types.ObjectId.isValid(id))
+                .map(id => new mongoose.Types.ObjectId(id));
+
+            userMatch._id = { $nin: userObjectIds };
+        }
+        
+        const userRecipes = await Recipe.aggregate([
+            { $match: userMatch },
+            { $sample: { size: 50 }}
+        ]);
+
+        let recipes = [...publicRecipes, ...userRecipes];
 
         recipes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        const distinctRecipes = makeDistinct(recipes);
+        let distinctRecipes = makeDistinct(recipes);
+
+        if (distinctRecipes.length < 100) {
+            const recipesRequired = 100 - distinctRecipes.length;
+
+            const existingRecipesIds = distinctRecipes.map(recipe => recipe._id);
+
+            const moreRecipes = await Recipe.aggregate([
+                { $match: { private: false, _id: { $nin: existingRecipesIds } }},
+                { $sort: { timestamp: -1 }},
+                { $limit: recipesRequired }
+            ]);
+
+            recipes = [...distinctRecipes, ...moreRecipes];
+
+            distinctRecipes = makeDistinct(recipes);
+        }
 
         const recommended = await recommendedRecipes(distinctRecipes, user);
 
         const result = await convertToObjects(recommended);
 
-        res.status(200).json(result);
+        let limit = false;
+        if (result.length < 20) {
+            limit = true;
+        }
+
+        res.status(200).json({ result: result, limit: limit });
 
     } catch (err) {
         res.status(404).json({ error: err.message });
+    }
+});
+
+exports.recipe_delete = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    
+    try {
+        const recipe = await Recipe.findById(id).lean();
+
+        if (!recipe) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+
+        await Ingredient.deleteMany({ recipe_id: id });
+
+        await Recipe.findByIdAndDelete(id);
+
+        res.status(204).json({ message: 'Recipe deleted successfully' });;
+        
+    } catch (err) {
+        console.log(err);
     }
 });
 

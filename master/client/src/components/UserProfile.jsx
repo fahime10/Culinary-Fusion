@@ -103,7 +103,7 @@ const UserProfile = () => {
     const [error, setError] = useState("");
     const errorRef = useRef(null);
 
-    const dietararyPreferencesRef = useRef(dietaryPreferences);
+    const dietaryPreferencesRef = useRef(dietaryPreferences);
     const categoriesRef = useRef(categories);
     const cuisineTypesRef = useRef(cuisineTypes);
     const allergiesRef = useRef(allergies);
@@ -131,7 +131,7 @@ const UserProfile = () => {
                     }
                 });
                 setDietaryPreferences(dietaryPreferencesCheckedBoxes);
-                dietararyPreferencesRef.current = dietaryPreferencesCheckedBoxes;
+                dietaryPreferencesRef.current = dietaryPreferencesCheckedBoxes;
     
                 const categoriesCheckedBoxes = { ...categories };
                 res.preferred_categories.forEach(category => {

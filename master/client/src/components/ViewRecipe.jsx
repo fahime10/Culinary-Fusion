@@ -57,8 +57,10 @@ const ViewRecipe = () => {
             setImageUrl(`data:image/jpeg;base64,${recipe.image}`);
         }
 
-        if (userDetails.id === recipe.user_id) {
-            setIsOwner(true);
+        if (userDetails) {
+            if (userDetails.id === recipe.user_id) {
+                setIsOwner(true);
+            }
         }
     }
 

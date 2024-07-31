@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 const indexRouter = require('./routes/indexRouter');
 const routesManager = require('./routes/routesManager');
@@ -57,5 +58,8 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 module.exports = app;

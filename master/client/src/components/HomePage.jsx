@@ -18,6 +18,7 @@ const HomePage = () => {
     const [nameTitle, setNameTitle] = useState("");
     const [lastName, setLastName] = useState("");
     const [searchRecipe, setSearchRecipe] = useState("");
+    const [limitPage, setLimitPage] = useState(false);
 
     const navigate = useNavigate();
 
@@ -73,74 +74,121 @@ const HomePage = () => {
         }
         return "";
     }
-    
-    async function fetchRecipes() {
-        setLoading(true);
-        const token = sessionStorage.getItem("token");
+
+    async function getCachedRecipes(cacheKey) {
+        const now = new Date().getTime();
+        const cachedData = await getRecipe(cacheKey);
+
+        if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
+            const recipes = Object.keys(cachedData)
+                .filter(key => !isNaN(key))
+                .map(key => cachedData[key]);
+
+            return recipes;
+        }
+        return null;
+    }
+
+    async function fetchAndCacheRecipes(url, cacheKey, pageCount) {
         const now = new Date().getTime();
 
-        if (!token || token === "undefined") {
-            const cachedData = await getRecipe("public_recipes");
+        const recipesPerPage = 20;
+        const requiredCount = pageCount * recipesPerPage;
 
-            if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
-                const recipes = Object.keys(cachedData)
-                    .filter(key => !isNaN(key))
-                    .map(key => cachedData[key]);
+        const cachedRecipes = await getCachedRecipes(cacheKey) || [];
+
+        const mapRecipesIds = cachedRecipes.map(recipe => recipe._id);
+
+        const data = {
+            cache: mapRecipesIds
+        };
+
+        if (cachedRecipes.length < requiredCount && !limitPage) {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
     
-                setRecipes(recipes);
-                await fetchRecipeDetails(recipes.map(recipe => recipe._id));
-                await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!response.ok) {
+                throw new Error("Failed to fetch recipes");
+            }
+    
+            const res = await response.json();
+            const newRecipes = res.result;
+            const isLimit = res.limit;
+    
+            const updatedRecipes = [...cachedRecipes, ...newRecipes];
+    
+            if (isLimit) {
+                setLimitPage(isLimit);
+                let limit = sessionStorage.getItem("pageCount");
+                sessionStorage.setItem("limit", parseInt(limit));
+            }
+
+            await setRecipe(cacheKey, { ...updatedRecipes, timestamp: now });
+            return newRecipes;
+        }
+    }
+
+    async function handleRecipes(url, cacheKey, pageCount, isUserEdited) {
+        const cachedRecipes = await getCachedRecipes(cacheKey);
+
+        const recipesPerPage = 20;
+        const startIndex = (pageCount - 1) * recipesPerPage;
+        const endIndex = pageCount * recipesPerPage;
+
+        if (!isUserEdited) {
+            if (cachedRecipes && (cachedRecipes.length >= endIndex || parseInt(sessionStorage.getItem("limit")) === parseInt(sessionStorage.getItem("pageCount")))) {
+                const pageRecipes = cachedRecipes.slice(startIndex, endIndex);
+                
+                setRecipes(pageRecipes);
+                await fetchRecipeDetails(pageRecipes.map(recipe => recipe._id));
                 setLoading(false);
                 return;
             }
+        }
 
-            const response = await fetch("http://localhost:9000/api/recipes", {
-                method: "GET"
-            });
+        if (isUserEdited) {
+            clearUserRecipes();
+        }
 
-            const res = await response.json();
+        const fetchedRecipes = await fetchAndCacheRecipes(url, cacheKey, pageCount, startIndex, endIndex);
+        const allRecipes = cachedRecipes ? [...cachedRecipes, ...fetchedRecipes] : fetchedRecipes;
+        const pageRecipes = allRecipes.slice(startIndex, endIndex);
 
-            setRecipes(res);
-            setRecipe("public_recipes", res);
-            await fetchRecipeDetails(res.map(recipe => recipe._id));
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            setLoading(false);
+        setRecipes(pageRecipes);
+        await fetchRecipeDetails(pageRecipes.map(recipe => recipe._id));
+        setLoading(false);
+    }
     
-        } else {       
-            const isUserEdited = sessionStorage.getItem("editedUser");
-            const cachedData = await getRecipe("user_recipes");
+    async function fetchRecipes(pageCount) {
+        setLoading(true);
 
-            if (isUserEdited === "false") {
-                setLoading(true);
-                if (cachedData && cachedData.timestamp && now - cachedData.timestamp < TEN_MINUTES) {
-                    const recipes = Object.keys(cachedData)
-                        .filter(key => !isNaN(key))
-                        .map(key => cachedData[key]);
-        
-                    setRecipes(recipes);
-                    await fetchRecipeDetails(recipes.map(recipe => recipe._id));
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    setLoading(false);
-                    return;
+        try {
+            const token = sessionStorage.getItem("token");
+
+            if (!token || token === "undefined") {
+                await handleRecipes("http://localhost:9000/api/recipes", "public_recipes", pageCount);
+            } else {
+                const isUserEdited = sessionStorage.getItem("editedUser") === "true";
+                const userDetails = retrieveUserDetails();
+                const url = `http://localhost:9000/api/recipes/${userDetails.username}`;
+
+                if (!isUserEdited) {
+                    await handleRecipes(url, "user_recipes", pageCount, isUserEdited);
+                } else {
+                    sessionStorage.setItem("editedUser", false);
+                    await handleRecipes(url, "user_recipes", pageCount, isUserEdited);
                 }
             }
-    
-            const userDetails = retrieveUserDetails();
-            const username = userDetails.username;
-
-            const response = await fetch(`http://localhost:9000/api/recipes/${username}`, {
-                method: "POST"
-            });
-
-            const res = await response.json();
-
-            setRecipes(res);
-            setRecipe("user_recipes", res);
-            await fetchRecipeDetails(res.map(recipe => recipe._id));
-            await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (error) {
+            console.log(error);
             setLoading(false);
-            sessionStorage.setItem("editedUser", false);
-        }
+        } 
     }
 
     // Separate function to retrieve stars asynchronously and to avoid binding stars values into the cache
@@ -191,7 +239,7 @@ const HomePage = () => {
 
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            await fetchRecipes();
+            await fetchRecipes(parseInt(sessionStorage.getItem("pageCount")));
 
             setLoading(false);
         }
@@ -256,7 +304,7 @@ const HomePage = () => {
         const noFilters = Object.values(categories).every(val => !val) && Object.values(cuisineTypes).every(val => !val);
 
         if (noFilters) {
-            fetchRecipes();
+            fetchRecipes(parseInt(sessionStorage.getItem("pageCount")));
             setLoading(false);
         } else {
             fetchFilteredRecipes();
@@ -266,9 +314,9 @@ const HomePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchFilteredRecipes]);
 
-    function handleLogout() {
+    async function handleLogout() {
         sessionStorage.removeItem("token");
-        clearUserRecipes();
+        await clearUserRecipes();
         window.location.reload();
     }
 
@@ -277,7 +325,7 @@ const HomePage = () => {
         setSearchRecipe(value);
 
         if (value === "") {
-            fetchRecipes();
+            fetchRecipes(sessionStorage.getItem("pageCount"));
         }
     }
 
@@ -310,6 +358,35 @@ const HomePage = () => {
             const recipeIds = res.map(recipe => recipe._id);
             await fetchRecipeDetails(recipeIds);
         }
+    }
+
+    async function changeToPrevious() {
+        let pageCount = sessionStorage.getItem("pageCount");
+        pageCount = parseInt(pageCount);
+        pageCount -= 1;
+
+        if (pageCount < 1) {
+            pageCount = 1;
+            sessionStorage.setItem("pageCount", 1);
+        } else {
+            sessionStorage.setItem("pageCount", pageCount);
+        }
+
+        setLimitPage(false);
+        await fetchRecipes(pageCount);
+    }
+
+    async function changeToNext() {
+        let pageCount = sessionStorage.getItem("pageCount");
+        if (pageCount === null) {
+            pageCount = 1;
+        } else {
+            pageCount = parseInt(pageCount);
+            pageCount += 1;
+        }
+        
+        sessionStorage.setItem("pageCount", pageCount);
+        await fetchRecipes(pageCount);
     }
 
     return (
@@ -374,6 +451,29 @@ const HomePage = () => {
                             </div>
                         )): <p>No recipes found</p>}
                     </div>
+                    {parseInt(sessionStorage.getItem("pageCount")) === 1 ? 
+                        <div className="pages">
+                            <p>Page</p>
+                            <p>{parseInt(sessionStorage.getItem("pageCount"))}</p>
+                            <button 
+                                type="button" 
+                                onClick={changeToNext} 
+                                disabled={sessionStorage.getItem("limit") === sessionStorage.getItem("pageCount")}
+                            >Next
+                            </button>
+                        </div> :
+                        <div className="pages">
+                            <button type="button" onClick={changeToPrevious}>Previous</button>
+                            <p>Page</p>
+                            <p>{parseInt(sessionStorage.getItem("pageCount"))}</p>
+                            <button 
+                                type="button" 
+                                onClick={changeToNext} 
+                                disabled={sessionStorage.getItem("limit") === sessionStorage.getItem("pageCount")}
+                            >Next
+                            </button>
+                        </div>
+                    }
                     <Footer />
                 </div>
             }

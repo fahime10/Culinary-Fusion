@@ -56,7 +56,7 @@ export async function clearRecipes() {
 export async function clearUserRecipes() {
     try {
         const db = await dbPromise;
-        const t = db.transaction(["recipes", "readwrite"]);
+        const t = db.transaction("recipes", "readwrite");
         const store = t.objectStore("recipes");
 
         const keys = await store.getAllKeys();
