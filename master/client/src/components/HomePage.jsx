@@ -417,6 +417,9 @@ const HomePage = () => {
                             <img src={SearchIcon} onClick={() => findRecipe(searchRecipe)} />
                         </div>
                         {lastName !== "undefined" && lastName ? (
+                            <button className="third" onClick={() => navigate("/groups")}>Find groups</button>
+                        ) : null}
+                        {lastName !== "undefined" && lastName ? (
                             <div className="account">
                                 <MenuContainer />
                             </div>

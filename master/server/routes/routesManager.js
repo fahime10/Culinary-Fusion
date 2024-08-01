@@ -5,6 +5,7 @@ const index_controller = require('../controllers/indexController');
 const recipe_controller = require('../controllers/recipeController');
 const user_controller = require('../controllers/userController');
 const star_controller = require('../controllers/starController');
+const group_controller = require('../controllers/groupController');
 
 router.get('/', index_controller.index);
 
@@ -43,5 +44,9 @@ router.post('/stars', star_controller.add_star_rating);
 router.post('/stars/rating-recipe', star_controller.rating_average);
 
 router.post('/stars/get-all-ratings', star_controller.get_all_ratings);
+
+router.post('/groups', group_controller.groups_get_all);
+
+router.post('/groups/create', group_controller.create_group);
 
 module.exports = router;

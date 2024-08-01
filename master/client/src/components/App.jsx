@@ -10,6 +10,8 @@ import LoginPage from "./LoginPage";
 import PersonalCollection from "./PersonalCollection";
 import UserProfile from "./UserProfile";
 import ForgottenPassword from "./ForgottenPassword";
+import GroupsPage from "./GroupsPage";
+import CreateGroup from "./CreateGroup";
 
 function App() {
   const [response, setResponse] = useState("");
@@ -37,6 +39,8 @@ function App() {
           <Route path="/personal-collection" element={<PersonalCollection />} />
           <Route path="/user-profile" element={<UserProfile />} />
           <Route path="/forgotten-password" element={<ForgottenPassword />} />
+          <Route path="/groups" element={<GroupsPage />} />
+          <Route path="/create-group" element={<CreateGroup />} />
         </Routes>
       </BrowserRouter>
     </>

@@ -2,8 +2,8 @@ const Recipe = require('../models/recipeModel');
 const User = require('../models/userModel');
 const Ingredient = require('../models/ingredientModel');
 const Star = require('../models/starModel');
-const asyncHandler = require("express-async-handler");
-const multer = require("multer");
+const asyncHandler = require('express-async-handler');
+const multer = require('multer');
 const mongoose = require('mongoose');
 
 const storage = multer.memoryStorage();
