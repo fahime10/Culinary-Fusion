@@ -14,7 +14,6 @@ exports.groups_get_all = asyncHandler(async (req, res, next) => {
         }
 
         const allGroups = await Group.find().lean();
-        console.log(allGroups);
 
         res.status(200).json(allGroups);
 
@@ -25,7 +24,7 @@ exports.groups_get_all = asyncHandler(async (req, res, next) => {
 });
 
 exports.create_group = asyncHandler(async (req, res, next) => {
-    const { user_id, group_name, group_description, role } = req.body;
+    const { user_id, group_name, group_description, role, test } = req.body;
 
     try {
         const user = await User.findOne({ _id: user_id });
@@ -46,7 +45,8 @@ exports.create_group = asyncHandler(async (req, res, next) => {
             user_id: user_id,
             group_name: group_name,
             group_description: group_description,
-            role: role
+            role: role,
+            test
         });
 
         const saveGroup = await newGroup.save();
