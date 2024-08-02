@@ -152,10 +152,6 @@ const HomePage = () => {
             }
         }
 
-        if (isUserEdited) {
-            clearUserRecipes();
-        }
-
         const fetchedRecipes = await fetchAndCacheRecipes(url, cacheKey, pageCount, startIndex, endIndex);
         const allRecipes = cachedRecipes ? [...cachedRecipes, ...fetchedRecipes] : fetchedRecipes;
         const pageRecipes = allRecipes.slice(startIndex, endIndex);

@@ -49,4 +49,10 @@ router.post('/groups', group_controller.groups_get_all);
 
 router.post('/groups/create', group_controller.create_group);
 
+router.post('/groups/:id', group_controller.get_group);
+
+router.post('/groups/edit/:id', group_controller.edit_group);
+
+router.delete('/groups/delete/:id', group_controller.delete_group);
+
 module.exports = router;

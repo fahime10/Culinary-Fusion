@@ -54,7 +54,6 @@ describe('Testing Group API', () => {
                 user_id: user_id,
                 group_name: 'Group123456789',
                 group_description: 'test group',
-                role: 'admin',
                 test: true
             };
 
@@ -66,7 +65,6 @@ describe('Testing Group API', () => {
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty('group_name', 'Group123456789');
             expect(res.body).toHaveProperty('group_description', 'test group');
-            expect(res.body).toHaveProperty('role', 'admin');
             expect(res.body).toHaveProperty('test', true);
         });
     });

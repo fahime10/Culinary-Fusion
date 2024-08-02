@@ -321,28 +321,7 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
 
         await Recipe.findByIdAndDelete(id);
 
-        res.status(204).json({ message: 'Recipe deleted successfully' });;
-        
-    } catch (err) {
-        console.log(err);
-    }
-});
-
-exports.recipe_delete = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    
-    try {
-        const recipe = await Recipe.findById(id).lean();
-
-        if (!recipe) {
-            return res.status(404).json({ error: 'Recipe not found' });
-        }
-
-        await Ingredient.deleteMany({ recipe_id: id });
-
-        await Recipe.findByIdAndDelete(id);
-
-        res.status(204).json({ message: 'Recipe deleted successfully' });;
+        res.status(204).json({ message: 'Recipe deleted successfully' });
         
     } catch (err) {
         console.log(err);

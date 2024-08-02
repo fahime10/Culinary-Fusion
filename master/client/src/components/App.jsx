@@ -12,6 +12,8 @@ import UserProfile from "./UserProfile";
 import ForgottenPassword from "./ForgottenPassword";
 import GroupsPage from "./GroupsPage";
 import CreateGroup from "./CreateGroup";
+import ViewGroup from "./ViewGroup";
+import EditGroup from "./EditGroup";
 
 function App() {
   const [response, setResponse] = useState("");
@@ -41,6 +43,8 @@ function App() {
           <Route path="/forgotten-password" element={<ForgottenPassword />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/create-group" element={<CreateGroup />} />
+          <Route path="/groups/:id" element={<ViewGroup />} />
+          <Route path="/groups/edit/:id" element={<EditGroup />} />
         </Routes>
       </BrowserRouter>
     </>

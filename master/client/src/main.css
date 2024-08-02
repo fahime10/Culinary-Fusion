@@ -445,6 +445,20 @@ button:hover {
     background-color: yellow;
 }
 
+.top-grid {
+    background-color: rgb(166, 220, 59);
+    display: grid;
+    column-gap: 1rem;
+    row-gap: 1rem;
+}
+
+.top-grid button {
+    background-color: rgb(26, 156, 179);
+    border-radius: 5px;
+    grid-row: 2;
+    width: 8rem;
+}
+
 footer {
     text-align: center;
     background-color: green;
