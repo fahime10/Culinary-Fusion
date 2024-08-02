@@ -30,15 +30,13 @@ exports.create_group = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ _id: user_id });
 
         if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.status(404).json({ error: 'User not found' });
         }
 
         const foundGroup = await Group.findOne({ group_name: group_name });
 
         if (foundGroup) {
-            res.status(400).json({ error: 'A group with that name already exists' });
-            return;
+            return res.status(400).json({ error: 'A group with that name already exists' });
         }
 
         const newGroup = new Group({
@@ -93,7 +91,7 @@ exports.get_group = asyncHandler(async (req, res, next) => {
 
 exports.edit_group = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { user_id, group_name, group_description } = req.body;
+    const { user_id, group_name, group_description, test } = req.body;
 
     try {
         const user = await User.findOne({ _id: user_id });
@@ -105,7 +103,8 @@ exports.edit_group = asyncHandler(async (req, res, next) => {
 
         const updatedData = {
             group_name: group_name,
-            group_description: group_description
+            group_description: group_description,
+            test: test
         };
 
         const editedGroup = await Group.findByIdAndUpdate(id, updatedData, { new: true }).lean();
