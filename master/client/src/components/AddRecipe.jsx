@@ -257,7 +257,6 @@ const AddRecipe = () => {
 
                 const res = await response.json();
 
-                console.log(res);
                 const cachedUserData = await getRecipe("user_recipes");
 
                 let userRecipesArray = [];

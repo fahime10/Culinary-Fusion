@@ -459,6 +459,27 @@ button:hover {
     width: 8rem;
 }
 
+.add-members-page {
+    display: flex;
+    flex-direction: column;
+}
+
+.add-members-page .top {
+    background-color: greenyellow;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.add-members-page .forms button {
+    width: auto;
+    padding: 0.2rem 1rem;
+}
+
+.usernames {
+    margin-top: 1rem;
+}
+
 footer {
     text-align: center;
     background-color: green;

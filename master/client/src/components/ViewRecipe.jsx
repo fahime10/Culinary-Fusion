@@ -16,6 +16,7 @@ const ViewRecipe = () => {
     const [title, setTitle] = useState("");
     const [imageUrl, setImageUrl] = useState(null);
     const [chef, setChef] = useState("");
+    const [chefUsername, setChefUsername] = useState("");
     const [description, setDescription] = useState("");
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: "", quantity: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
@@ -33,10 +34,11 @@ const ViewRecipe = () => {
 
     const navigate = useNavigate();
 
-    function setRecipeState(recipe) {
+    function setRecipeState(recipe, chefUsername) {
         const userDetails = retrieveUserDetails();
         setTitle(recipe.title);
         setChef(recipe.chef);
+        setChefUsername(chefUsername);
         setDescription(recipe.description);
 
         const parsedIngredients = recipe.ingredients.map((ingredient, index) => ({
@@ -86,7 +88,7 @@ const ViewRecipe = () => {
                     const recipe = recipes.find(recipe => recipe._id === id);
 
                     if (recipe) {
-                        setRecipeState(recipe);
+                        setRecipeState(recipe, recipe.chef_username);
                         return;
                     }
                 }
@@ -105,7 +107,7 @@ const ViewRecipe = () => {
 
                 const res = await response.json();
 
-                setRecipeState(res.recipe);
+                setRecipeState(res.recipe, res.chef_username);
 
                 if (res.owner === true) {
                     setIsOwner(true);
@@ -311,6 +313,7 @@ const ViewRecipe = () => {
                         {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
                         <p>{description}</p>
                         <p>Chef/s: {chef}</p>
+                        <p>Added by: {chefUsername}</p>
                         <div className="ingredient-list">
                             <p>Ingredients:</p>
                             <ul>

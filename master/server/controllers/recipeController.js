@@ -210,10 +210,20 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
             { $sort: { timestamp: -1 }},
             { $sample: { size: 100 }}
         ]);
-        
-        const randomRecipes = randomizeRecipes(allRecipes, 20);
 
-        const result = await convertToObjects(randomRecipes);
+        const recipeIds = allRecipes.map(recipe => recipe._id);
+        const recipesWithUser = await Recipe.find({ _id: { $in: recipeIds } })
+            .populate('user_id', 'username')
+            .lean();
+        
+        const randomRecipes = randomizeRecipes(recipesWithUser, 20);
+
+        const recipeObjects = await convertToObjects(randomRecipes);
+
+        const result = recipeObjects.map(recipe => ({
+            ...recipe,
+            chef_username: recipe.user_id.username
+        }));
 
         let limit = false;
         if (result.length < 20) {
@@ -291,9 +301,19 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
             distinctRecipes = makeDistinct(recipes);
         }
 
-        const recommended = await recommendedRecipes(distinctRecipes, user);
+        const recipeIds = distinctRecipes.map(recipe => recipe._id);
+        const recipesWithUser = await Recipe.find({ _id: { $in: recipeIds } })
+            .populate('user_id', 'username')
+            .lean();
 
-        const result = await convertToObjects(recommended);
+        const recommended = await recommendedRecipes(recipesWithUser, user);
+
+        const recipeObjects = await convertToObjects(recommended);
+
+        const result = recipeObjects.map(recipe => ({
+            ...recipe,
+            chef_username: recipe.user_id.username
+        }));
 
         let limit = false;
         if (result.length < 20) {
@@ -333,7 +353,7 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
     const { username } = req.body;
 
     try {
-        const recipe = await Recipe.findById(id).lean();
+        const recipe = await Recipe.findById(id).populate('user_id', 'username').lean();
 
         if (!recipe) {
             return res.status(404).json({ error: "Recipe not found" });
@@ -347,12 +367,12 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
 
         if (user) {
             if (user._id.toString() === recipe.user_id.toString()) {
-                res.status(200).json({ recipe: recipe, owner: true });
+                res.status(200).json({ recipe: recipe, owner: true, chef_username: recipe.user_id.username });
             } else {
-                res.status(200).json({ recipe: recipe, owner: false });
+                res.status(200).json({ recipe: recipe, owner: false, chef_username: recipe.user_id.username });
             }
         } else {
-            res.status(200).json({ recipe: recipe, owner: false });
+            res.status(200).json({ recipe: recipe, owner: false, chef_username: recipe.user_id.username });
         }
 
     } catch (err) {

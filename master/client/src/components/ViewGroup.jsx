@@ -66,6 +66,10 @@ const ViewGroup = () => {
         return null;
     }
 
+    function redirectToAddMembers() {
+        navigate(`/groups/add-members/${id}`);
+    }
+
     function redirectToEditGroup(id) {
         navigate(`/groups/edit/${id}`);
     }
@@ -98,6 +102,9 @@ const ViewGroup = () => {
                 <div className="top-grid">
                     <h1 className="title">{groupName}</h1>
                     <h2>{groupDescription}</h2>
+                    {isOwner ? (
+                        <button type="button" onClick={() => redirectToAddMembers(id)}>Add members</button>
+                    ) : null}
                     {isOwner ? (
                         <button onClick={() => redirectToEditGroup(id)}>Edit group details</button>
                     ) : null}

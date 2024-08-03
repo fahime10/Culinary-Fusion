@@ -55,4 +55,6 @@ router.post('/groups/edit/:id', group_controller.edit_group);
 
 router.delete('/groups/delete/:id', group_controller.delete_group);
 
+router.post('/groups/add-members/:id', group_controller.create_requests);
+
 module.exports = router;

@@ -1,5 +1,6 @@
 const Group = require('../models/groupModel');
 const User = require('../models/userModel');
+const JoinRequest = require('../models/joinRequestModel');
 const asyncHandler = require('express-async-handler');
 
 exports.groups_get_all = asyncHandler(async (req, res, next) => {
@@ -135,6 +136,52 @@ exports.delete_group = asyncHandler(async (req, res, next) => {
         
         res.status(200).json({ message: 'Group deleted successfully' });
     
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
+    }
+});
+
+exports.create_requests = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const { user_id, usernames } = req.body;
+
+    try {
+        const user = await User.findOne({ _id: user_id });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const newUsernames = JSON.parse(usernames);
+        const usernameValues = newUsernames.map(userObj => userObj.value);
+
+        console.log(usernameValues);
+        const group = await Group.findById(id).populate('user_id', 'username').lean();
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const currentList = [group.user_id.username, ...group.admins, ...group.collaborators];
+
+        const filteredUsernames = usernameValues.filter(username => !currentList.includes(username));
+
+        const validUsers = await User.find({ username: { $in: filteredUsernames } }).lean();
+        const validUsernames = validUsers.map(user => user.username);
+
+        for (let username of validUsernames) {
+            const newRequest = await JoinRequest({
+                group_id: id,
+                user_id: user_id,
+                recipient_username: username
+            });
+            await newRequest.save();
+        }
+
+        res.status(200).json({ message: 'Requests have been sent' });
+
     } catch (error) {
         console.log(error);
         res.status(400).json({ error: error });
