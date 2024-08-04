@@ -28,7 +28,7 @@ button:hover {
 }
 
 .grid-container .top-bar button {
-    height: 50%;
+    height: 2rem;
 }
 
 .top-bar {
@@ -110,12 +110,8 @@ button:hover {
 .top-bar .account {
     grid-column: 6;
     grid-row: 2;
-    width: 40%;
+    width: 45%;
     height: 50%;
-}
-
-.top-bar .account button {
-    height: 5%;
 }
 
 .side-bar {

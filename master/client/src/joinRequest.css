@@ -1,0 +1,33 @@
+.join-request.active {
+    width: 500px;
+    height: 500px;
+    border-radius: 5px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
+
+.join-request.active button {
+    margin: 1rem;
+    width: 7rem;
+    height: 2rem;
+    border-radius: 5px;
+}
+
+.join-request.active {
+    display: flex;
+}
+
+.notification {
+    border: 2px solid black;
+    border-radius: 5px;
+    padding: 0.4rem;
+}
+
+.notification .accept {
+    background-color: greenyellow;
+}
+
+.notification .refuse {
+    background-color: red;
+}

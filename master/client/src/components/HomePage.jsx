@@ -19,6 +19,7 @@ const HomePage = () => {
     const [lastName, setLastName] = useState("");
     const [searchRecipe, setSearchRecipe] = useState("");
     const [limitPage, setLimitPage] = useState(false);
+    const [notifications, setNotifications] = useState([]);
 
     const navigate = useNavigate();
 
@@ -218,6 +219,30 @@ const HomePage = () => {
         }
     }
 
+    async function getAllNotifications() {
+        const userDetails = retrieveUserDetails();
+
+        if (userDetails) {
+            const data = {
+                username: userDetails.username
+            };
+
+            const response = await fetch(`http://localhost:9000/api/join-requests`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const res = await response.json();
+                setNotifications(res);
+            }
+        }
+    }
+
     useEffect(() => {
         async function initialize() {
             if (!sessionStorage.getItem("initialized")) {
@@ -236,6 +261,8 @@ const HomePage = () => {
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             await fetchRecipes(parseInt(sessionStorage.getItem("pageCount")));
+
+            await getAllNotifications();
 
             setLoading(false);
         }
@@ -417,7 +444,7 @@ const HomePage = () => {
                         ) : null}
                         {lastName !== "undefined" && lastName ? (
                             <div className="account">
-                                <MenuContainer />
+                                <MenuContainer notifications={notifications} setNotifications={setNotifications} />
                             </div>
                         ) : null}
                     </div>

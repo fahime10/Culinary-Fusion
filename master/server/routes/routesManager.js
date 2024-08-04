@@ -6,6 +6,7 @@ const recipe_controller = require('../controllers/recipeController');
 const user_controller = require('../controllers/userController');
 const star_controller = require('../controllers/starController');
 const group_controller = require('../controllers/groupController');
+const join_request_controller = require('../controllers/joinRequestController');
 
 router.get('/', index_controller.index);
 
@@ -56,5 +57,11 @@ router.post('/groups/edit/:id', group_controller.edit_group);
 router.delete('/groups/delete/:id', group_controller.delete_group);
 
 router.post('/groups/add-members/:id', group_controller.create_requests);
+
+router.post('/join-requests', join_request_controller.get_all_notifications);
+
+router.post('/join-requests/accept-request/:id', join_request_controller.accept_request);
+
+router.post('/join-requests/delete-request/:id', join_request_controller.refuse_request);
 
 module.exports = router;

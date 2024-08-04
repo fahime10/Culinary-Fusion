@@ -10,8 +10,7 @@ exports.groups_get_all = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username });
 
         if (!user) {
-            res.status(404).json({ error: 'No user found' });
-            return;
+            return res.status(404).json({ error: 'No user found' });
         }
 
         const allGroups = await Group.find().lean();
