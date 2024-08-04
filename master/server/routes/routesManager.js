@@ -64,4 +64,10 @@ router.post('/join-requests/accept-request/:id', join_request_controller.accept_
 
 router.post('/join-requests/delete-request/:id', join_request_controller.refuse_request);
 
+router.post('/groups/promote/:id', group_controller.promote_user);
+
+router.post('/groups/demote/:id', group_controller.demote_user);
+
+router.delete('/groups/remove/:id', group_controller.remove_user);
+
 module.exports = router;

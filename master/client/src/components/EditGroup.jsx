@@ -9,6 +9,10 @@ const EditGroup = () => {
     const [groupName, setGroupName] = useState("");
     const [groupDescription, setGroupDescription] = useState("");
 
+    const [mainAdmin, setMainAdmin] = useState("");
+    const [admins, setAdmins] = useState([""]);
+    const [collaborators, setCollaborators] = useState([""]);
+
     const [error, setError] = useState("");
     const errorRef = useRef(null);
 
@@ -21,8 +25,8 @@ const EditGroup = () => {
         if (token) {
             setUsername(userDetails.username);
         }
-
-    }, []);
+    
+    }, [username]);
 
     useEffect(() => {
         const token = sessionStorage.getItem("token");
@@ -48,6 +52,9 @@ const EditGroup = () => {
                     if (response.ok) {
                         setGroupName(res.group.group_name);
                         setGroupDescription(res.group.group_description);
+                        setMainAdmin(res.group.user_id.username);
+                        setAdmins(res.group.admins);
+                        setCollaborators(res.group.collaborators);
                     }
                 }
 
@@ -120,49 +127,173 @@ const EditGroup = () => {
                 navigate(-1);
             }
         })
-        .catch(error => console.log(error));   
+        .catch(error => console.log(error));
+    }
+
+    async function promote(username) {
+        const userDetails = retrieveUserDetails();
+
+        if (userDetails) {
+            try {
+                const data = {
+                    user_id: userDetails.id,
+                    username: username
+                };
+
+                const response = await fetch(`http://localhost:9000/api/groups/promote/${id}`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+
+                    setCollaborators(res.collaborators);
+                    setAdmins(res.admins);
+                }
+
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+
+    async function demote(username) {
+        const userDetails = retrieveUserDetails();
+
+        if (userDetails) {
+            try {
+                const data = {
+                    user_id: userDetails.id,
+                    username: username
+                };
+
+                const response = await fetch(`http://localhost:9000/api/groups/demote/${id}`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+
+                    setCollaborators(res.collaborators);
+                    setAdmins(res.admins);
+                }
+                
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+
+    async function removeMember(username) {
+        const userDetails = retrieveUserDetails();
+
+        if (userDetails) {
+            try {
+                const data = {
+                    user_id: userDetails.id,
+                    username: username
+                };
+
+                const response = await fetch(`http://localhost:9000/api/groups/remove/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+
+                    setCollaborators(res.collaborators);
+                    setAdmins(res.admins);
+                }
+                
+            } catch (error) {
+                console.log(error);
+            }
+        }
     }
 
     return (
         <>
             <div className="edit-group">
                 <div className="top-bar">
-                    <h1 className="title">Create a new group</h1>
+                    <h1 className="title">{groupName}</h1>
                     <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
                 </div>
                 {username ?
-                    <form className="forms" onSubmit={(event) => handleEditGroup(event)}>
-                        <label htmlFor="group-name">Group name:</label>
-                        <input
-                            id="group-name"
-                            type="text"
-                            name="group-name"
-                            required={true}
-                            minLength={4}
-                            value={groupName}
-                            onChange={handleGroupName}
-                        />
-                        <label htmlFor="group-description">Group description (optional):</label>
-                        <textarea
-                            id="group-description"
-                            rows={4}
-                            cols={30}
-                            name="group-description"
-                            value={groupDescription}
-                            onChange={handleDescription}
-                        />
-                        <div ref={errorRef} style={{ display: "none", color: "red" }}>
-                            <p>{error}</p>
+                    <div className="edit-group">
+                        <form className="forms" onSubmit={(event) => handleEditGroup(event)}>
+                            <label htmlFor="group-name">Group name:</label>
+                            <input
+                                id="group-name"
+                                type="text"
+                                name="group-name"
+                                required={true}
+                                minLength={4}
+                                value={groupName}
+                                onChange={handleGroupName}
+                            />
+                            <label htmlFor="group-description" style={{ margin: "1rem 0 0 0 " }}>Group description (optional):</label>
+                            <textarea
+                                id="group-description"
+                                rows={4}
+                                cols={30}
+                                name="group-description"
+                                value={groupDescription}
+                                onChange={handleDescription}
+                            />
+                            <div ref={errorRef} style={{ display: "none", color: "red" }}>
+                                <p>{error}</p>
+                            </div>
+                            <button style={{ margin: "1rem 0" }}>Edit</button>
+                            <button type="button" onClick={() => navigate(-1)}>Cancel</button>
+                        </form>
+                        <div className="boxed">
+                            <p>Main admin: {mainAdmin}</p>
                         </div>
-                        <button>Create</button>
-                        <button type="button" onClick={() => navigate(-1)}>Cancel</button>
-                    </form>    
-                : <p>Please login before creating a group</p>}
+                        <div className="boxed">
+                            <p>Admins of this group:</p>
+                            {admins.length > 0 ?
+                                admins.map((admin) => (
+                                    <div key={admin} id={admin}>
+                                        <p>{admin}</p>
+                                        <button type="button" onClick={() => demote(admin)}>Demote</button>
+                                        <button type="button" onClick={() => removeMember(admin)}>Remove</button>
+                                    </div>
+                                )) 
+                            : <p>Currently no admins</p>}
+                        </div>
+                        <div className="boxed">
+                            <p>Collaborators of this group:</p>
+                            {collaborators.length > 0 ?
+                                collaborators.map((collaborator) => (
+                                    <div key={collaborator} id={collaborator}>
+                                        <p>{collaborator}</p>
+                                        <button type="button" onClick={() => promote(collaborator)}>Promote</button>
+                                        <button type="button" onClick={() => removeMember(collaborator)}>Remove</button>
+                                    </div>
+                                )) 
+                            : <p>Currently no collaborators</p>}
+                        </div>
+                    </div>
+                : <p>Please login first</p>}
             </div>
             <Footer />
         </>
     )
-
 };
 
 export default EditGroup;
