@@ -5,7 +5,8 @@ import Footer from "./Footer";
 
 const EditGroup = () => {
     const { id } = useParams();
-    const [username, setUsername] = useState("");
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isCollaborator, setIsCollaborator] = useState(false);
     const [groupName, setGroupName] = useState("");
     const [groupDescription, setGroupDescription] = useState("");
 
@@ -17,16 +18,6 @@ const EditGroup = () => {
     const errorRef = useRef(null);
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const token = sessionStorage.getItem("token");
-        const userDetails = retrieveUserDetails();
-
-        if (token) {
-            setUsername(userDetails.username);
-        }
-    
-    }, [username]);
 
     useEffect(() => {
         const token = sessionStorage.getItem("token");
@@ -55,6 +46,14 @@ const EditGroup = () => {
                         setMainAdmin(res.group.user_id.username);
                         setAdmins(res.group.admins);
                         setCollaborators(res.group.collaborators);
+
+                        if (res.is_admin) {
+                            setIsAdmin(true);
+                        }
+
+                        if (res.is_collaborator) {
+                            setIsCollaborator(true);
+                        }
                     }
                 }
 
@@ -233,7 +232,7 @@ const EditGroup = () => {
                     <h1 className="title">{groupName}</h1>
                     <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
                 </div>
-                {username ?
+                {isAdmin ?
                     <div className="edit-group">
                         <form className="forms" onSubmit={(event) => handleEditGroup(event)}>
                             <label htmlFor="group-name">Group name:</label>
@@ -289,7 +288,54 @@ const EditGroup = () => {
                             : <p>Currently no collaborators</p>}
                         </div>
                     </div>
-                : <p>Please login first</p>}
+                : 
+                isCollaborator ? 
+                    <div className="edit-group">
+                        <div className="forms">
+                            <label htmlFor="group-name">Group name:</label>
+                            <input
+                                id="group-name"
+                                type="text"
+                                name="group-name"
+                                value={groupName}
+                                disabled={true}
+                            />
+                            <label htmlFor="group-description" style={{ margin: "1rem 0 0 0" }}>Group description:</label>
+                            <textarea
+                                id="group-description"
+                                rows={4}
+                                cols={30}
+                                name="group-description"
+                                value={groupDescription}
+                                disabled={true}
+                            />
+                        </div>
+                        <div className="boxed">
+                            <p>Main admin: {mainAdmin}</p>
+                        </div>
+                        <div className="boxed">
+                            <p>Admins of this group:</p>
+                            {admins.length > 0 ?
+                                admins.map((admin) => (
+                                    <div key={admin} id={admin}>
+                                        <p>{admin}</p>
+                                    </div>
+                                )) 
+                            : <p>Currently no admins</p>}
+                        </div>
+                        <div className="boxed">
+                            <p>Collaborators of this group:</p>
+                            {collaborators.length > 0 ?
+                                collaborators.map((collaborator) => (
+                                    <div key={collaborator} id={collaborator}>
+                                        <p>{collaborator}</p>
+                                    </div>
+                                )) 
+                            : <p>Currently no collaborators</p>}
+                        </div>
+                    </div>
+                    :
+                    <p>Please login first</p>}
             </div>
             <Footer />
         </>

@@ -75,11 +75,19 @@ exports.get_group = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'Group not found' });
         }
 
+        let isMainAdmin = false;
+        let isAdmin = false;
+        let isCollaborator = false;
+
         if (foundGroup.user_id._id.toString() === user._id.toString()) {
-            res.status(200).json({ group: foundGroup, owner: true });
-        } else {
-            res.status(200).json({ group: foundGroup, owner: false });
+            isMainAdmin = true;
+        } else if (foundGroup.admins && foundGroup.admins.includes(user.username)) {
+            isAdmin = true;
+        } else if (foundGroup.collaborators && foundGroup.collaborators.includes(user.username)) {
+            isCollaborator = true;
         }
+
+        res.status(200).json({ group: foundGroup, is_main_admin: isMainAdmin, is_admin: isAdmin, is_collaborator: isCollaborator });
 
     } catch (error) {
         console.log(error);
@@ -95,8 +103,7 @@ exports.edit_group = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ _id: user_id });
 
         if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.status(404).json({ error: 'User not found' });
         }
 
         const updatedData = {

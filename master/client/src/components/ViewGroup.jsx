@@ -8,7 +8,9 @@ const ViewGroup = () => {
     const { id } = useParams();
     const [groupName, setGroupName] = useState("");
     const [groupDescription, setGroupDescription] = useState("");
-    const [isOwner, setIsOwner] = useState(false);
+    const [isMainAdmin, setIsMainAdmin] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isCollaborator, setIsCollaborator] = useState(false);
     const [dialog, setDialog] = useState(false);
     // const [books, setBooks] = useState([""]);
 
@@ -39,8 +41,16 @@ const ViewGroup = () => {
                         setGroupName(res.group.group_name);
                         setGroupDescription(res.group.group_description);
 
-                        if (res.owner) {
-                            setIsOwner(true);
+                        if (res.is_main_admin) {
+                            setIsMainAdmin(true);
+                        }
+
+                        if (res.is_admin) {
+                            setIsAdmin(true);
+                        }
+
+                        if (res.is_collaborator) {
+                            setIsCollaborator(true);
                         }
                     }
                 }
@@ -102,14 +112,17 @@ const ViewGroup = () => {
                 <div className="top-grid">
                     <h1 className="title">{groupName}</h1>
                     <h2>{groupDescription}</h2>
-                    {isOwner ? (
+                    {isMainAdmin || isAdmin ? (
                         <button type="button" onClick={() => redirectToAddMembers(id)}>Add members</button>
                     ) : null}
-                    {isOwner ? (
+                    {isMainAdmin || isAdmin ? (
                         <button onClick={() => redirectToEditGroup(id)}>Edit group details</button>
                     ) : null}
-                    {isOwner ? (
+                    {isMainAdmin ? (
                         <button onClick={toggleDialog}>Delete group</button>
+                    ) : null}
+                    {isCollaborator ? (
+                        <button onClick={() => redirectToEditGroup(id)}>View group details</button>
                     ) : null}
                     <button onClick={() => navigate(-1)}>Back</button>
                     <button onClick={(returnToHomepage)}>Home</button>
