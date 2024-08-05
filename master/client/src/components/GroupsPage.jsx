@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import SearchIcon from "../assets/search-icon.png";
 import Footer from "./Footer";
 
 const GroupsPage = () => {
     const [groups, setGroups] = useState([]);
     const [lastName, setLastName] = useState("");
+    const [searchGroup, setSearchGroup] = useState("");
 
     const navigate = useNavigate();
 
@@ -17,29 +19,33 @@ const GroupsPage = () => {
             setLastName(userDetails.last_name);
         }
 
-        async function findGroups() {
-            const data = {
-                username: userDetails.username
-            };
+        fetchGroups();
 
-            const response = await fetch("http://localhost:9000/api/groups", {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            });
-
-            const res = await response.json();
-
-            if (response.ok) {
-                setGroups(res);
-            }
-        }
-
-        findGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    async function fetchGroups() {
+        const userDetails = retrieveUserDetails();
+        
+        const data = {
+            username: userDetails.username
+        };
+
+        const response = await fetch("http://localhost:9000/api/groups", {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        const res = await response.json();
+
+        if (response.ok) {
+            setGroups(res);
+        }
+    }
 
     function retrieveUserDetails() {
         if (sessionStorage.getItem("token")) {
@@ -56,6 +62,43 @@ const GroupsPage = () => {
         navigate(`/groups/${id}`);
     }
 
+    function handleFindGroup(e) {
+        setSearchGroup(e.target.value);
+
+        if (e.target.value === "") {
+            fetchGroups();
+        }
+    }
+
+    async function findGroup(searchGroup) {
+        if (searchGroup.trim() !== "") {
+            let data = {};
+
+            const userDetails = retrieveUserDetails();
+
+            if (userDetails) {
+                data = {
+                    username: userDetails.username
+                };
+            }
+
+            const response = await fetch(`http://localhost:9000/api/groups/search/${searchGroup}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const res = await response.json();
+
+                setGroups(res);
+            }
+        }
+    }
+
     return (
         <>
             <div className="groups-page">
@@ -64,6 +107,16 @@ const GroupsPage = () => {
                     <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
                     {lastName !== "undefined" && lastName ? 
                         <button className="second" onClick={() => navigate("/create-group")}>Create a group</button>
+                    : null}
+                    {lastName !== "undefined" && lastName ?
+                        <div className="search-bar">
+                            <input
+                                type="text"
+                                placeholder="Search for a group"
+                                onChange={handleFindGroup}
+                            />
+                            <img src={SearchIcon} onClick={() => findGroup(searchGroup)} />
+                        </div>
                     : null}
                 </div>
                 <div className="groups">

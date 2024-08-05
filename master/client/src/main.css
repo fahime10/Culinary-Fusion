@@ -421,6 +421,10 @@ button:hover {
     height: 20vh;
 }
 
+.groups-page .top-bar button {
+    height: 1.5rem;
+}
+
 .group-page .top-bar button {
     height: 1rem;
 }

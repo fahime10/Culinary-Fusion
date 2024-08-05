@@ -313,3 +313,25 @@ exports.remove_user = asyncHandler(async (req, res, next) => {
         res.status(400).json({ error: error });
     }
 });
+
+exports.search_group = asyncHandler(async (req, res, next) => {
+    const { group_name } = req.params;
+
+    const { username } = req.body;
+
+    try {
+        const user = await User.findOne({ username: username }).lean();
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const foundGroup = await Group.find({ group_name: new RegExp(group_name, 'i') }).lean();
+
+        res.status(200).json(foundGroup);
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
+    }
+});

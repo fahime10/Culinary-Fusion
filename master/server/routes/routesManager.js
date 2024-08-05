@@ -70,4 +70,6 @@ router.post('/groups/demote/:id', group_controller.demote_user);
 
 router.delete('/groups/remove/:id', group_controller.remove_user);
 
+router.post('/groups/search/:group_name', group_controller.search_group);
+
 module.exports = router;

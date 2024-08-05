@@ -5,6 +5,7 @@ import Footer from "./Footer";
 
 const EditGroup = () => {
     const { id } = useParams();
+    const [isMainAdmin, setIsMainAdmin] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isCollaborator, setIsCollaborator] = useState(false);
     const [groupName, setGroupName] = useState("");
@@ -46,6 +47,10 @@ const EditGroup = () => {
                         setMainAdmin(res.group.user_id.username);
                         setAdmins(res.group.admins);
                         setCollaborators(res.group.collaborators);
+
+                        if (res.is_main_admin) {
+                            setIsMainAdmin(true);
+                        }
 
                         if (res.is_admin) {
                             setIsAdmin(true);
@@ -232,7 +237,7 @@ const EditGroup = () => {
                     <h1 className="title">{groupName}</h1>
                     <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
                 </div>
-                {isAdmin ?
+                {isMainAdmin || isAdmin ?
                     <div className="edit-group">
                         <form className="forms" onSubmit={(event) => handleEditGroup(event)}>
                             <label htmlFor="group-name">Group name:</label>
