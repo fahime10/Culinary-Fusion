@@ -50,6 +50,7 @@ const LoginPage = () => {
                 setError(res.error);
             } else {
                 sessionStorage.setItem("token", res.token);
+                sessionStorage.setItem("pageCount", 1);
                 navigate("/");
             }
         })

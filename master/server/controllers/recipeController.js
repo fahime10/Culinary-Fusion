@@ -62,7 +62,7 @@ const recommendedRecipes = async (recipes, user) => {
     // List popular recipes that the user might be interested in, and take into account the diet and
     // allergies
     const filterPositiveRecipes = recipes.filter(recipe => {
-        const diet = recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
+        const diet = recipe.diet.length === 0 || user.dietary_preferences.length === 0 || recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
         const noAllergies = !user.allergies.some(allergy => recipe.allergens.includes(allergy));
 
         return noAllergies && diet;
@@ -71,27 +71,27 @@ const recommendedRecipes = async (recipes, user) => {
     // Filter recipes by matching the preferred categories and cuisine types, as well as removing any recipes
     // that the user may be allergic to and take into account the type of diet
     const filterRecipes = recipes.filter(recipe => {
-        const diet = recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
+        const dietMatch = recipe.diet.length === 0 || user.dietary_preferences.length === 0 || recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
         const categoriesMatch = recipe.categories.some(category => userPreferredCategories.has(category) || preferredCategories.has(category));
         const cuisineTypesMatch = recipe.cuisine_types.some(cuisine_type => userPreferredCuisineTypes.has(cuisine_type) || preferredCuisineTypes.has(cuisine_type));
         const noAllergies = !user.allergies.some(allergy => recipe.allergens.includes(allergy));
 
-        return (categoriesMatch || cuisineTypesMatch) && noAllergies && diet;
+        return (categoriesMatch || cuisineTypesMatch) && noAllergies && dietMatch;
     });
 
     let randomRecipes = [];
     let randomPositiveRecipes = [];
     let result = [];
     
+    console.log(filterRecipes.length);
     if (filterRecipes.length === 0 && filterPositiveRecipes.length === 0) {
         randomRecipes = randomizeRecipes(recipes, 20);
         result.push(...randomRecipes);
     } else {
-        randomRecipes = randomizeRecipes(filterRecipes, 5);
-        randomPositiveRecipes = randomizeRecipes(filterPositiveRecipes, 15);
-        result.push(...randomRecipes);
+        let pickedRecipes = [...filterRecipes, ...filterPositiveRecipes];
+        let distinctRecipes = makeDistinct(pickedRecipes);
+        randomPositiveRecipes = randomizeRecipes(distinctRecipes, 20);
         result.push(...randomPositiveRecipes);
-        result = makeDistinct(result);
     }
 
     return result;
@@ -234,11 +234,10 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
 
     } catch (err) {
         res.status(400).json({ error: 'Something went wrong' });
-        console.log(err);
     }
 });
 
-exports.recipe_get_own = asyncHandler(async (req, res, next) => {
+exports.recipe_get_all_recipes_signed_in = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
     const { cache } = req.body;
 
@@ -246,7 +245,6 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username }).lean();
 
         if (!user) {
-            console.log(user);
             return res.status(404).json({ error: 'User not found' });
         }
 
@@ -259,55 +257,20 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
             match._id = { $nin: cacheObjectIds };
         }
 
-        const publicRecipes = await Recipe.aggregate([
+        let allRecipes = await Recipe.aggregate([
             { $match: match },
             { $sort: { timestamp: -1 }},
-            { $sample: { size: 50 }}
+            { $sample: { size: 100 }}
         ]);
 
-        const userMatch = { user_id: user._id };
-        if (cache.length !== 0) {
-            const userObjectIds = cache
-                .filter(id => mongoose.Types.ObjectId.isValid(id))
-                .map(id => new mongoose.Types.ObjectId(id));
-
-            userMatch._id = { $nin: userObjectIds };
-        }
-        
-        const userRecipes = await Recipe.aggregate([
-            { $match: userMatch },
-            { $sample: { size: 50 }}
-        ]);
-
-        let recipes = [...publicRecipes, ...userRecipes];
-
-        recipes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        let distinctRecipes = makeDistinct(recipes);
-
-        if (distinctRecipes.length < 100) {
-            const recipesRequired = 100 - distinctRecipes.length;
-
-            const existingRecipesIds = distinctRecipes.map(recipe => recipe._id);
-
-            const moreRecipes = await Recipe.aggregate([
-                { $match: { private: false, _id: { $nin: existingRecipesIds } }},
-                { $sort: { timestamp: -1 }},
-                { $limit: recipesRequired }
-            ]);
-
-            recipes = [...distinctRecipes, ...moreRecipes];
-
-            distinctRecipes = makeDistinct(recipes);
-        }
-
-        const recipeIds = distinctRecipes.map(recipe => recipe._id);
+        const recipeIds = allRecipes.map(recipe => recipe._id);
         const recipesWithUser = await Recipe.find({ _id: { $in: recipeIds } })
             .populate('user_id', 'username')
             .lean();
 
         const recommended = await recommendedRecipes(recipesWithUser, user);
 
+        console.log(recommended)
         const recipeObjects = await convertToObjects(recommended);
 
         const result = recipeObjects.map(recipe => ({
@@ -323,7 +286,8 @@ exports.recipe_get_own = asyncHandler(async (req, res, next) => {
         res.status(200).json({ result: result, limit: limit });
 
     } catch (err) {
-        res.status(404).json({ error: err.message });
+        console.log(err);
+        res.status(400).json({ error: err.message });
     }
 });
 

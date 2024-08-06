@@ -14,7 +14,7 @@ router.post('/recipes/add-recipe', recipe_controller.upload, recipe_controller.a
 
 router.post('/recipes', recipe_controller.recipes_get_all);
 
-router.post('/recipes/:username', recipe_controller.recipe_get_own);
+router.post('/recipes/:username', recipe_controller.recipe_get_all_recipes_signed_in);
 
 router.post('/recipes/search/:search', recipe_controller.search_recipe);
 
