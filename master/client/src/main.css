@@ -434,11 +434,18 @@ button:hover {
     flex-direction: column;
     align-self: center;
     width: 100vw;
+    justify-content: center;
+    align-items: center;
 }
 
 .group {
     border: 2px solid black;
+    border-radius: 5px;
     text-align: center;
+    box-shadow: 12px 12px 2px 1px rgba(0, 0, 255, .2);
+    width: 40vw;
+    margin: 1rem;
+    cursor: pointer;
 }
 
 .group:hover {
@@ -452,11 +459,16 @@ button:hover {
     row-gap: 1rem;
 }
 
+.top-grid .title {
+    grid-column: 1 / 6;
+}
+
 .top-grid button {
     background-color: rgb(26, 156, 179);
     border-radius: 5px;
     grid-row: 2;
     width: 8rem;
+    margin-left: 2rem;
 }
 
 .add-members-page {
@@ -494,6 +506,57 @@ button:hover {
     align-self: center;
     width: 50vw;
     margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.boxed button {
+    margin: 0.2rem 1rem;
+    border-radius: 5px;
+    background-color: darkcyan;
+    color: white;
+}
+
+.admins, .collaborators {
+    text-align: center;
+    font-size: larger;
+    border: 1px solid black;
+    padding: 1rem;
+}
+
+.create-book button {
+    margin-top: 1rem;
+}
+
+.create-book-button {
+    background-color: orange;
+    border-radius: 5px;
+    padding: 0.2rem 5rem;
+    margin-left: 1rem;
+}
+
+.books {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: 1rem 0 0 1rem;
+}
+
+.book {
+    width: 300px;
+    height: 400px;
+    font-family: "Comic Sans MS", sans-serif;
+    cursor: pointer;
+}
+
+.cover {
+    background: linear-gradient(90deg, #ffeb3b, #ff9800);
+    border: 4px solid black;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 footer {

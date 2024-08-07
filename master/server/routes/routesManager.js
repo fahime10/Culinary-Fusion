@@ -7,6 +7,7 @@ const user_controller = require('../controllers/userController');
 const star_controller = require('../controllers/starController');
 const group_controller = require('../controllers/groupController');
 const join_request_controller = require('../controllers/joinRequestController');
+const book_controller = require('../controllers/bookController');
 
 router.get('/', index_controller.index);
 
@@ -71,5 +72,9 @@ router.post('/groups/demote/:id', group_controller.demote_user);
 router.delete('/groups/remove/:id', group_controller.remove_user);
 
 router.post('/groups/search/:group_name', group_controller.search_group);
+
+router.post('/books/:id', book_controller.get_all_books);
+
+router.post('/books/create/:id', book_controller.create_book);
 
 module.exports = router;

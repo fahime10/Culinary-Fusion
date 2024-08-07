@@ -272,7 +272,7 @@ const EditGroup = () => {
                             <p>Admins of this group:</p>
                             {admins.length > 0 ?
                                 admins.map((admin) => (
-                                    <div key={admin} id={admin}>
+                                    <div key={admin} id={admin} className="admins">
                                         <p>{admin}</p>
                                         <button type="button" onClick={() => demote(admin)}>Demote</button>
                                         <button type="button" onClick={() => removeMember(admin)}>Remove</button>
@@ -284,7 +284,7 @@ const EditGroup = () => {
                             <p>Collaborators of this group:</p>
                             {collaborators.length > 0 ?
                                 collaborators.map((collaborator) => (
-                                    <div key={collaborator} id={collaborator}>
+                                    <div key={collaborator} id={collaborator} className="collaborators">
                                         <p>{collaborator}</p>
                                         <button type="button" onClick={() => promote(collaborator)}>Promote</button>
                                         <button type="button" onClick={() => removeMember(collaborator)}>Remove</button>

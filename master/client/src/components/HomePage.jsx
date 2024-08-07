@@ -175,7 +175,6 @@ const HomePage = () => {
             setLimitPage(false);
         }
 
-        console.log(pageRecipes);
         setRecipes(pageRecipes);
         await fetchRecipeDetails(pageRecipes.map(recipe => recipe._id));
         setLoading(false);

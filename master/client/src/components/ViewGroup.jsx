@@ -12,7 +12,7 @@ const ViewGroup = () => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isCollaborator, setIsCollaborator] = useState(false);
     const [dialog, setDialog] = useState(false);
-    // const [books, setBooks] = useState([""]);
+    const [books, setBooks] = useState([""]);
 
     const navigate = useNavigate();
 
@@ -43,14 +43,29 @@ const ViewGroup = () => {
 
                         if (res.is_main_admin) {
                             setIsMainAdmin(true);
-                        }
-
-                        if (res.is_admin) {
+                        } else if (res.is_admin) {
                             setIsAdmin(true);
+                        } else if (res.is_collaborator) {
+                            setIsCollaborator(true);
                         }
 
-                        if (res.is_collaborator) {
-                            setIsCollaborator(true);
+                        const user = {
+                            user_id: userDetails.id
+                        };
+
+                        const booksResponse = await fetch(`http://localhost:9000/api/books/${id}`, {
+                            method: "POST",
+                            headers: {
+                                Accept: "application/json",
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(user)
+                        });
+
+                        if (booksResponse.ok) {
+                            const booksRes = await booksResponse.json();
+
+                            setBooks(booksRes);
                         }
                     }
                 }
@@ -90,6 +105,10 @@ const ViewGroup = () => {
 
     function toggleDialog() {
         setDialog(!dialog);
+    }
+
+    function redirectToCreateBook(group_id) {
+        navigate(`/books/create/${group_id}`);
     }
 
     async function deleteGroup(id) {
@@ -134,6 +153,22 @@ const ViewGroup = () => {
                         funct={() => deleteGroup(id)}
                     >
                     </Dialog>
+                </div>
+                <div className="group-options">
+                    {isMainAdmin || isAdmin ? 
+                        <button type="button" className="create-book-button" onClick={() => redirectToCreateBook(id)}>Create a new book</button>
+                    : null}
+                </div>
+                <div className="books">
+                    {books.length > 0 ? books.map((book) => (
+                        <div key={book.id} id={book.id} className="book">
+                            <div className="cover">    
+                                <h3>{book.book_title}</h3>
+                                <p>{book.book_description}</p>
+                            </div>
+                        </div>
+                    ))
+                    : null}
                 </div>
             </div>
             <Footer />
