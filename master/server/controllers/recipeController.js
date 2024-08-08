@@ -83,7 +83,6 @@ const recommendedRecipes = async (recipes, user) => {
     let randomPositiveRecipes = [];
     let result = [];
     
-    console.log(filterRecipes.length);
     if (filterRecipes.length === 0 && filterPositiveRecipes.length === 0) {
         randomRecipes = randomizeRecipes(recipes, 20);
         result.push(...randomRecipes);
@@ -270,7 +269,6 @@ exports.recipe_get_all_recipes_signed_in = asyncHandler(async (req, res, next) =
 
         const recommended = await recommendedRecipes(recipesWithUser, user);
 
-        console.log(recommended)
         const recipeObjects = await convertToObjects(recommended);
 
         const result = recipeObjects.map(recipe => ({

@@ -3,6 +3,23 @@ const Recipe = require('../models/recipeModel');
 const Group = require('../models/groupModel');
 const User = require('../models/userModel');
 const asyncHandler = require('express-async-handler');
+const multer = require('multer');
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+exports.upload = upload.single('image');
+
+const convertToObjects = (collection) => {
+    const objects = collection.map(item => {
+        if (item.image && Buffer.isBuffer(item.image)) {
+            item.image = item.image.toString('base64');
+        }
+        return item;
+    });
+
+    return objects;
+}
 
 exports.get_all_books = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -96,20 +113,26 @@ exports.get_book = asyncHandler(async (req, res, next) => {
 
         const recipes = await Promise.all(
             recipeIds.map(async (recipeId) => {
-                return await Recipe.findOne({ _id: recipeId }).lean();
+                return await Recipe.findOne({ _id: recipeId }).populate('user_id', 'username').lean();
             })
         );
 
+        const recipeObjects = await convertToObjects(recipes);
+
+        const result = recipeObjects.map(recipe => ({
+            ...recipe,
+            chef_username: recipe.user_id.username
+        }));
+
         res.status(200).json({
             book: book,
-            recipes: recipes,
+            recipes: result,
             is_main_admin: isMainAdmin, 
             is_admin: isAdmin, 
             is_collaborator: isCollaborator 
         });
 
     } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });
@@ -172,6 +195,97 @@ exports.delete_book = asyncHandler(async (req, res, next) => {
         await Book.findByIdAndDelete(id);
 
         res.status(200).json({ message: 'Book deleted successfully' });
+
+    } catch (error) {
+        res.status(400).json({ error: error });
+    }
+});
+
+exports.add_recipe = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const { 
+        title, chef, username, description, quantities, ingredients, 
+        steps, diet, categories, cuisine_types, allergens, test 
+    } = req.body;
+
+    try {
+        const book = await Book.findOne({ _id: id });
+
+        const group_id = book.group_id;
+
+        const foundGroup = await Group.findOne({ _id: group_id });
+
+        if (!foundGroup) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const user = await User.findOne({ username: username }).lean();
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        let image = null;
+        if (req.file && req.file.buffer) {
+            image = req.file.buffer;
+        }
+
+        const user_id = user._id;
+
+        let newIngredients = JSON.parse(ingredients);
+
+        let newDiet = [];
+        if (diet) {
+            newDiet = JSON.parse(diet);
+        }
+
+        let newCategories = [];
+        if (categories) {
+            newCategories = JSON.parse(categories);
+        }
+
+        let newCuisineTypes = [];
+        if (cuisine_types) {
+            newCuisineTypes = JSON.parse(cuisine_types);
+        }
+
+        let newAllergens = [];
+        if (allergens) {
+            newAllergens = JSON.parse(allergens);
+        }
+
+        const newRecipe = new Recipe({
+            user_id,
+            title,
+            image,
+            chef,
+            private: true,
+            description,
+            quantities: JSON.parse(quantities),
+            ingredients: newIngredients,
+            steps: JSON.parse(steps),
+            diet: newDiet,
+            categories: newCategories,
+            cuisine_types: newCuisineTypes,
+            allergens: newAllergens,
+            timestamp: new Date(),
+            test
+        });
+
+        const saveRecipe = await newRecipe.save();
+
+        const recipeObj = saveRecipe.toObject();
+        if (recipeObj.image) {
+            recipeObj.image = recipeObj.image.toString('base64');
+        }
+
+        await Book.findByIdAndUpdate(
+            id,
+            { $push: { recipes_id: saveRecipe._id }},
+            { new: true }        
+        );
+
+        res.status(200).json(recipeObj);
 
     } catch (error) {
         res.status(400).json({ error: error });

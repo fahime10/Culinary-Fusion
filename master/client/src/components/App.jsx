@@ -18,6 +18,7 @@ import AddMembers from "./AddMembers";
 import CreateBook from "./CreateBook";
 import ViewBook from "./ViewBook";
 import EditBook from "./EditBook";
+import IncludeRecipe from "./IncludeRecipe";
 
 function App() {
   const [response, setResponse] = useState("");
@@ -53,6 +54,7 @@ function App() {
           <Route path="/books/create/:id" element={<CreateBook />} />
           <Route path="/books/view/:id" element={<ViewBook />} />
           <Route path="/books/edit/:id" element={<EditBook />} />
+          <Route path="/books/include/:id" element={<IncludeRecipe />} />
         </Routes>
       </BrowserRouter>
     </>
