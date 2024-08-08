@@ -77,4 +77,10 @@ router.post('/books/:id', book_controller.get_all_books);
 
 router.post('/books/create/:id', book_controller.create_book);
 
+router.post('/books/view/:id', book_controller.get_book);
+
+router.post('/books/edit/:id', book_controller.edit_book);
+
+router.delete('/books/delete/:id', book_controller.delete_book);
+
 module.exports = router;

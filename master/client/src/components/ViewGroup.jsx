@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import  Dialog from "./Dialog";
+import Dialog from "./Dialog";
 import Footer from "./Footer";
 
 const ViewGroup = () => {
@@ -125,6 +125,10 @@ const ViewGroup = () => {
         }
     }
 
+    function viewBook(id) {
+        navigate(`/books/view/${id}`);
+    }
+
     return (
         <>
             <div className="group-page">
@@ -161,7 +165,7 @@ const ViewGroup = () => {
                 </div>
                 <div className="books">
                     {books.length > 0 ? books.map((book) => (
-                        <div key={book.id} id={book.id} className="book">
+                        <div key={book._id} id={book._id} className="book" onClick={() => viewBook(book._id)}>
                             <div className="cover">    
                                 <h3>{book.book_title}</h3>
                                 <p>{book.book_description}</p>

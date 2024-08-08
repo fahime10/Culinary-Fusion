@@ -559,6 +559,35 @@ button:hover {
     text-align: center;
 }
 
+.top-bar-book {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 2fr 1fr 1fr;
+    background-color: orange;
+    padding-bottom: 0.2rem;
+}
+
+.top-bar-book .title {
+    grid-column: 2 / 5;
+    text-align: center;
+}
+
+.top-bar-book .description {
+    grid-row: 2;
+    grid-column: 2 / 5;
+    text-align: center;
+}
+
+.top-bar-book .first {
+    grid-row: 3;
+    grid-column: 2;
+}
+
+.top-bar-book .second {
+    grid-row: 3;
+    grid-column: 4;
+}
+
 footer {
     text-align: center;
     background-color: green;

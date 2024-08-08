@@ -16,6 +16,8 @@ import ViewGroup from "./ViewGroup";
 import EditGroup from "./EditGroup";
 import AddMembers from "./AddMembers";
 import CreateBook from "./CreateBook";
+import ViewBook from "./ViewBook";
+import EditBook from "./EditBook";
 
 function App() {
   const [response, setResponse] = useState("");
@@ -49,6 +51,8 @@ function App() {
           <Route path="/groups/edit/:id" element={<EditGroup />} />
           <Route path="/groups/add-members/:id" element={<AddMembers />} />
           <Route path="/books/create/:id" element={<CreateBook />} />
+          <Route path="/books/view/:id" element={<ViewBook />} />
+          <Route path="/books/edit/:id" element={<EditBook />} />
         </Routes>
       </BrowserRouter>
     </>
