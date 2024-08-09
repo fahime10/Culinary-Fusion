@@ -75,6 +75,28 @@ export async function clearUserRecipes() {
     }
 }
 
+export async function clearBookRecipes() {
+    try {
+        const db = await dbPromise;
+        const t = db.transaction("recipes", "readwrite");
+        const store = t.objectStore("recipes");
+
+        const keys = await store.getAllKeys();
+
+        for (const key of keys) {
+            if (key.startsWith("book_recipes")) {
+                await store.delete(key);
+            }
+        }
+
+        await t.done;
+        
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
 export function deleteDatabase() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.deleteDatabase("local_db");

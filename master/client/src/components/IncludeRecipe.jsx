@@ -267,7 +267,7 @@ const IncludeRecipe = () => {
 
                 await setRecipe("book_recipes", ...bookRecipesArray);
                 
-                navigate(`/books/view/${id}`);
+                navigate(-1);
             } catch (error) {
                 console.log(error);
             }

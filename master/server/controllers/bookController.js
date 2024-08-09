@@ -192,6 +192,14 @@ exports.delete_book = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
 
     try {
+        const book = await Book.findOne({ _id: id });
+        
+        const recipeIds = book.recipes_id;
+        
+        for (let recipeId of recipeIds) {
+            await Recipe.findByIdAndDelete({ _id: recipeId });
+        }
+
         await Book.findByIdAndDelete(id);
 
         res.status(200).json({ message: 'Book deleted successfully' });

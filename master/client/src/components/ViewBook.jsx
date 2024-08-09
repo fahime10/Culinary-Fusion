@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import NoImageIcon from "../assets/no-image.png";
 import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
-import { getRecipe, setRecipe, clearRecipes, clearUserRecipes } from "../indexedDb";
+import { getRecipe, setRecipe, clearBookRecipes } from "../indexedDb";
 import Dialog from "./Dialog";
 import Footer from "./Footer";
 
@@ -31,11 +31,20 @@ const ViewBook = () => {
     const [allergens, setAllergens] = useState([""]);
     const [timestamp, setTimestamp] = useState(null);
 
+    const [limitPage, setLimitPage] = useState();
+    const [currentPage, setCurrentPage] = useState();
+
     const navigate = useNavigate();
 
     useEffect(() => {
+        async function removeBookCache() {
+            await clearBookRecipes();
+        }
+
+        removeBookCache();
         const userDetails = retrieveUserDetails();
         sessionStorage.setItem("bookPage", 1);
+        setCurrentPage(1);
 
         async function fetchBook() {
             if (userDetails) {
@@ -131,12 +140,22 @@ const ViewBook = () => {
                                 is_admin: res.is_admin, 
                                 is_collaborator: res.is_collaborator
                             });
+
+                        sessionStorage.setItem("bookLimit", newRecipes.length);
                         return newRecipes;
                     }
                 } else {
                     const cachedData = await getRecipe("book_recipes");
                     setBookTitle(cachedData.book_title);
                     setBookDescription(cachedData.book_description);
+
+                    if (cachedData.is_main_admin) {
+                        setIsMainAdmin(true);
+                    } else if (cachedData.is_admin) {
+                        setIsAdmin(true);
+                    } else if (cachedData.is_collaborator) {
+                        setIsCollaborator(true);
+                    }
                 }
             } catch (error) {
                 console.log(error);
@@ -149,7 +168,10 @@ const ViewBook = () => {
         let allRecipes = cachedRecipes || [];
 
         if (allRecipes.length > 0) {
-            const currentIndex = (pageCount - 1) % allRecipes.length;
+            const currentIndex = (pageCount - 1);
+            console.log(currentIndex);
+            console.log(allRecipes);
+            console.log(allRecipes[currentIndex]);
 
             setRecipeState(allRecipes[currentIndex]);
         }
@@ -157,7 +179,7 @@ const ViewBook = () => {
         const fetchedRecipes = await fetchAndCacheRecipes();
         if (fetchedRecipes && fetchedRecipes.length > 0) {
             allRecipes = [...allRecipes, ...fetchedRecipes];
-            const currentIndex = (pageCount - 1) % allRecipes.length;
+            const currentIndex = (pageCount - 1);
             
             setRecipeState(allRecipes[currentIndex])
         }
@@ -211,31 +233,53 @@ const ViewBook = () => {
     }
 
     async function changeToPrevious() {
-        let pageCount = sessionStorage.getItem("pageCount");
-        pageCount = parseInt(pageCount);
-        pageCount -= 1;
+        let bookPage = sessionStorage.getItem("bookPage");
+        bookPage = parseInt(bookPage);
 
-        if (pageCount < 1) {
-            pageCount = 1;
-            sessionStorage.setItem("pageCount", 1);
-        } else {
-            sessionStorage.setItem("pageCount", pageCount);
+        if (bookPage > 1) {
+            bookPage -= 1;
+            sessionStorage.setItem("bookPage", bookPage);
+            setLimitPage(false);
+            setCurrentPage(bookPage);
         }
 
-        await handleRecipes(pageCount);
+        await handleRecipes(bookPage);
     }
 
     async function changeToNext() {
-        let pageCount = sessionStorage.getItem("pageCount");
-        if (pageCount === null) {
-            pageCount = 1;
+        let bookPage = sessionStorage.getItem("bookPage");
+
+        if (parseInt(sessionStorage.getItem("bookLimit")) === parseInt(sessionStorage.getItem("bookPage"))) {
+            setLimitPage(true);
         } else {
-            pageCount = parseInt(pageCount);
-            pageCount += 1;
+            if (bookPage === null) {
+                bookPage = 1;
+            } else {
+                bookPage = parseInt(bookPage);
+                bookPage += 1;
+            }
+            setLimitPage(false);
+            setCurrentPage(bookPage);
+
+            sessionStorage.setItem("bookPage", bookPage);
+            await handleRecipes(bookPage);
         }
-        
-        sessionStorage.setItem("pageCount", pageCount);
-        await handleRecipes(pageCount);
+    }
+
+    async function handlePageChange(e) {
+        const page = e.target.value;
+        const bookPage = parseInt(page);
+        const bookLimit = parseInt(sessionStorage.getItem("bookLimit"));
+
+        if (isNaN(bookPage)) {
+            setCurrentPage("");
+        }
+
+        if (bookPage >= 1 && bookPage <= bookLimit) {
+            setCurrentPage(bookPage);
+            sessionStorage.setItem("bookPage", bookPage);
+            await handleRecipes(bookPage);
+        } 
     }
 
     return (
@@ -249,6 +293,8 @@ const ViewBook = () => {
                 {isMainAdmin || isAdmin ? 
                     <button type="button" className="second" onClick={toggleDialog}>Delete book</button>
                 : null}
+                <button type="button" className="third" onClick={() => navigate(-1)}>Back</button>
+                <button type="button" className="fourth" onClick={() => navigate("/")}>Home</button>
                 <Dialog
                     isOpen={dialog}
                     onClose={toggleDialog}
@@ -262,7 +308,7 @@ const ViewBook = () => {
             : null}
             <div className="book-recipe">
                 <button type="button" className="previous" onClick={changeToPrevious}></button>
-                <button type="button" className="next" onClick={changeToNext}></button>
+                <button type="button" className="next" disabled={limitPage} onClick={changeToNext}></button>
                 <h1>{title}</h1>
                 {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
                 <div className="info">
@@ -321,7 +367,13 @@ const ViewBook = () => {
                 </div>
             </div>
             <div className="bookpage">
-                <p>Current page: {sessionStorage.getItem("bookPage")}</p>
+                <label htmlFor="current-page">Current page:</label>
+                <input
+                    type="number"
+                    id="current-page"
+                    value={currentPage}
+                    onChange={handlePageChange}
+                />
             </div>
             <Footer />
         </>
