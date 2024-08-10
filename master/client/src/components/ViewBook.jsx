@@ -16,7 +16,8 @@ const ViewBook = () => {
     const [isCollaborator, setIsCollaborator] = useState(false);
     const [bookTitle, setBookTitle] = useState("");
     const [bookDescription, setBookDescription] = useState("");
-    const [dialog, setDialog] = useState(false);
+    const [bookDialog, setBookDialog] = useState(false);
+    const [recipeDialog, setRecipeDialog] = useState(false);
 
     const [title, setTitle] = useState("");
     const [imageUrl, setImageUrl] = useState(null);
@@ -135,8 +136,10 @@ const ViewBook = () => {
                         const updatedRecipes = [...cachedRecipes, ...newRecipes];
 
                         await setRecipe("book_recipes", 
-                            { ...updatedRecipes, timestamp: now, book_title: res.book.book_title, 
-                                book_description: res.book.book_description, is_main_admin: res.is_main_admin,
+                            { ...updatedRecipes, timestamp: now, 
+                                book_title: res.book.book_title, 
+                                book_description: res.book.book_description, 
+                                is_main_admin: res.is_main_admin,
                                 is_admin: res.is_admin, 
                                 is_collaborator: res.is_collaborator
                             });
@@ -169,9 +172,6 @@ const ViewBook = () => {
 
         if (allRecipes.length > 0) {
             const currentIndex = (pageCount - 1);
-            console.log(currentIndex);
-            console.log(allRecipes);
-            console.log(allRecipes[currentIndex]);
 
             setRecipeState(allRecipes[currentIndex]);
         }
@@ -200,8 +200,8 @@ const ViewBook = () => {
         navigate(`/books/edit/${id}`);
     }
 
-    function toggleDialog() {
-        setDialog(!dialog);
+    function toggleBookDialog() {
+        setBookDialog(!bookDialog);
     }
 
     async function deleteBook(id) {
@@ -282,6 +282,85 @@ const ViewBook = () => {
         } 
     }
 
+    function toggleRecipeDialog() {
+        setRecipeDialog(!recipeDialog);
+    }
+
+    async function redirectToEditBookRecipe() {
+        let bookPage = sessionStorage.getItem("bookPage");
+        bookPage = parseInt(bookPage);
+
+        const cachedRecipes = await getCachedRecipes("book_recipes");
+        let allRecipes = cachedRecipes || [];
+
+        if (allRecipes.length > 0) {
+            const currentIndex = (bookPage - 1);
+
+            const recipe_id = allRecipes[currentIndex]._id;
+
+            navigate(`/books/recipes/edit/${id}/${recipe_id}`)
+        }
+    }
+
+    async function deleteCurrentRecipe() {
+        let bookPage = sessionStorage.getItem("bookPage");
+        bookPage = parseInt(bookPage);
+
+        const cachedRecipes = await getCachedRecipes("book_recipes");
+        let allRecipes = cachedRecipes || [];
+
+        if (allRecipes.length > 0) {
+            const currentIndex = (bookPage - 1);
+
+            const recipe_id = allRecipes[currentIndex]._id;
+
+            const data = {
+                book_id: id
+            };
+
+            try {
+                const response = await fetch(`http://localhost:9000/api/books/delete/recipe/${recipe_id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+    
+                if (response.ok) {
+                    const recipes = Object.keys(cachedRecipes)
+                        .filter(key => !isNaN(key))
+                        .map(key => cachedRecipes[key]);
+
+                    const updatedRecipes = recipes.filter(recipe => recipe._id !== recipe_id);
+
+                    await setRecipe("book_recipes", {
+                        ...updatedRecipes
+                    });
+
+                    toggleRecipeDialog();
+                    
+                    let limit = sessionStorage.getItem("bookLimit");
+                    limit = parseInt(limit) - 1;
+                    sessionStorage.setItem("bookLimit", limit);
+
+                    if (bookPage > 1) {
+                        setCurrentPage(bookPage - 1);
+                        sessionStorage.setItem("bookPage", bookPage - 1);
+                        await handleRecipes(bookPage - 1);
+                    } else {
+                        setCurrentPage(bookPage);
+                        sessionStorage.setItem("bookPage", bookPage);
+                        await handleRecipes(bookPage);
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+
     return (
         <>
             <div className="top-bar-book">
@@ -291,13 +370,13 @@ const ViewBook = () => {
                     <button type="button" className="first" onClick={() => redirectToEditBook(id)}>Edit book details</button>
                 : null}
                 {isMainAdmin || isAdmin ? 
-                    <button type="button" className="second" onClick={toggleDialog}>Delete book</button>
+                    <button type="button" className="second" onClick={toggleBookDialog}>Delete book</button>
                 : null}
                 <button type="button" className="third" onClick={() => navigate(-1)}>Back</button>
                 <button type="button" className="fourth" onClick={() => navigate("/")}>Home</button>
                 <Dialog
-                    isOpen={dialog}
-                    onClose={toggleDialog}
+                    isOpen={bookDialog}
+                    onClose={toggleBookDialog}
                     title="Attention"
                     content="Are you sure you want to delete the book? You will lose all the recipes in it"
                     funct={() => deleteBook(id)}
@@ -306,11 +385,24 @@ const ViewBook = () => {
             {isMainAdmin || isAdmin || isCollaborator ? 
                 <button type="button" className="third" onClick={() => redirectToIndludeRecipe(id)}>Add a recipe</button>
             : null}
+            {isMainAdmin || isAdmin || isCollaborator ?
+                    <button type="button" onClick={redirectToEditBookRecipe}>Edit this recipe</button>
+                : null}
+            {isMainAdmin || isAdmin ?
+                <button type="button" onClick={toggleRecipeDialog}>Delete this recipe</button>
+            : null}
+            <Dialog
+                isOpen={recipeDialog}
+                onClose={toggleRecipeDialog}
+                title="Attention"
+                content="Are you sure you want to delete this recipe"
+                funct={deleteCurrentRecipe}
+            ></Dialog>
             <div className="book-recipe">
                 <button type="button" className="previous" onClick={changeToPrevious}></button>
                 <button type="button" className="next" disabled={limitPage} onClick={changeToNext}></button>
                 <h1>{title}</h1>
-                {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
+                {imageUrl ? (imageUrl && <img src={imageUrl} />) : <img src={NoImageIcon} />}
                 <div className="info">
                     <p>Description: {description}</p>
                     <p>Chef/s: {chef}</p>

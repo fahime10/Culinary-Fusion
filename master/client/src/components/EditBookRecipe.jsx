@@ -5,13 +5,13 @@ import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe } from "../indexedDb";
 import Footer from "./Footer";
 
-const EditRecipe = () => {
+const EditBookRecipe = () => {
     const { id } = useParams();
+    const { recipe_id } = useParams();
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
     const [chef, setChef] = useState("");
-    const [checked, setChecked] = useState(false);
     const [description, setDescription] = useState("");
     const [quantities, setQuantities] = useState([""]);
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
@@ -106,7 +106,7 @@ const EditRecipe = () => {
     useEffect(() => {
         async function fetchRecipe() {
             const token = sessionStorage.getItem("token");
-            const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
+            const key = token && token !== "undefined" ? "book_recipes" : "";
 
             const cachedData = await getRecipe(key);
 
@@ -115,12 +115,11 @@ const EditRecipe = () => {
                     .filter(key => !isNaN(key))
                     .map(key => cachedData[key]);
 
-                const recipe = recipes.find(recipe => recipe._id === id);
+                const recipe = recipes.find(recipe => recipe._id === recipe_id);
 
                 if (recipe) {
                     setTitle(recipe.title);
                     setChef(recipe.chef);
-                    setChecked(recipe.private);
                     setDescription(recipe.description);
                     setQuantities(recipe.quantities);
                     setIngredients(recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
@@ -173,7 +172,7 @@ const EditRecipe = () => {
                     username: userDetails.username
                 };
         
-                fetch(`http://localhost:9000/api/recipes/recipe/${id}`, {
+                fetch(`http://localhost:9000/api/recipes/recipe/${recipe_id}`, {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
@@ -185,16 +184,15 @@ const EditRecipe = () => {
                 .then((res) => {
                     setTitle(res.recipe.title);
                     setChef(res.recipe.chef);
-                    setChecked(res.recipe.private);
                     setDescription(res.recipe.description);
                     setQuantities(res.recipe.quantities);
                     setIngredients(res.recipe.ingredients.map(ingredient => ({ id: uuidv4(), value: ingredient })));
                     setSteps(res.recipe.steps.map(step => ({ id: uuidv4(), value: step})));
                     
                     const dietCheckedBoxes = { ...diet };
-                    res.recipe.diet.forEach(diet => {
-                        if (Object.prototype.hasOwnProperty.call(dietCheckedBoxes, diet)) {
-                            dietCheckedBoxes[diet] = true;
+                    res.recipe.diet.forEach(type_of_diet => {
+                        if (Object.prototype.hasOwnProperty.call(dietCheckedBoxes, type_of_diet)) {
+                            dietCheckedBoxes[type_of_diet] = true;
                         }
                     });
                     setDiet(dietCheckedBoxes);
@@ -268,10 +266,6 @@ const EditRecipe = () => {
 
     function handleChef(e) {
         setChef(e.target.value);
-    }
-
-    function handleChecked(e) {
-        setChecked(e.target.checked);
     }
 
     function handleDescription(e) {
@@ -374,8 +368,7 @@ const EditRecipe = () => {
             data.append("image", image);
             data.append("chef", chef);
             data.append("description", description);
-            data.append("username", userDetails.username);
-            data.append("isPrivate", checked);
+            data.append("user_id", userDetails.id);
             data.append("quantities", JSON.stringify(quantities));
             data.append("ingredients", JSON.stringify(ingredients.map(ingredient => ingredient.value)));
             data.append("steps", JSON.stringify(steps.map(step => step.value)));
@@ -386,23 +379,20 @@ const EditRecipe = () => {
 
 
             try {
-                const response = await fetch(`http://localhost:9000/api/recipes/edit-recipe/${id}`, {
+                const response = await fetch(`http://localhost:9000/api/books/recipes/edit/${id}/${recipe_id}`, {
                     method: "POST",
                     body: data
                 });
 
                 if (response.ok) {
                     const res = await response.json();
-                    
-                    const token = sessionStorage.getItem("token");
-                    const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
 
-                    const cachedData = await getRecipe(key);
+                    const cachedBookData = await getRecipe("book_recipes");
                     
-                    if (cachedData) {
-                        const recipes = Object.keys(cachedData)
+                    if (cachedBookData) {
+                        const recipes = Object.keys(cachedBookData)
                             .filter(key => !isNaN(key))
-                            .map(key => cachedData[key]);
+                            .map(key => cachedBookData[key]);
 
                         const recipeIndex = recipes.findIndex(recipe => recipe._id === id);
 
@@ -412,9 +402,9 @@ const EditRecipe = () => {
                             recipes.push(res);
                         }
 
-                        await setRecipe(key, recipes);
+                        await setRecipe("book_recipes", recipes);
 
-                        navigate(`/recipe/${id}`);
+                        navigate(-1);
                     }
                 }
             } catch (error) {
@@ -424,7 +414,7 @@ const EditRecipe = () => {
     }
 
     function redirectToViewRecipe() {
-        navigate(`/recipe/${id}`);
+        navigate(-1);
     }
 
     return (
@@ -459,13 +449,6 @@ const EditRecipe = () => {
                             value={chef}
                             required={true}
                             onChange={handleChef}
-                        />
-                    </label>
-                    <label>Private recipe: 
-                        <input 
-                            type="checkbox"
-                            checked={checked}
-                            onChange={handleChecked}
                         />
                     </label>
                     <label htmlFor="description">Description:</label>
@@ -590,6 +573,6 @@ const EditRecipe = () => {
             <Footer />
         </>
     );
-}
+};
 
-export default EditRecipe;
+export default EditBookRecipe;

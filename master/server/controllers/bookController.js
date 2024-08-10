@@ -299,3 +299,124 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
         res.status(400).json({ error: error });
     }
 });
+
+exports.delete_recipe = asyncHandler(async (req, res, next) => {
+    const { recipe_id } = req.params;
+
+    const { book_id } = req.body;
+
+    try {
+        await Recipe.findByIdAndDelete(recipe_id);
+
+        await Book.findByIdAndUpdate(
+            book_id,
+            { $pull: { recipes_id: recipe_id }},
+            { new: true }
+        );
+
+        res.status(200).json({ message: 'Successfully deleted the recipe from the book' });
+        
+    } catch (error) {
+        res.status(400).json({ error: error });
+    }
+});
+
+exports.edit_recipe = asyncHandler(async (req, res, next) => {
+    const { id, recipe_id } = req.params;
+
+    const { 
+        title, chef, description, user_id, quantities, ingredients, 
+        steps, diet, categories, cuisine_types, allergens, test 
+    } = req.body;
+
+    try {
+        const user = await User.findOne({ _id: user_id });
+
+        if (!user) {
+            console.log("user")
+            res.status(404).json({ error: 'User not found' });
+        }
+
+        const book = await Book.findOne({ _id: id });
+
+        const group_id = book.group_id;
+
+        const foundGroup = await Group.findOne({ _id: group_id });
+
+        if (!foundGroup) {
+            console.log("group")
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        let isMainAdmin = false;
+        let isAdmin = false;
+        let isCollaborator = false;
+
+        if (foundGroup.user_id._id.toString() === user._id.toString()) {
+            isMainAdmin = true;
+        } else if (foundGroup.admins && foundGroup.admins.includes(user.username)) {
+            isAdmin = true;
+        } else if (foundGroup.collaborators && foundGroup.collaborators.includes(user.username)) {
+            isCollaborator = true;
+        }
+
+        if (isMainAdmin || isAdmin || isCollaborator) {
+            let image = null;
+            if (req.file && req.file.buffer) {
+                image = req.file.buffer;
+            }
+
+            let newDiet = [];
+            if (diet) {
+                newDiet = JSON.parse(diet);
+            }
+
+            let newCategories = [];
+            if (categories) {
+                newCategories = JSON.parse(categories);
+            }
+
+            let newCuisineTypes = [];
+            if (cuisine_types) {
+                newCuisineTypes = JSON.parse(cuisine_types);
+            }
+
+            let newAllergens = [];
+            if (allergens) {
+                newAllergens = JSON.parse(allergens);
+            }
+
+            const updatedData = {
+                title,
+                chef,
+                description,
+                quantities: JSON.parse(quantities),
+                ingredients: JSON.parse(ingredients),
+                steps: JSON.parse(steps),
+                diet: newDiet,
+                categories: newCategories,
+                cuisine_types: newCuisineTypes,
+                allergens: newAllergens
+            };
+
+            if (image) {
+                updatedData.image = image;
+            }
+
+            const editedRecipe = await Recipe.findByIdAndUpdate(recipe_id, updatedData, { new: true }).lean();
+
+            if (editedRecipe.image && Buffer.isBuffer(editedRecipe.image)) {
+                editedRecipe.image = editedRecipe.image.toString('base64');
+            }
+
+            if (!editedRecipe) {
+                return res.status(404).json({ err: 'Something went wrong' });
+            }
+
+            res.status(200).json(editedRecipe);
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
+    }
+});

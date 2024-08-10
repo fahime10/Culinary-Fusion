@@ -78,20 +78,20 @@ const ViewRecipe = () => {
             setLoading(true);
             
             try {
-                const cachedData = await getRecipe(key);
+                // const cachedData = await getRecipe(key);
 
-                if (cachedData && cachedData.timestamp) {
-                    const recipes = Object.keys(cachedData)
-                        .filter(key => !isNaN(key))
-                        .map(key => cachedData[key]);
+                // if (cachedData && cachedData.timestamp) {
+                //     const recipes = Object.keys(cachedData)
+                //         .filter(key => !isNaN(key))
+                //         .map(key => cachedData[key]);
 
-                    const recipe = recipes.find(recipe => recipe._id === id);
+                //     const recipe = recipes.find(recipe => recipe._id === id);
 
-                    if (recipe) {
-                        setRecipeState(recipe, recipe.chef_username);
-                        return;
-                    }
-                }
+                //     if (recipe) {
+                //         setRecipeState(recipe, recipe.chef_username);
+                //         return;
+                //     }
+                // }
 
                 const userDetails = token && token !== "undefined" ? retrieveUserDetails() : null;
                 const data = userDetails ? { username: userDetails.username } : null;
@@ -108,6 +108,7 @@ const ViewRecipe = () => {
                 const res = await response.json();
 
                 setRecipeState(res.recipe, res.chef_username);
+                console.log(res);
 
                 if (res.owner === true) {
                     setIsOwner(true);

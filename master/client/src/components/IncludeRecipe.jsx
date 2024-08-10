@@ -250,24 +250,25 @@ const IncludeRecipe = () => {
                     body: data
                 });
 
-                const res = await response.json();
+                if (response.ok) {
+                    const res = await response.json();
 
-                const cachedBookData = await getRecipe("book_recipes");
+                    const cachedBookData = await getRecipe("book_recipes");
 
-                let bookRecipesArray = [];
+                    let bookRecipesArray = [];
 
-                if (cachedBookData) {
-                    bookRecipesArray = Object.keys(cachedBookData)
-                        .filter(key => !isNaN(key))
-                        .map(key => cachedBookData[key]);
+                    if (cachedBookData) {
+                        bookRecipesArray = Object.keys(cachedBookData)
+                            .filter(key => !isNaN(key))
+                            .map(key => cachedBookData[key]);
+                    }
+
+                    bookRecipesArray.push(res);
+
+                    await setRecipe("book_recipes", ...bookRecipesArray);
                     
+                    navigate(-1);
                 }
-
-                bookRecipesArray.push(res);
-
-                await setRecipe("book_recipes", ...bookRecipesArray);
-                
-                navigate(-1);
             } catch (error) {
                 console.log(error);
             }

@@ -318,7 +318,7 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
         const recipe = await Recipe.findById(id).populate('user_id', 'username').lean();
 
         if (!recipe) {
-            return res.status(404).json({ error: "Recipe not found" });
+            return res.status(404).json({ error: 'Recipe not found' });
         }
 
         if (recipe.image && Buffer.isBuffer(recipe.image)) {
@@ -328,7 +328,7 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username }).lean();
 
         if (user) {
-            if (user._id.toString() === recipe.user_id.toString()) {
+            if (user.username === recipe.user_id.username) {
                 res.status(200).json({ recipe: recipe, owner: true, chef_username: recipe.user_id.username });
             } else {
                 res.status(200).json({ recipe: recipe, owner: false, chef_username: recipe.user_id.username });

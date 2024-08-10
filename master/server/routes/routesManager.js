@@ -85,4 +85,8 @@ router.delete('/books/delete/:id', book_controller.delete_book);
 
 router.post('/books/include/:id', book_controller.upload, book_controller.add_recipe);
 
+router.delete('/books/delete/recipe/:recipe_id', book_controller.delete_recipe);
+
+router.post('/books/recipes/edit/:id/:recipe_id', book_controller.upload, book_controller.edit_recipe);
+
 module.exports = router;
