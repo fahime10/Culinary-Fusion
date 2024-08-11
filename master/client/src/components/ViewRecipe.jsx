@@ -32,6 +32,9 @@ const ViewRecipe = () => {
     const [average, setAverage] = useState(0);
     const [userRating, setUserRating] = useState(0);
 
+    const [comments, setComments] = useState([]);
+    const [text, setText] = useState("");
+
     const navigate = useNavigate();
 
     function setRecipeState(recipe, chefUsername) {
@@ -108,7 +111,6 @@ const ViewRecipe = () => {
                 const res = await response.json();
 
                 setRecipeState(res.recipe, res.chef_username);
-                console.log(res);
 
                 if (res.owner === true) {
                     setIsOwner(true);
@@ -149,6 +151,8 @@ const ViewRecipe = () => {
             }
         })
         .catch(err => console.log(err));
+
+        fetchAllComments();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
@@ -192,6 +196,10 @@ const ViewRecipe = () => {
 
     function toggleDialog() {
         setDialog(!dialog);
+    }
+
+    function handleText(e) {
+        setText(e.target.value);
     }
 
     async function deleteRecipe(id) {
@@ -263,6 +271,68 @@ const ViewRecipe = () => {
                 }
             })
             .catch(err => console.log(err));
+        }
+    }
+
+    function fetchAllComments() {
+        fetch(`http://localhost:9000/api/comments/${id}`, {
+            method: "POST"
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            setComments(res);
+        })
+        .catch(error => console.log(error));
+    }
+
+    function createComment() {
+        const userDetails = retrieveUserDetails();
+
+        if (userDetails) {
+            const data = {
+                user_id: userDetails.id,
+                text: text
+            };
+
+            fetch(`http://localhost:9000/api/comments/create/${id}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                setComments(res);
+                setText("");
+            })
+            .catch(error => console.log(error));
+        }
+    }
+
+    function timeDifference(timestamp) {
+        const now = new Date();
+        const givenDate = new Date(timestamp);
+
+        const timeDiff = now - givenDate;
+
+        const seconds = Math.floor(timeDiff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        const years = Math.floor(days / 365);
+
+        if (years > 0) {
+            return `${years}y ago`;
+        } else if (days > 0) {
+            return `${days}d ago`;
+        } else if (hours > 0) {
+            return `${hours}h ago`;
+        } else if (minutes > 0) {
+            return `${minutes}m ago`;
+        } else {
+            return `${seconds}s ago`;
         }
     }
 
@@ -363,6 +433,31 @@ const ViewRecipe = () => {
                                     <li key={allergen} className="allergen">{allergen}</li>
                                 )) : "No allergens mentioned. Please do check the ingredients" }
                             </ul>
+                        </div>
+                        <div className="comments">
+                            {logged ?
+                                <div className="comment-options">
+                                    <textarea
+                                        rows={2}
+                                        cols={40}
+                                        required={true}
+                                        placeholder="Leave a comment"
+                                        value={text}
+                                        onChange={handleText}
+                                    />
+                                    <button type="button" onClick={createComment}>Send</button>
+                                </div>
+                            : null}
+                            <p>Comment section</p>
+                            {comments.length > 0 ? comments.map(comment => (
+                                <div key={comment._id} id={comment._id} className="comment">
+                                    <div className="flex">
+                                        <p>{comment.user_id.username}</p>
+                                        <div className="time">{timeDifference(comment.timestamp)}</div>
+                                    </div>
+                                    <p>{comment.text}</p>
+                                </div>
+                            )) : null}
                         </div>
                         <Footer />
                     </div>

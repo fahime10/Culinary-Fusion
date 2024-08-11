@@ -8,6 +8,7 @@ const star_controller = require('../controllers/starController');
 const group_controller = require('../controllers/groupController');
 const join_request_controller = require('../controllers/joinRequestController');
 const book_controller = require('../controllers/bookController');
+const comment_controller = require('../controllers/commentController');
 
 router.get('/', index_controller.index);
 
@@ -88,5 +89,11 @@ router.post('/books/include/:id', book_controller.upload, book_controller.add_re
 router.delete('/books/delete/recipe/:recipe_id', book_controller.delete_recipe);
 
 router.post('/books/recipes/edit/:id/:recipe_id', book_controller.upload, book_controller.edit_recipe);
+
+router.post('/comments/:id', comment_controller.get_comments);
+
+router.post('/comments/create/:id', comment_controller.add_comment);
+
+router.delete('/comments/delete/:id', comment_controller.delete_comment);
 
 module.exports = router;
