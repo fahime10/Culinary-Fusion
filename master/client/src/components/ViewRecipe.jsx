@@ -336,6 +336,28 @@ const ViewRecipe = () => {
         }
     }
 
+    function checkOwnComment(user_id) {
+        const userDetails = retrieveUserDetails();
+
+        if (user_id === userDetails.username) {
+            return true;
+        }
+        return false;
+    }
+
+    function deleteComment(id) {
+        fetch(`http://localhost:9000/api/comments/delete/${id}`, {
+            method: "DELETE"
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            if (res.message === "Successfully deleted comment") {
+                fetchAllComments();
+            }
+        })
+        .catch(error => console.log(error));
+    }
+
     return (
         <>
             {loading ? <LoadingSpinner /> : 
@@ -456,6 +478,9 @@ const ViewRecipe = () => {
                                         <div className="time">{timeDifference(comment.timestamp)}</div>
                                     </div>
                                     <p>{comment.text}</p>
+                                    {checkOwnComment(comment.user_id.username) ? 
+                                        <button type="button" onClick={() => deleteComment(comment._id)}>Delete comment</button>
+                                    : null}
                                 </div>
                             )) : null}
                         </div>
