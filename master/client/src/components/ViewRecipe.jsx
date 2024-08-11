@@ -34,6 +34,7 @@ const ViewRecipe = () => {
 
     const [comments, setComments] = useState([]);
     const [text, setText] = useState("");
+    const [limit, setLimit] = useState(false);
 
     const navigate = useNavigate();
 
@@ -280,7 +281,31 @@ const ViewRecipe = () => {
         })
         .then((res) => res.json())
         .then((res) => {
-            setComments(res);
+            setComments(res.allComments);
+            setLimit(res.limit);
+        })
+        .catch(error => console.log(error));
+    }
+
+    function getMoreComments() {
+        const commentIds = comments.map(comment => comment._id);
+
+        const data = {
+            comments: commentIds
+        };
+
+        fetch(`http://localhost:9000/api/comments/${id}`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            setComments(res.allComments);
+            setLimit(res.limit);
         })
         .catch(error => console.log(error));
     }
@@ -339,7 +364,7 @@ const ViewRecipe = () => {
     function checkOwnComment(user_id) {
         const userDetails = retrieveUserDetails();
 
-        if (user_id === userDetails.username) {
+        if (userDetails && user_id === userDetails.username) {
             return true;
         }
         return false;
@@ -483,6 +508,9 @@ const ViewRecipe = () => {
                                     : null}
                                 </div>
                             )) : null}
+                            {!limit ?
+                                <button type="button" onClick={getMoreComments}>Load more comments</button>
+                            : null}
                         </div>
                         <Footer />
                     </div>

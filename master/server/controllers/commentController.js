@@ -6,13 +6,35 @@ const asyncHandler = require('express-async-handler');
 exports.get_comments = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
 
-    try {
-        let allComments = [];
-        allComments = await Comment.find({ recipe_id: id }).populate('user_id', 'username').lean();
+    const { comments } = req.body;
 
-        res.status(200).json(allComments);
+    try {
+        let newComments = await Comment.find({
+            recipe_id: id,
+            _id: { $nin: comments || [] }
+        })
+        .populate('user_id', 'username')
+        .lean()
+        .limit(10);
+
+        let limit = newComments.length < 10;
+
+        let previousComments = [];
+        if (comments && comments.length > 0) {
+            previousComments = await Comment.find({
+                recipe_id: id, 
+                _id: { $in: comments } 
+            })
+            .populate('user_id', 'username')
+            .lean();
+        }
+
+        const allComments = [...previousComments, ...newComments];
+
+        res.status(200).json({ allComments: allComments, limit: limit });
 
     } catch (error) {
+        console.log(error);
         res.status(400).json({ error: error });
     }
 });
