@@ -33,7 +33,8 @@ describe('Testing Group API', () => {
                 last_name: 'Smith',
                 username: 'james1234567wuive',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };
@@ -77,7 +78,8 @@ describe('Testing Group API', () => {
                 last_name: 'Smith',
                 username: 'james1234567wui',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };
@@ -119,7 +121,8 @@ describe('Testing Group API', () => {
                 last_name: 'Smith',
                 username: 'james1234567wui',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };
@@ -174,7 +177,8 @@ describe('Testing Group API', () => {
                 last_name: 'Smith',
                 username: 'james14567wuive',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };
@@ -230,7 +234,8 @@ describe('Testing Group API', () => {
                 last_name: 'Smith',
                 username: 'james1234567we',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };
@@ -284,7 +289,8 @@ describe('Testing Group API', () => {
                 last_name: 'Smith',
                 username: 'james4567we',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };

@@ -9,7 +9,7 @@ const UserProfile = () => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [username, setUsername] = useState("");
-    const [passcode, setPasscode] = useState("");
+    const [email, setEmail] = useState("");
 
     const [dietaryPreferences, setDietaryPreferences] = useState({
         "Vegetarian": false,
@@ -123,6 +123,7 @@ const UserProfile = () => {
                 setFirstName(res.first_name);
                 setLastName(res.last_name);
                 setUsername(res.username);
+                setEmail(res.email);
                 
                 const dietaryPreferencesCheckedBoxes = { ...dietaryPreferences };
                 res.dietary_preferences.forEach(dietaryPreference => {
@@ -208,8 +209,8 @@ const UserProfile = () => {
         setUsername(e.target.value);
     }
 
-    function handlePasscode(e) {
-        setPasscode(e.target.value);
+    function handleEmail(e) {
+        setEmail(e.target.value);
     }
 
     function handleCheckboxChange(group, name) {
@@ -271,7 +272,7 @@ const UserProfile = () => {
                 first_name: firstName,
                 last_name: lastName,
                 username: username,
-                passcode: passcode,
+                email: email,
                 dietary_preferences: selectedDietaryPreferences,
                 preferred_categories: selectedCategories,
                 preferred_cuisine_types: selectedCuisineTypes,
@@ -390,12 +391,13 @@ const UserProfile = () => {
                             disabled={isNotEnabled}
                         />
                     </label>
-                    <label>
-                        If you have forgotten your passcode, you can input a new one here:
+                    <label>Email:
                         <input
-                            type="text"
-                            name="passcode"
-                            onChange={handlePasscode}
+                            type="email"
+                            name="email"
+                            value={email}
+                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                            onChange={handleEmail}
                             disabled={isNotEnabled}
                         />
                     </label>

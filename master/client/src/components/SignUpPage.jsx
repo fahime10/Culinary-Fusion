@@ -8,7 +8,7 @@ const SignUpPage = () => {
     const [lastName, setLastName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [passcode, setPasscode] = useState("");
+    const [email, setEmail] = useState("");
 
     const [error, setError] = useState("");
     const errorRef = useRef(null);
@@ -128,8 +128,8 @@ const SignUpPage = () => {
         setPassword(e.target.value);
     }
 
-    function handlePasscode(e) {
-        setPasscode(e.target.value);
+    function handleEmail(e) {
+        setEmail(e.target.value);
     }
 
     function handleCheckboxChange(group, name) {
@@ -177,7 +177,7 @@ const SignUpPage = () => {
             last_name: lastName,
             username: username,
             password: password,
-            passcode: passcode,
+            email: email,
             dietary_preferences: selectedDietaryPreferences,
             preferred_categories: selectedCategories,
             preferred_cuisine_types: selectedCuisineTypes,
@@ -258,16 +258,18 @@ const SignUpPage = () => {
                             onChange={handlePassword}
                         />
                     </label>
-                    <label htmlFor="passcode">Please provide a passcode to use when you forget your password:</label>
-                    <input
-                        id="passcode"
-                        type="text"
-                        name="passcode"
-                        required={true}
-                        minLength={1}
-                        onChange={handlePasscode}
-                        style={{marginBottom: "1rem"}}
-                    />
+                    <label>Email:
+                        <input
+                            id="email"
+                            type="email"
+                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                            name="email"
+                            required={true}
+                            minLength={1}
+                            onChange={handleEmail}
+                            style={{marginBottom: "1rem"}}
+                        />
+                    </label>
                     <div className="box">
                         <div className="box-title">Dietary preferences:</div>
                         <div className="checkboxes">

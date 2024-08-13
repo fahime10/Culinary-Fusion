@@ -40,7 +40,9 @@ router.post('/users/edit-user/:username', user_controller.edit_user);
 
 router.delete('/users/delete-user/:username', user_controller.delete_user);
 
-router.post('/users/forgotten-password/change', user_controller.forgotten_password);
+router.post('/users/forgotten-password/request', user_controller.forgotten_password);
+
+router.post('/users/forgotten-password/change', user_controller.forgotten_password_restore);
 
 router.post('/stars', star_controller.add_star_rating);
 

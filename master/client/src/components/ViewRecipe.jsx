@@ -64,7 +64,7 @@ const ViewRecipe = () => {
         }
 
         if (userDetails) {
-            if (userDetails.id === recipe.user_id) {
+            if (userDetails.username === recipe.user_id.username) {
                 setIsOwner(true);
             }
         }
@@ -82,20 +82,20 @@ const ViewRecipe = () => {
             setLoading(true);
             
             try {
-                // const cachedData = await getRecipe(key);
+                const cachedData = await getRecipe(key);
 
-                // if (cachedData && cachedData.timestamp) {
-                //     const recipes = Object.keys(cachedData)
-                //         .filter(key => !isNaN(key))
-                //         .map(key => cachedData[key]);
+                if (cachedData && cachedData.timestamp) {
+                    const recipes = Object.keys(cachedData)
+                        .filter(key => !isNaN(key))
+                        .map(key => cachedData[key]);
 
-                //     const recipe = recipes.find(recipe => recipe._id === id);
+                    const recipe = recipes.find(recipe => recipe._id === id);
 
-                //     if (recipe) {
-                //         setRecipeState(recipe, recipe.chef_username);
-                //         return;
-                //     }
-                // }
+                    if (recipe) {
+                        setRecipeState(recipe, recipe.chef_username);
+                        return;
+                    }
+                }
 
                 const userDetails = token && token !== "undefined" ? retrieveUserDetails() : null;
                 const data = userDetails ? { username: userDetails.username } : null;

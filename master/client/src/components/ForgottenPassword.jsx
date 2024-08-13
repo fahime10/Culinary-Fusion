@@ -4,6 +4,7 @@ import Footer from "./Footer";
 
 const ForgottenPassword = () => {
     const [username, setUsername] = useState("");
+    const [sent, setSent] = useState(false);
     const [passcode, setPasscode] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -70,48 +71,79 @@ const ForgottenPassword = () => {
         }
     }
 
+    function handleSent() {
+        const data = {
+            username: username
+        };
+
+        fetch("http://localhost:9000/api/users/forgotten-password/request", {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        .then((res) => res.json())
+        .then((res) => {
+            console.log(res.sent);
+            setSent(res.sent);
+        })
+        .catch(error => console.log(error));
+    }
+
     return (
         <>
             <div className="top-bar">
                 <h1 className="title">Forgotten password</h1>
             </div>
             <form className="forms" onSubmit={(event) => handleChange(event)}>
-                <h2>Please enter your username and passcode, along with the new password</h2>
-                <label>Username:
-                    <input
-                        type="text"
-                        required={true}
-                        minLength={3}
-                        onChange={handleUsername}
-                    />
-                </label>
-                <label>Passcode:
-                    <input
-                        type="text"
-                        required={true}
-                        onChange={handlePasscode}
-                    />
-                </label>
-                <label>New password:
-                    <input
-                        type="password"
-                        required={true}
-                        minLength={4}
-                        placeholder="Minimum 4 characters"
-                        onChange={handleNewPassword}
-                    />
-                </label>
-                <label>Confirm password:
-                    <input
-                        type="password"
-                        required={true}
-                        onChange={handleConfirmPassword}
-                    />
-                </label>
+                {!sent ?
+                    <div>
+                        <h2>Please enter your username to generate a passcode</h2>
+                        <label>Username:
+                            <input
+                                type="text"
+                                required={true}
+                                minLength={3}
+                                onChange={handleUsername}
+                            />
+                        </label>
+                        <button type="button" onClick={handleSent} style={{ width: "8rem" }}>Send username</button>
+                    </div>
+                : 
+                    <div className="flex-column">
+                        <p>Please check the spam folder for emails from culinaryfusionmail@gmail.com</p>
+                        <p>It may take a few minutes</p>
+                        <label>Passcode:
+                            <input
+                                type="text"
+                                required={true}
+                                onChange={handlePasscode}
+                            />
+                        </label>
+                        <label>New password:
+                            <input
+                                type="password"
+                                required={true}
+                                minLength={4}
+                                placeholder="Minimum 4 characters"
+                                onChange={handleNewPassword}
+                            />
+                        </label>
+                        <label>Confirm password:
+                            <input
+                                type="password"
+                                required={true}
+                                onChange={handleConfirmPassword}
+                            />
+                        </label>
+                        <button style={{ margin: "1rem 0" }}>Change</button>
+                    </div>
+                }
                 <div ref={errorRef} style={{ display: "none", color: "red" }}>
                     <p>{error}</p>
                 </div>
-                <button style={{ margin: "1rem 0" }}>Change</button>
                 <button type="button" onClick={() => navigate("/")}>Cancel</button>
             </form>
             <Footer />

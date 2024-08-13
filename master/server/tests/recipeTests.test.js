@@ -33,7 +33,8 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'james12345678901234',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             }
@@ -88,7 +89,8 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'james12345678901234',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             }
@@ -123,7 +125,8 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'james12345678901234',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             }
@@ -159,7 +162,8 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'james1234567890123',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             }
@@ -204,7 +208,8 @@ describe('Testing Recipe API', () => {
                 last_name: 'Smith',
                 username: 'JAMES1234567890123',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             }

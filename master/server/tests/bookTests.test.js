@@ -37,7 +37,8 @@ describe('Testing Book API', () => {
                 last_name: 'Smith',
                 username: 'randoms',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };
@@ -93,7 +94,8 @@ describe('Testing Book API', () => {
                 last_name: 'Smith',
                 username: 'randoms42',
                 password: 'pass',
-                passcode: 'pass',
+                email: 'random@gmail.com',
+                passcode: '',
                 dietary_preferences: [],
                 test: true
             };
@@ -164,7 +166,8 @@ describe('Testing Book API', () => {
                     last_name: 'Smith',
                     username: 'randomss',
                     password: 'pass',
-                    passcode: 'pass',
+                    email: 'random@gmail.com',
+                    passcode: '',
                     dietary_preferences: [],
                     test: true
                 };
