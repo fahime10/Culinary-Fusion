@@ -1,4 +1,6 @@
 const User = require('../models/userModel');
+const Recipe = require('../models/recipeModel');
+const Ingredient = require('../models/ingredientModel');
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -6,8 +8,6 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 require('dotenv').config();
-
-const SECRET_KEY = process.env.SECRET_KEY;
 
 exports.add_user = asyncHandler(async (req, res, next) => {
     try {
@@ -53,7 +53,7 @@ exports.add_user = asyncHandler(async (req, res, next) => {
                             name_title: savedUser.name_title,
                             last_name: savedUser.last_name 
                         }, 
-                        SECRET_KEY, 
+                        process.env.SECRET_KEY, 
                         { expiresIn: '1h' }
                     );
                     res.status(200).json({ token });
@@ -91,7 +91,7 @@ exports.login_user = asyncHandler(async (req, res, next) => {
                 name_title: user.name_title,
                 last_name: user.last_name 
             },
-            SECRET_KEY, 
+            process.env.SECRET_KEY, 
             { expiresIn: '1h' }
         );
         res.status(200).send({ token: token });
@@ -168,7 +168,7 @@ exports.edit_user = asyncHandler(async (req, res, next) => {
                 name_title: editedUser.name_title,
                 last_name: editedUser.last_name 
             },
-            SECRET_KEY, 
+            process.env.SECRET_KEY, 
             { expiresIn: '1h' }
         );
 
@@ -183,9 +183,19 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
 
     try {
+        const user = await User.findOne({ username: username }).lean();
+
+        const recipes = await Recipe.find({ user_id: user._id }).lean();
+
+        for (let recipe of recipes) {
+            await Ingredient.deleteMany({ recipe_id: recipe._id });
+        }
+
+        await Recipe.deleteMany({ user_id: user._id });
+
         await User.deleteOne({ username: username });
 
-        res.status(204).json({ message: 'Successfully deleted' });
+        res.status(200).json({ message: 'Successfully deleted' });
 
     } catch (error) {
         res.status(404).json({ error: 'Unable to delete account' });
@@ -278,5 +288,61 @@ exports.forgotten_password_restore = asyncHandler(async (req, res, next) => {
 
     } catch (error) {
         res.status(404).json({ error: error });
+    }
+});
+
+exports.direct_message = asyncHandler(async (req, res, next) => {
+    const { username, recipient_username, subject, message } = req.body;
+
+    try {
+        const sender = await User.findOne({ username: username }).lean();
+
+        if (!sender) {
+            return res.status(404).json({ error: 'Sender with that username not found' });
+        }
+
+        const recipient = await User.findOne({ username: recipient_username });
+
+        if (!recipient) {
+            return res.status(404).json({ error: 'Recipient with that username not found' });
+        }
+
+        let transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.USER,
+                pass: process.env.PASSWORD
+            }
+        });
+
+        let resultMessage = `Hello ${recipient.name_title} ${recipient.last_name},\n\n`;
+        resultMessage += `This email is from ${sender.username}.\n\n`;
+        resultMessage += `${message}\n\n`;
+        resultMessage += `Regards,\n${sender.name_title} ${sender.last_name}\n\n`;
+        resultMessage += 'Replying to this email will automatically reply to the sender\'s email address';
+
+        let mailOptions = {
+            from: process.env.USER,
+            to: recipient.email,
+            subject: subject,
+            text: resultMessage,
+            replyTo: sender.email
+        }
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log(error);
+                return res.status(500).json({ error: 'Error sending email' });
+            } else {
+                console.log('Email sent: ', info.response);
+            }
+
+            res.status(200).json({ message: 'Email sent successfully. You may leave this page' });
+        });
+
+    } catch (error) {
+        res.status(400).json({ error: error });
     }
 });

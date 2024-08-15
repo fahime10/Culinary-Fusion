@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Dialog from "./Dialog";
 import Footer from "./Footer";
 import { jwtDecode } from "jwt-decode";
+import { clearUserRecipes } from "../indexedDb";
 
 const UserProfile = () => {
     const [nameTitle, setNameTitle] = useState("");
@@ -315,21 +316,12 @@ const UserProfile = () => {
             fetch(`http://localhost:9000/api/users/delete-user/${userDetails.username}`, {
                 method: "DELETE"
             })
+            .then((res) => res.json())
             .then((res) => {
-                console.log(res);
-                if (res.status === 204) {
-                    sessionStorage.removeItem("username");
-                    sessionStorage.removeItem("last_name");
-                    sessionStorage.removeItem("name_title");
+                if (res.message) {
+                    sessionStorage.removeItem("token");
+                    clearUserRecipes();
                     navigate("/");
-    
-                } else {
-                    return res.json();
-                }
-            })
-            .then((res) => {
-                if (res && res.error) {
-                    console.log(res.error);
                 }
             })
             .catch(err => console.log(err));

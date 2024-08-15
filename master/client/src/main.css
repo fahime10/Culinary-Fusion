@@ -718,6 +718,11 @@ button:hover {
     font-size: 11px;
 }
 
+.email-to-be-sent {
+    border: 4px solid black;
+    text-align: left;
+}
+
 footer {
     text-align: center;
     background-color: green;

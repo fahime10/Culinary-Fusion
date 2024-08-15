@@ -406,7 +406,6 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
         res.status(200).json(editedRecipe);
 
     } catch (err) {
-        console.log(err);
         res.status(404).json({ err: err.message });
     }
 });
@@ -457,7 +456,7 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
         res.status(200).json(randomRecipes);
 
     } catch (err) {
-        res.status(404).json({ error: err.message });
+        res.status(400).json({ error: err.message });
     }
 });
 

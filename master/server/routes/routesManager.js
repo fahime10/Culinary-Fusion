@@ -98,4 +98,6 @@ router.post('/comments/create/:id', comment_controller.add_comment);
 
 router.delete('/comments/delete/:id', comment_controller.delete_comment);
 
+router.post('/direct-message', user_controller.direct_message);
+
 module.exports = router;

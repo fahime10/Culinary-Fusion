@@ -20,6 +20,7 @@ import ViewBook from "./ViewBook";
 import EditBook from "./EditBook";
 import IncludeRecipe from "./IncludeRecipe";
 import EditBookRecipe from "./EditBookRecipe";
+import DirectMessage from "./DirectMessage";
 
 function App() {
   const [response, setResponse] = useState("");
@@ -57,6 +58,7 @@ function App() {
           <Route path="/books/edit/:id" element={<EditBook />} />
           <Route path="/books/include/:id" element={<IncludeRecipe />} />
           <Route path="/books/recipes/edit/:id/:recipe_id" element={<EditBookRecipe />} />
+          <Route path="/direct-message" element={<DirectMessage />} />
         </Routes>
       </BrowserRouter>
     </>

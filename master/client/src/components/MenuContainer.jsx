@@ -48,6 +48,7 @@ const MenuContainer = ({ notifications, setNotifications }) => {
                             setNotifications={setNotifications}
                         >
                         </JoinRequest>
+                        <button type="button" className="menu-button" onClick={() => navigate("/direct-message")}>Send a message</button>
                         <button type="button" onClick={toggleMenu}>Close</button>
                     </div>
             </div>
