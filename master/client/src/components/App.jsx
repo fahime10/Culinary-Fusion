@@ -50,9 +50,9 @@ function App() {
           <Route path="/forgotten-password" element={<ForgottenPassword />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/create-group" element={<CreateGroup />} />
-          <Route path="/groups/:id" element={<ViewGroup />} />
-          <Route path="/groups/edit/:id" element={<EditGroup />} />
-          <Route path="/groups/add-members/:id" element={<AddMembers />} />
+          <Route path="/groups/:group_name" element={<ViewGroup />} />
+          <Route path="/groups/edit/:group_name" element={<EditGroup />} />
+          <Route path="/groups/add-members/:group_name" element={<AddMembers />} />
           <Route path="/books/create/:id" element={<CreateBook />} />
           <Route path="/books/view/:id" element={<ViewBook />} />
           <Route path="/books/edit/:id" element={<EditBook />} />

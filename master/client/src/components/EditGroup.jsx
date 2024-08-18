@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
 const EditGroup = () => {
-    const { id } = useParams();
+    const { group_name } = useParams();
     const [isMainAdmin, setIsMainAdmin] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isCollaborator, setIsCollaborator] = useState(false);
@@ -30,7 +30,7 @@ const EditGroup = () => {
                 const data = userDetails ? { user_id: userDetails.id } : null;
 
                 if (data) {
-                    const response = await fetch(`http://localhost:9000/api/groups/${id}`, {
+                    const response = await fetch(`http://localhost:9000/api/groups/${group_name}`, {
                         method: "POST",
                         headers: {
                             Accept: "application/json",
@@ -109,13 +109,13 @@ const EditGroup = () => {
 
         const data = {
             user_id: userDetails.id,
-            group_name: groupName,
+            new_group_name: groupName,
             group_description: groupDescription,
             admins: [],
             collaborators: []
         };
 
-        fetch(`http://localhost:9000/api/groups/edit/${id}`, {
+        fetch(`http://localhost:9000/api/groups/edit/${group_name}`, {
             method: "POST",
             headers: {
                 Accept: "application/json",
@@ -144,7 +144,7 @@ const EditGroup = () => {
                     username: username
                 };
 
-                const response = await fetch(`http://localhost:9000/api/groups/promote/${id}`, {
+                const response = await fetch(`http://localhost:9000/api/groups/promote/${group_name}`, {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
@@ -176,7 +176,7 @@ const EditGroup = () => {
                     username: username
                 };
 
-                const response = await fetch(`http://localhost:9000/api/groups/demote/${id}`, {
+                const response = await fetch(`http://localhost:9000/api/groups/demote/${group_name}`, {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
@@ -208,7 +208,7 @@ const EditGroup = () => {
                     username: username
                 };
 
-                const response = await fetch(`http://localhost:9000/api/groups/remove/${id}`, {
+                const response = await fetch(`http://localhost:9000/api/groups/remove/${group_name}`, {
                     method: "DELETE",
                     headers: {
                         Accept: "application/json",

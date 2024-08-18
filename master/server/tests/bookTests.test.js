@@ -31,7 +31,7 @@ describe('Testing Book API', () => {
 
     describe('Test POST /api/books/create/:id', () => {
         it('should create a book', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -46,7 +46,7 @@ describe('Testing Book API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -55,7 +55,7 @@ describe('Testing Book API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: user_id,
                 group_name: 'Group12345689',
                 group_description: 'test group',
@@ -65,11 +65,11 @@ describe('Testing Book API', () => {
             const res = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(groupData);
 
             expect(res.status).toBe(200);
 
-            const thirdData = {
+            const bookData = {
                 user_id: user_id,
                 book_title: 'New book',
                 book_description: 'new book in database',
@@ -77,9 +77,9 @@ describe('Testing Book API', () => {
             };
 
             const secondRes = await request
-                .post(`/api/books/create/${res.body._id}`)
+                .post(`/api/books/create/${res.body.group_name}`)
                 .set('Content-Type', 'application/json')
-                .send(thirdData);
+                .send(bookData);
 
             expect(secondRes.status).toBe(200);
             expect(secondRes.body).toHaveProperty('book_title', 'New book');
@@ -88,7 +88,7 @@ describe('Testing Book API', () => {
         });
 
         it('should edit book', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -103,7 +103,7 @@ describe('Testing Book API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -112,7 +112,7 @@ describe('Testing Book API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: user_id,
                 group_name: 'Group1234589',
                 group_description: 'test group',
@@ -122,11 +122,11 @@ describe('Testing Book API', () => {
             const res = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(groupData);
 
             expect(res.status).toBe(200);
 
-            const thirdData = {
+            const bookData = {
                 user_id: user_id,
                 book_title: 'New book',
                 book_description: 'new book in database',
@@ -134,13 +134,13 @@ describe('Testing Book API', () => {
             };
 
             const secondRes = await request
-                .post(`/api/books/create/${res.body._id}`)
+                .post(`/api/books/create/${res.body.group_name}`)
                 .set('Content-Type', 'application/json')
-                .send(thirdData);
+                .send(bookData);
 
             expect(secondRes.status).toBe(200);
             
-            const fourthData = {
+            const secondBookData = {
                 user_id: user_id,
                 book_title: 'Book Random',
                 book_description: 'Edited book',
@@ -150,7 +150,7 @@ describe('Testing Book API', () => {
             const thirdRes = await request
                 .post(`/api/books/edit/${secondRes.body._id}`)
                 .set('Content-Type', 'application/json')
-                .send(fourthData);
+                .send(secondBookData);
 
             expect(thirdRes.status).toBe(200);
             expect(thirdRes.body).toHaveProperty('book_title', 'Book Random');
@@ -160,7 +160,7 @@ describe('Testing Book API', () => {
 
         describe('Test DELETE /api/books/delete/:id', () => {
             it('should delete book', async () => {
-                const data = {
+                const userData = {
                     name_title: 'Mr',
                     first_name: 'James',
                     last_name: 'Smith',
@@ -175,7 +175,7 @@ describe('Testing Book API', () => {
                 const user = await request
                     .post('/api/users/add-user')
                     .set('Content-Type', 'application/json')
-                    .send(data);
+                    .send(userData);
                 
                 const token = user.body.token;
     
@@ -184,7 +184,7 @@ describe('Testing Book API', () => {
                 const decoded = jwt.decode(token);
                 const user_id = decoded.id;
     
-                const secondData = {
+                const groupData = {
                     user_id: user_id,
                     group_name: 'Group2345689',
                     group_description: 'test group',
@@ -194,11 +194,11 @@ describe('Testing Book API', () => {
                 const res = await request
                     .post('/api/groups/create')
                     .set('Content-Type', 'application/json')
-                    .send(secondData);
+                    .send(groupData);
     
                 expect(res.status).toBe(200);
     
-                const thirdData = {
+                const bookData = {
                     user_id: user_id,
                     book_title: 'New book',
                     book_description: 'new book in database',
@@ -206,9 +206,9 @@ describe('Testing Book API', () => {
                 };
     
                 const secondRes = await request
-                    .post(`/api/books/create/${res.body._id}`)
+                    .post(`/api/books/create/${res.body.group_name}`)
                     .set('Content-Type', 'application/json')
-                    .send(thirdData);
+                    .send(bookData);
     
                 expect(secondRes.status).toBe(200);
                 

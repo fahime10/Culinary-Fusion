@@ -5,7 +5,7 @@ import Dialog from "./Dialog";
 import Footer from "./Footer";
 
 const ViewGroup = () => {
-    const { id } = useParams();
+    const { group_name } = useParams();
     const [groupName, setGroupName] = useState("");
     const [groupDescription, setGroupDescription] = useState("");
     const [isMainAdmin, setIsMainAdmin] = useState(false);
@@ -26,7 +26,7 @@ const ViewGroup = () => {
                 const data = userDetails ? { user_id: userDetails.id } : null;
 
                 if (data) {
-                    const response = await fetch(`http://localhost:9000/api/groups/${id}`, {
+                    const response = await fetch(`http://localhost:9000/api/groups/${group_name}`, {
                         method: "POST",
                         headers: {
                             Accept: "application/json",
@@ -53,7 +53,7 @@ const ViewGroup = () => {
                             user_id: userDetails.id
                         };
 
-                        const booksResponse = await fetch(`http://localhost:9000/api/books/${id}`, {
+                        const booksResponse = await fetch(`http://localhost:9000/api/books/${group_name}`, {
                             method: "POST",
                             headers: {
                                 Accept: "application/json",
@@ -92,7 +92,7 @@ const ViewGroup = () => {
     }
 
     function redirectToAddMembers() {
-        navigate(`/groups/add-members/${id}`);
+        navigate(`/groups/add-members/${group_name}`);
     }
 
     function redirectToEditGroup(id) {
@@ -107,8 +107,8 @@ const ViewGroup = () => {
         setDialog(!dialog);
     }
 
-    function redirectToCreateBook(group_id) {
-        navigate(`/books/create/${group_id}`);
+    function redirectToCreateBook(group_name) {
+        navigate(`/books/create/${group_name}`);
     }
 
     async function deleteGroup(id) {
@@ -136,16 +136,16 @@ const ViewGroup = () => {
                     <h1 className="title">{groupName}</h1>
                     <h2>{groupDescription}</h2>
                     {isMainAdmin || isAdmin ? (
-                        <button type="button" onClick={() => redirectToAddMembers(id)}>Add members</button>
+                        <button type="button" onClick={() => redirectToAddMembers(group_name)}>Add members</button>
                     ) : null}
                     {isMainAdmin || isAdmin ? (
-                        <button onClick={() => redirectToEditGroup(id)}>Edit group details</button>
+                        <button onClick={() => redirectToEditGroup(group_name)}>Edit group details</button>
                     ) : null}
                     {isMainAdmin ? (
                         <button onClick={toggleDialog}>Delete group</button>
                     ) : null}
                     {isCollaborator ? (
-                        <button onClick={() => redirectToEditGroup(id)}>View group details</button>
+                        <button onClick={() => redirectToEditGroup(group_name)}>View group details</button>
                     ) : null}
                     <button onClick={() => navigate(-1)}>Back</button>
                     <button onClick={(returnToHomepage)}>Home</button>
@@ -154,13 +154,13 @@ const ViewGroup = () => {
                         onClose={toggleDialog}
                         title="Attention"
                         content="Are you sure you want to delete this group? You will lose all books and recipes"
-                        funct={() => deleteGroup(id)}
+                        funct={() => deleteGroup(group_name)}
                     >
                     </Dialog>
                 </div>
                 <div className="group-options">
                     {isMainAdmin || isAdmin ? 
-                        <button type="button" className="create-book-button" onClick={() => redirectToCreateBook(id)}>Create a new book</button>
+                        <button type="button" className="create-book-button" onClick={() => redirectToCreateBook(group_name)}>Create a new book</button>
                     : null}
                 </div>
                 <div className="books">

@@ -58,8 +58,8 @@ const GroupsPage = () => {
         return "";
     }
 
-    function viewGroup(id) {
-        navigate(`/groups/${id}`);
+    function viewGroup(group_name) {
+        navigate(`/groups/${group_name}`);
     }
 
     function handleFindGroup(e) {
@@ -121,7 +121,7 @@ const GroupsPage = () => {
                 </div>
                 <div className="groups">
                     {groups.length > 0 ? groups.map((group) => (
-                        <div key={group._id} id={group._id} className="group" onClick={() => viewGroup(group._id)}>
+                        <div key={group.group_name} id={group.group_name} className="group" onClick={() => viewGroup(group.group_name)}>
                             <h3>{group.group_name}</h3>
                             <p>{group.group_description}</p>
                         </div>

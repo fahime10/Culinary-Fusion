@@ -27,7 +27,7 @@ describe('Testing Group API', () => {
 
     describe('Test POST /api/groups/create', () => {
         it('should add new group', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -42,7 +42,7 @@ describe('Testing Group API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -51,7 +51,7 @@ describe('Testing Group API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: user_id,
                 group_name: 'Group123456789',
                 group_description: 'test group',
@@ -61,7 +61,7 @@ describe('Testing Group API', () => {
             const res = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(groupData);
             
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty('group_name', 'Group123456789');
@@ -72,7 +72,7 @@ describe('Testing Group API', () => {
 
     describe('Test POST /api/groups/create', () => {
         it('should not add new group (user not found)', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -87,7 +87,7 @@ describe('Testing Group API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -96,7 +96,7 @@ describe('Testing Group API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: "aaaaaaaaaaaaaaaaaaaaaaaa",
                 group_name: 'Group123456789',
                 group_description: 'test group',
@@ -106,7 +106,7 @@ describe('Testing Group API', () => {
             const res = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(groupData);
             
             expect(res.status).toBe(404);
             expect(res.body).toHaveProperty('error', 'User not found');
@@ -115,7 +115,7 @@ describe('Testing Group API', () => {
 
     describe('Test POST /api/groups/create', () => {
         it('should not add new group (group already exists)', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -130,7 +130,7 @@ describe('Testing Group API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -139,20 +139,18 @@ describe('Testing Group API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: user_id,
                 group_name: 'Group123456789',
                 group_description: 'test group',
                 test: true
             };
 
-            const res = await request
-                .post('/api/groups/create')
+            await request.post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
-            
+                .send(groupData);
 
-            const thirdData = {
+            const secondGroupData = {
                 user_id: user_id,
                 group_name: 'Group123456789',
                 group_description: 'test group',
@@ -162,16 +160,16 @@ describe('Testing Group API', () => {
             const secondRes = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(thirdData);
+                .send(secondGroupData);
 
             expect(secondRes.status).toBe(400);
             expect(secondRes.body).toHaveProperty('error', 'A group with that name already exists');
         });
     });
 
-    describe('Test POST /api/groups/edit/:id', () => {
+    describe('Test POST /api/groups/edit/:group_name', () => {
         it('should edit group', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -186,7 +184,7 @@ describe('Testing Group API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -195,7 +193,7 @@ describe('Testing Group API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: user_id,
                 group_name: 'Group123456789',
                 group_description: 'test group',
@@ -205,19 +203,19 @@ describe('Testing Group API', () => {
             const res = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(groupData);
 
-            const thirdData = {
+            const updatedGroupData = {
                 user_id: user_id,
-                group_name: 'Group54321',
+                new_group_name: 'Group54321',
                 group_description: 'testing group',
                 test: true
             };
 
             const secondRes = await request
-                .post(`/api/groups/edit/${res.body._id}`)
+                .post(`/api/groups/edit/${res.body.group_name}`)
                 .set('Content-Type', 'application/json')
-                .send(thirdData);
+                .send(updatedGroupData);
 
             expect(secondRes.status).toBe(200);
             expect(secondRes.body).toHaveProperty('group_name', 'Group54321');
@@ -228,7 +226,7 @@ describe('Testing Group API', () => {
 
     describe('Test POST /api/groups/edit/:id', () => {
         it('should not edit group (username is wrong)', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -243,7 +241,7 @@ describe('Testing Group API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -252,7 +250,7 @@ describe('Testing Group API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: user_id,
                 group_name: 'Group123456789',
                 group_description: 'test group',
@@ -262,9 +260,9 @@ describe('Testing Group API', () => {
             const res = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(groupData);
 
-            const thirdData = {
+            const secondGroupData = {
                 user_id: "aaaaaaaaaaaaaaaaaaaaaaaa",
                 group_name: 'Group54321',
                 group_description: 'testing group',
@@ -272,9 +270,9 @@ describe('Testing Group API', () => {
             };
 
             const secondRes = await request
-                .post(`/api/groups/edit/${res.body._id}`)
+                .post(`/api/groups/edit/${res.body.group_name}`)
                 .set('Content-Type', 'application/json')
-                .send(thirdData);
+                .send(secondGroupData);
 
             expect(secondRes.status).toBe(404);
             expect(secondRes.body).toHaveProperty('error', 'User not found');
@@ -283,7 +281,7 @@ describe('Testing Group API', () => {
     
     describe('Test DELETE /api/groups/delete/:id', () => {
         it('should delete group', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -298,7 +296,7 @@ describe('Testing Group API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
             
             const token = user.body.token;
 
@@ -307,7 +305,7 @@ describe('Testing Group API', () => {
             const decoded = jwt.decode(token);
             const user_id = decoded.id;
 
-            const secondData = {
+            const groupData = {
                 user_id: user_id,
                 group_name: 'Group123456789',
                 group_description: 'test group',
@@ -317,10 +315,10 @@ describe('Testing Group API', () => {
             const res = await request
                 .post('/api/groups/create')
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(groupData);
 
             const secondRes = await request
-                .delete(`/api/groups/delete/${res.body._id}`);
+                .delete(`/api/groups/delete/${res.body.group_name}`);
 
             expect(secondRes.status).toBe(200);
             expect(secondRes.body).toHaveProperty('message', 'Group deleted successfully');

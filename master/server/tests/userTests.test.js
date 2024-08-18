@@ -23,7 +23,7 @@ describe('Testing User API', () => {
 
     describe('Test POST /api/users/add-user', () => {
         it('should add new user', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -38,7 +38,7 @@ describe('Testing User API', () => {
             const res = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty('token');
@@ -47,7 +47,7 @@ describe('Testing User API', () => {
 
     describe('Test POST /api/users/add-user', () => {
         it('should not add new user (username missing)', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -62,7 +62,7 @@ describe('Testing User API', () => {
             const res = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             expect(res.status).toBe(400);
         });
@@ -70,7 +70,7 @@ describe('Testing User API', () => {
 
     describe('Test POST /api/users/login', () => {
         it('should login', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -85,27 +85,27 @@ describe('Testing User API', () => {
             const res = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             expect(res.status).toBe(200);
 
-            const newData = {
+            const existingUserData = {
                 username: 'james12345678901',
                 password: 'pass'
             }
 
-            const newRes = await request
+            const secondRes = await request
                 .post('/api/users/login')
                 .set('Content-Type', 'application/json')
-                .send(newData);
+                .send(existingUserData);
 
-            expect(newRes.status).toBe(200);
+            expect(secondRes.status).toBe(200);
         });
     });
 
     describe('Test POST /api/users/login', () => {
         it('should not login (wrong username)', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -120,28 +120,28 @@ describe('Testing User API', () => {
             const res = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             expect(res.status).toBe(200);
 
-            const newData = {
+            const nonExistingUserData = {
                 username: 'james12345678',
                 password: 'pass'
             }
 
-            const newRes = await request
+            const secondRes = await request
                 .post('/api/users/login')
                 .set('Content-Type', 'application/json')
-                .send(newData);
+                .send(nonExistingUserData);
 
             // expect automatic 401 to indicate unauthorized access
-            expect(newRes.status).toBe(401);
+            expect(secondRes.status).toBe(401);
         });
     });
 
     describe('Test POST /api/users/:username', () => {
         it('should provide user details', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -156,25 +156,25 @@ describe('Testing User API', () => {
             const res = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             expect(res.status).toBe(200);
             
-            const newRes = await request
-                .post(`/api/users/${data.username}`)
+            const secondRes = await request
+                .post(`/api/users/${userData.username}`)
                 .set('Content-Type', 'application/json');
             
-            expect(newRes.status).toBe(200);
-            expect(newRes.body).toHaveProperty('first_name', 'James');
-            expect(newRes.body).toHaveProperty('last_name', 'Smith');
-            expect(newRes.body).toHaveProperty('username', 'jAmEs123456789012345');
-            expect(newRes.body.dietary_preferences).toEqual([]);
+            expect(secondRes.status).toBe(200);
+            expect(secondRes.body).toHaveProperty('first_name', 'James');
+            expect(secondRes.body).toHaveProperty('last_name', 'Smith');
+            expect(secondRes.body).toHaveProperty('username', 'jAmEs123456789012345');
+            expect(secondRes.body.dietary_preferences).toEqual([]);
         });
     });
 
     describe('Test POST /api/users/edit-user/:username', () => {
         it('should edit user', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -189,17 +189,17 @@ describe('Testing User API', () => {
             const res = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             expect(res.status).toBe(200);
             
-            const newRes = await request
-                .post(`/api/users/${data.username}`)
+            const secondRes = await request
+                .post(`/api/users/${userData.username}`)
                 .set('Content-Type', 'application/json');
             
-            expect(newRes.status).toBe(200);
+            expect(secondRes.status).toBe(200);
             
-            const secondData = {
+            const updatedUserData = {
                 name_title: 'Mr',
                 first_name: 'John',
                 last_name: 'S',
@@ -210,20 +210,20 @@ describe('Testing User API', () => {
                 test: true
             }
 
-            const extraRes = await request
-                .post(`/api/users/edit-user/${data.username}`)
+            const thirdRes = await request
+                .post(`/api/users/edit-user/${userData.username}`)
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(updatedUserData);
 
-            expect(extraRes.status).toBe(200);
-            expect(extraRes.body).toHaveProperty('message', 'Updated successfully');
-            expect(extraRes.body).toHaveProperty('token');
+            expect(thirdRes.status).toBe(200);
+            expect(thirdRes.body).toHaveProperty('message', 'Updated successfully');
+            expect(thirdRes.body).toHaveProperty('token');
         });
     });
 
     describe('Test POST /api/users/delete-user/:username', () => {
         it('should delete user', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -238,21 +238,21 @@ describe('Testing User API', () => {
             const res = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             expect(res.status).toBe(200);
             
-            const newRes = await request
-                .post(`/api/users/${data.username}`)
+            const secondRes = await request
+                .post(`/api/users/${userData.username}`)
                 .set('Content-Type', 'application/json');
             
-            expect(newRes.status).toBe(200);
+            expect(secondRes.status).toBe(200);
             
             await request
-                .delete(`/api/users/delete-user/${data.username}`)
-                .expect(204);
+                .delete(`/api/users/delete-user/${userData.username}`)
+                .expect(200);
 
-            const resQuery = await User.findOne({ username: data.username });
+            const resQuery = await User.findOne({ username: userData.username });
             expect(resQuery).toBeNull();
         });
     });

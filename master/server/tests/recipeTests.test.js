@@ -27,7 +27,7 @@ describe('Testing Recipe API', () => {
 
     describe('Test POST /api/recipes/add-recipe', () => {
         it('should add new recipe', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -42,7 +42,7 @@ describe('Testing Recipe API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             const res = await request
                 .post('/api/recipes/add-recipe')
@@ -68,22 +68,22 @@ describe('Testing Recipe API', () => {
             expect(res.body.steps).toEqual(['Open the eggs, place in a bowl, then whisk', 'Preheat a pan', 'Cook the whisked eggs in the pan']);
             expect(res.body).toHaveProperty('test', true);
 
-            const secondData = {
+            const username = {
                 username: 'james12345678901234'
             }
 
-            const newRes = await request
+            const secondRes = await request
                 .post(`/api/recipes/recipe/${res.body._id}`)
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(username);
 
-            expect(newRes.status).toBe(200);
+            expect(secondRes.status).toBe(200);
         });
     });
 
     describe('Test POST /api/recipes/add-recipe', () => {
         it('should not add new recipe (missing required title)', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -98,7 +98,7 @@ describe('Testing Recipe API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             const res = await request
                 .post('/api/recipes/add-recipe')
@@ -119,7 +119,7 @@ describe('Testing Recipe API', () => {
 
     describe('Test POST /api/recipes/add-recipe', () => {
         it('should not add new recipe (missing required username)', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -134,7 +134,7 @@ describe('Testing Recipe API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             const res = await request
                 .post('/api/recipes/add-recipe')
@@ -156,7 +156,7 @@ describe('Testing Recipe API', () => {
 
     describe('Test DELETE /api/recipes/delete-recipe/:id', () => {
         it('should delete recipe', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -171,7 +171,7 @@ describe('Testing Recipe API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             const res = await request
                 .post('/api/recipes/add-recipe')
@@ -202,7 +202,7 @@ describe('Testing Recipe API', () => {
 
     describe('Test POST /api/recipes/edit-recipe/:id', () => {
         it('should edit recipe', async () => {
-            const data = {
+            const userData = {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
@@ -217,7 +217,7 @@ describe('Testing Recipe API', () => {
             const user = await request
                 .post('/api/users/add-user')
                 .set('Content-Type', 'application/json')
-                .send(data);
+                .send(userData);
 
             const res = await request
                 .post('/api/recipes/add-recipe')
@@ -255,7 +255,7 @@ describe('Testing Recipe API', () => {
             recipe.ingredients = editedRecipe.ingredients;
             recipe.steps = editedRecipe.steps;
 
-            const newRes = await request
+            const secondRes = await request
                 .post(`/api/recipes/edit-recipe/${recipe._id}`)
                 .set('Content-Type', 'multipart/form-data')
                 .field('title', editedRecipe.title)
@@ -266,29 +266,29 @@ describe('Testing Recipe API', () => {
                 .field('steps', JSON.stringify(editedRecipe.steps))
                 .attach('image', editedRecipe.image, 'some-image.jpg');
 
-            expect(newRes.status).toBe(200);
-            expect(newRes.body).toHaveProperty('title', editedRecipe.title);
-            expect(newRes.body).toHaveProperty('chef', editedRecipe.chef);
-            expect(newRes.body).toHaveProperty('description', editedRecipe.description);
-            expect(newRes.body.quantities).toEqual(editedRecipe.quantities);
-            expect(newRes.body.ingredients).toEqual(editedRecipe.ingredients);
-            expect(newRes.body.steps).toEqual(editedRecipe.steps);
+            expect(secondRes.status).toBe(200);
+            expect(secondRes.body).toHaveProperty('title', editedRecipe.title);
+            expect(secondRes.body).toHaveProperty('chef', editedRecipe.chef);
+            expect(secondRes.body).toHaveProperty('description', editedRecipe.description);
+            expect(secondRes.body.quantities).toEqual(editedRecipe.quantities);
+            expect(secondRes.body.ingredients).toEqual(editedRecipe.ingredients);
+            expect(secondRes.body.steps).toEqual(editedRecipe.steps);
 
-            const secondData = {
+            const username = {
                 username: 'JAMES1234567890123'
             }
-            const extraRes = await request
+            const thirdRes = await request
                 .post(`/api/recipes/recipe/${res.body._id}`)
                 .set('Content-Type', 'application/json')
-                .send(secondData);
+                .send(username);
 
-            expect(extraRes.status).toBe(200);
-            expect(extraRes.body.recipe).toHaveProperty('title', editedRecipe.title);
-            expect(extraRes.body.recipe).toHaveProperty('chef', editedRecipe.chef);
-            expect(extraRes.body.recipe).toHaveProperty('description', editedRecipe.description);
-            expect(extraRes.body.recipe.quantities).toEqual(editedRecipe.quantities);
-            expect(extraRes.body.recipe.ingredients).toEqual(editedRecipe.ingredients);
-            expect(extraRes.body.recipe.steps).toEqual(editedRecipe.steps);
+            expect(thirdRes.status).toBe(200);
+            expect(thirdRes.body.recipe).toHaveProperty('title', editedRecipe.title);
+            expect(thirdRes.body.recipe).toHaveProperty('chef', editedRecipe.chef);
+            expect(thirdRes.body.recipe).toHaveProperty('description', editedRecipe.description);
+            expect(thirdRes.body.recipe.quantities).toEqual(editedRecipe.quantities);
+            expect(thirdRes.body.recipe.ingredients).toEqual(editedRecipe.ingredients);
+            expect(thirdRes.body.recipe.steps).toEqual(editedRecipe.steps);
         });
     });
 });

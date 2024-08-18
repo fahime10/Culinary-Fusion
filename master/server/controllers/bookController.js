@@ -22,24 +22,24 @@ const convertToObjects = (collection) => {
 }
 
 exports.get_all_books = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
+    const { group_name } = req.params;
 
     const { user_id } = req.body;
 
     try {
-        const user = await User.findOne({ _id: user_id });
+        const user = await User.findOne({ _id: user_id }).lean();
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const foundGroup = await Group.findOne({ _id: id });
+        const foundGroup = await Group.findOne({ group_name: group_name }).lean();
 
         if (!foundGroup) {
             return res.status(404).json({ error: 'Group not found' });
         }
 
-        const allBooks = await Book.find({ group_id: foundGroup._id });
+        const allBooks = await Book.find({ group_id: foundGroup._id }).lean();
 
         res.status(200).json(allBooks);
 
@@ -49,7 +49,7 @@ exports.get_all_books = asyncHandler(async (req, res, next) => {
 });
 
 exports.create_book = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
+    const { group_name } = req.params;
 
     const { user_id, book_title, book_description, test } = req.body;
 
@@ -60,10 +60,16 @@ exports.create_book = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        const foundGroup = await Group.findOne({ group_name: group_name }).lean();
+
+        if (!foundGroup) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
         const newBook = new Book({
             book_title: book_title,
             book_description: book_description,
-            group_id: id,
+            group_id: foundGroup._id,
             recipes_id: [],
             test
         });

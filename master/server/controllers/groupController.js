@@ -18,7 +18,6 @@ exports.groups_get_all = asyncHandler(async (req, res, next) => {
         res.status(200).json(allGroups);
 
     } catch (error) {
-        console.log(error);
         res.status(404).json({ error: 'No groups found' });
     }
 });
@@ -53,13 +52,12 @@ exports.create_group = asyncHandler(async (req, res, next) => {
         res.status(200).json(saveGroup);
 
     } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });
 
 exports.get_group = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
+    const { group_name } = req.params;
     const { user_id } = req.body;
 
     try {
@@ -69,7 +67,7 @@ exports.get_group = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const foundGroup = await Group.findOne({ _id: id }).populate('user_id', 'username').lean();
+        const foundGroup = await Group.findOne({ group_name: group_name }).populate('user_id', 'username').lean();
 
         if (!foundGroup) {
             return res.status(404).json({ error: 'Group not found' });
@@ -90,14 +88,13 @@ exports.get_group = asyncHandler(async (req, res, next) => {
         res.status(200).json({ group: foundGroup, is_main_admin: isMainAdmin, is_admin: isAdmin, is_collaborator: isCollaborator });
 
     } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });
 
 exports.edit_group = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const { user_id, group_name, group_description, test } = req.body;
+    const { group_name } = req.params;
+    const { user_id, new_group_name, group_description, test } = req.body;
 
     try {
         const user = await User.findOne({ _id: user_id });
@@ -106,13 +103,21 @@ exports.edit_group = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        const foundGroup = await Group.findOne({ group_name: new_group_name }).lean();
+
+        if (foundGroup) {
+            return res.status(400).json({ error: 'Group name already taken' });
+        }
+
         const updatedData = {
-            group_name: group_name,
+            group_name: new_group_name,
             group_description: group_description,
             test: test
         };
 
-        const editedGroup = await Group.findByIdAndUpdate(id, updatedData, { new: true }).lean();
+        const currentGroup = await Group.findOne({ group_name: group_name }).lean();
+
+        const editedGroup = await Group.findByIdAndUpdate(currentGroup._id, updatedData, { new: true }).lean();
 
         if (!editedGroup) {
             return res.status(404).json({ error: 'Something went wrong' });
@@ -121,78 +126,31 @@ exports.edit_group = asyncHandler(async (req, res, next) => {
         res.status(200).json(editedGroup);
 
     } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });
 
 exports.delete_group = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
+    const { group_name } = req.params;
 
     try {
-        const group = await Group.findById(id).lean();
+        const group = await Group.findOne({ group_name: group_name }).lean();
 
         if (!group) {
             return res.status(404).json({ error: 'Group not found' });
         }
 
-        await Group.findByIdAndDelete(id);
+        await Group.findByIdAndDelete(group._id);
         
         res.status(200).json({ message: 'Group deleted successfully' });
     
     } catch (error) {
-        console.log(error);
-        res.status(400).json({ error: error });
-    }
-});
-
-exports.create_requests = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-
-    const { user_id, usernames } = req.body;
-
-    try {
-        const user = await User.findOne({ _id: user_id });
-
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const newUsernames = JSON.parse(usernames);
-        const usernameValues = newUsernames.map(userObj => userObj.value);
-
-        const group = await Group.findById(id).populate('user_id', 'username').lean();
-
-        if (!group) {
-            return res.status(404).json({ error: 'Group not found' });
-        }
-
-        const currentList = [group.user_id.username, ...group.admins, ...group.collaborators];
-
-        const filteredUsernames = usernameValues.filter(username => !currentList.includes(username));
-
-        const validUsers = await User.find({ username: { $in: filteredUsernames } }).lean();
-        const validUsernames = validUsers.map(user => user.username);
-
-        for (let username of validUsernames) {
-            const newRequest = await JoinRequest({
-                group_id: id,
-                user_id: user_id,
-                recipient_username: username
-            });
-            await newRequest.save();
-        }
-
-        res.status(200).json({ message: 'Requests have been sent' });
-
-    } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });
 
 exports.promote_user = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
+    const { group_name } = req.params;
 
     const { user_id, username } = req.body;
 
@@ -204,7 +162,7 @@ exports.promote_user = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const foundGroup = await Group.findOne({ _id: id }).lean();
+        const foundGroup = await Group.findOne({ group_name: group_name }).lean();
 
         if (!foundGroup) {
             return res.status(404).json({ error: 'Group not found' });
@@ -222,18 +180,17 @@ exports.promote_user = asyncHandler(async (req, res, next) => {
             { new: true }
         );
 
-        const allMembers = await Group.findOne({ _id: id }).lean();
+        const allMembers = await Group.findOne({ _id: foundGroup._id }).lean();
         
         res.status(200).json({ collaborators: allMembers.collaborators, admins: allMembers.admins });
 
     } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });
 
 exports.demote_user = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
+    const { group_name } = req.params;
 
     const { user_id, username } = req.body;
 
@@ -245,7 +202,7 @@ exports.demote_user = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const foundGroup = await Group.findOne({ _id: id }).lean();
+        const foundGroup = await Group.findOne({ group_name: group_name }).lean();
 
         if (!foundGroup) {
             return res.status(404).json({ error: 'Group not found' });
@@ -263,18 +220,17 @@ exports.demote_user = asyncHandler(async (req, res, next) => {
             { new: true }
         );
 
-        const allMembers = await Group.findOne({ _id: id }).lean();
+        const allMembers = await Group.findOne({ _id: foundGroup._id }).lean();
         
         res.status(200).json({ collaborators: allMembers.collaborators, admins: allMembers.admins });
 
     } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });
 
 exports.remove_user = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
+    const { group_name } = req.params;
 
     const { user_id, username } = req.body;
 
@@ -286,7 +242,7 @@ exports.remove_user = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const foundGroup = await Group.findOne({ _id: id }).lean();
+        const foundGroup = await Group.findOne({ group_name: group_name }).lean();
 
         if (!foundGroup) {
             return res.status(404).json({ error: 'Group not found' });
@@ -304,12 +260,11 @@ exports.remove_user = asyncHandler(async (req, res, next) => {
             { new: true }
         );
 
-        const allMembers = await Group.findOne({ _id: id }).lean();
+        const allMembers = await Group.findOne({ _id: foundGroup._id }).lean();
         
         res.status(200).json({ collaborators: allMembers.collaborators, admins: allMembers.admins });
 
     } catch (error) {
-        console.log(error);
         res.status(400).json({ error: error });
     }
 });

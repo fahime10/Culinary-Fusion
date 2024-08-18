@@ -54,13 +54,13 @@ router.post('/groups', group_controller.groups_get_all);
 
 router.post('/groups/create', group_controller.create_group);
 
-router.post('/groups/:id', group_controller.get_group);
+router.post('/groups/:group_name', group_controller.get_group);
 
-router.post('/groups/edit/:id', group_controller.edit_group);
+router.post('/groups/edit/:group_name', group_controller.edit_group);
 
-router.delete('/groups/delete/:id', group_controller.delete_group);
+router.delete('/groups/delete/:group_name', group_controller.delete_group);
 
-router.post('/groups/add-members/:id', group_controller.create_requests);
+router.post('/join-requests/create/:group_name', join_request_controller.create_requests);
 
 router.post('/join-requests', join_request_controller.get_all_notifications);
 
@@ -68,17 +68,17 @@ router.post('/join-requests/accept-request/:id', join_request_controller.accept_
 
 router.post('/join-requests/delete-request/:id', join_request_controller.refuse_request);
 
-router.post('/groups/promote/:id', group_controller.promote_user);
+router.post('/groups/promote/:group_name', group_controller.promote_user);
 
-router.post('/groups/demote/:id', group_controller.demote_user);
+router.post('/groups/demote/:group_name', group_controller.demote_user);
 
-router.delete('/groups/remove/:id', group_controller.remove_user);
+router.delete('/groups/remove/:group_name', group_controller.remove_user);
 
 router.post('/groups/search/:group_name', group_controller.search_group);
 
-router.post('/books/:id', book_controller.get_all_books);
+router.post('/books/:group_name', book_controller.get_all_books);
 
-router.post('/books/create/:id', book_controller.create_book);
+router.post('/books/create/:group_name', book_controller.create_book);
 
 router.post('/books/view/:id', book_controller.get_book);
 

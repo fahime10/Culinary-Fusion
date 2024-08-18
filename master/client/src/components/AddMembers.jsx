@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
 const AddMembers = () => {
-    const { id } = useParams();
+    const { group_name } = useParams();
     
     const [usernames, setUsernames] = useState([{ id: uuidv4(), value: "" }]);
     const [isLogged, setIsLogged] = useState(false);
@@ -65,7 +65,7 @@ const AddMembers = () => {
             };
 
             try {
-                const response = await fetch(`http://localhost:9000/api/groups/add-members/${id}`, {
+                const response = await fetch(`http://localhost:9000/api/join-requests/create/${group_name}`, {
                     method: "POST",
                     headers: {
                         Accept: "application/json",
