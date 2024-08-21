@@ -26,6 +26,8 @@ const ViewRecipe = () => {
     const [allergens, setAllergens] = useState([""]);
     const [timestamp, setTimestamp] = useState(null);
 
+    const [isFavourite, setIsFavourite] = useState(false);
+
     const [isOwner, setIsOwner] = useState(false);
 
     const [hoveredStar, setHoveredStar] = useState(null);
@@ -115,6 +117,8 @@ const ViewRecipe = () => {
 
                 if (res.owner === true) {
                     setIsOwner(true);
+
+
                 }
 
             } catch (error) {
@@ -154,6 +158,8 @@ const ViewRecipe = () => {
         .catch(err => console.log(err));
 
         fetchAllComments();
+
+        checkFavourite();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
@@ -370,6 +376,63 @@ const ViewRecipe = () => {
         return false;
     }
 
+    async function checkFavourite() {
+        const userDetails = retrieveUserDetails();
+
+        if (userDetails) {
+            const data = {
+                user_id: userDetails.id,
+                recipe_id: id
+            };
+    
+            try {
+                const response = await fetch('http://localhost:9000/api/recipe/check_favourite', {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+    
+                if (response.ok) {
+                    const res = await response.json();
+                    setIsFavourite(res);
+                }
+    
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+
+    async function toggleFavourite() {
+        const userDetails = retrieveUserDetails();
+
+        const data = {
+            user_id: userDetails.id,
+            recipe_id: id
+        };
+
+        try {
+            const response = await fetch('http://localhost:9000/api/recipe/set_favourite', {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                setIsFavourite(!isFavourite);
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     function deleteComment(id) {
         fetch(`http://localhost:9000/api/comments/delete/${id}`, {
             method: "DELETE"
@@ -428,6 +491,14 @@ const ViewRecipe = () => {
                                 ></span>
                             )})}
                         </div>
+                        {logged ? 
+                            <div className="favourite-section">
+                                <div className={`favourite ${isFavourite ? 'filled' : ''}`} onClick={toggleFavourite}></div>
+                                {isFavourite ?
+                                    <p>Saved</p>
+                                : <p>Not saved</p>}
+                            </div>
+                        : null}
                         {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
                         <p>{description}</p>
                         <p>Chef/s: {chef}</p>

@@ -2,6 +2,7 @@ const Recipe = require('../models/recipeModel');
 const User = require('../models/userModel');
 const Ingredient = require('../models/ingredientModel');
 const Star = require('../models/starModel');
+const FavouriteRecipe = require('../models/favouriteRecipeModel');
 const asyncHandler = require('express-async-handler');
 const multer = require('multer');
 const mongoose = require('mongoose');
@@ -522,5 +523,61 @@ exports.personal_recipes = asyncHandler(async (req, res, next) => {
     } catch (err) {
         console.log(err);
         res.status(404).json({ error: err.message });
+    }
+});
+
+exports.check_favourite = asyncHandler(async (req, res, next) => {
+    const { user_id, recipe_id } = req.body;
+
+    try {
+        const user = await User.findOne({ _id: user_id }).lean();
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const foundFavourite = await FavouriteRecipe.findOne({ user_id: user_id, recipe_id: recipe_id }).lean();
+
+        const isFavourite = foundFavourite ? true : false;
+
+        return res.status(200).json(isFavourite);
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
+    }
+});
+
+exports.toggle_favourite = asyncHandler(async (req, res, next) => {
+    const { user_id, recipe_id } = req.body;
+
+    try {
+        const user = await User.findOne({ _id: user_id }).lean();
+
+        if (!user) {
+            console.log(user);
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const foundFavourite = await FavouriteRecipe.findOne({ user_id: user_id, recipe_id: recipe_id }).lean();
+
+        if (foundFavourite) {
+            await FavouriteRecipe.findByIdAndDelete(foundFavourite._id);
+
+            return res.status(200).json({ message: 'No longer set to favourite' });
+        }
+
+        const saveFavouriteRecipe = new FavouriteRecipe({
+            user_id,
+            recipe_id
+        });
+
+        const saveFavourite = await saveFavouriteRecipe.save();
+
+        res.status(200).json(saveFavourite);
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
     }
 });

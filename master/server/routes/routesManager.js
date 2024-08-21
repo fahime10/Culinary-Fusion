@@ -100,4 +100,8 @@ router.delete('/comments/delete/:id', comment_controller.delete_comment);
 
 router.post('/direct-message', user_controller.direct_message);
 
+router.post('/recipe/check_favourite', recipe_controller.check_favourite);
+
+router.post('/recipe/set_favourite', recipe_controller.toggle_favourite);
+
 module.exports = router;
