@@ -581,3 +581,21 @@ exports.toggle_favourite = asyncHandler(async (req, res, next) => {
         res.status(400).json({ error: error });
     }
 });
+
+exports.get_all_favourites = asyncHandler(async (req, res, next) => {
+    const { user_id } = req.params;
+
+    try {
+        const favourites = await FavouriteRecipe.find({ user_id: user_id }).populate('recipe_id').lean();
+
+        const recipes = favourites.map(favourite => favourite.recipe_id);
+
+        const result = await convertToObjects(recipes);
+
+        res.status(200).json(result);
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
+    }
+});

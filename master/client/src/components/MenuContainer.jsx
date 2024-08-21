@@ -35,6 +35,7 @@ const MenuContainer = ({ notifications, setNotifications }) => {
                         <img src={AccountIcon} className="account-icon" />
                         <button className="menu-button" onClick={() => navigate("/user-profile")}>User profile</button>
                         <button className="menu-button" onClick={() => navigate("/personal-collection")}>Personal collection</button>
+                        <button className="menu-button" onClick={() => navigate("/favourite-recipes")}>Favourite recipes</button>
                         <div className="notifications-flex">
                             <button className="menu-button" onClick={toggleDialog}>Check notifications</button>
                             {notifications.length > 0  && (

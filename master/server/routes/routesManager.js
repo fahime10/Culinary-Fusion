@@ -104,4 +104,6 @@ router.post('/recipe/check_favourite', recipe_controller.check_favourite);
 
 router.post('/recipe/set_favourite', recipe_controller.toggle_favourite);
 
+router.post('/recipes/favourite/:user_id', recipe_controller.get_all_favourites);
+
 module.exports = router;
