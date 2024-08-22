@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
-import { getRecipe, setRecipe } from "../indexedDb";
 import Footer from "./Footer";
 
 const AddRecipe = () => {
@@ -255,51 +254,9 @@ const AddRecipe = () => {
                     body: data
                 });
 
-                const res = await response.json();
-
-                const cachedUserData = await getRecipe("user_recipes");
-
-                let userRecipesArray = [];
-                let timestamp;
-
-                if (cachedUserData) {
-                    userRecipesArray = Object.keys(cachedUserData)
-                        .filter(key => !isNaN(key))
-                        .map(key => cachedUserData[key]);
-                    
-                    timestamp = cachedUserData.timestamp;
+                if (response.ok) {
+                    navigate(-1);
                 }
-
-                userRecipesArray.push(res);
-
-                await setRecipe("user_recipes", {
-                    ...userRecipesArray,
-                    timestamp: timestamp
-                });
-
-                if (!checked) {
-                    const cachedPublicData = await getRecipe("public_recipes");
-                    
-                    let publicRecipesArray = [];
-                    let timestamp;
-
-                    if (cachedPublicData) {
-                        publicRecipesArray = Object.keys(cachedPublicData)
-                            .filter(key => !isNaN(key))
-                            .map(key => cachedPublicData[key]);
-
-                        timestamp = cachedPublicData.timestamp;
-                    }
-
-                    publicRecipesArray.push(res);
-
-                    await setRecipe("public_recipes", {
-                        ...publicRecipesArray,
-                        timestamp: timestamp
-                    });
-                }
-                
-                navigate("/");
             } catch (error) {
                 console.log(error);
             }

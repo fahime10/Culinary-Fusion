@@ -60,13 +60,15 @@ const ViewRecipe = () => {
         setCuisineTypes(recipe.cuisine_types);
         setAllergens(recipe.allergens);
         setTimestamp(recipe.timestamp);
-                
+
         if (recipe.image) {
             setImageUrl(`data:image/jpeg;base64,${recipe.image}`);
         }
 
         if (userDetails) {
             if (userDetails.username === recipe.user_id.username) {
+                setIsOwner(true);
+            } else if (userDetails.username === recipe.chef_username) {
                 setIsOwner(true);
             }
         }
@@ -117,8 +119,6 @@ const ViewRecipe = () => {
 
                 if (res.owner === true) {
                     setIsOwner(true);
-
-
                 }
 
             } catch (error) {
@@ -219,6 +219,7 @@ const ViewRecipe = () => {
                     .map(key => cachedData[key]);
 
                 const updatedRecipes = recipes.filter(recipe => recipe._id !== id);
+                console.log(updatedRecipes);
 
                 await setRecipe(key, {
                     ...updatedRecipes
@@ -236,7 +237,7 @@ const ViewRecipe = () => {
                 const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
 
                 await updateCache(key);
-                navigate("/");
+                navigate(-1);
             }
         } catch (error) {
             console.log(error);

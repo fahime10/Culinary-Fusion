@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const Ingredient = require('../models/ingredientModel');
 const Star = require('../models/starModel');
 const FavouriteRecipe = require('../models/favouriteRecipeModel');
+const Comment = require('../models/commentModel');
 const asyncHandler = require('express-async-handler');
 const multer = require('multer');
 const mongoose = require('mongoose');
@@ -182,8 +183,13 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             });
             await newIngredient.save();
         }
+
+        const result = {
+            ...recipeObj,
+            chef_username: user.username
+        };
         
-        res.status(200).json(recipeObj);
+        res.status(200).json(result);
 
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -302,6 +308,8 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
 
         await Ingredient.deleteMany({ recipe_id: id });
 
+        await Comment.deleteMany({ recipe_id: id });
+
         await Recipe.findByIdAndDelete(id);
 
         res.status(204).json({ message: 'Recipe deleted successfully' });
@@ -347,9 +355,16 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
 exports.recipe_edit = asyncHandler(async (req, res, next) => {
     try {
         const { id } = req.params;
+
         const { 
-            title, chef, description, isPrivate, quantities, 
+            title, chef, description, username, isPrivate, quantities, 
             ingredients, steps, diet, categories, cuisine_types, allergens } = req.body;
+
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
         let image = null;
         if (req.file && req.file.buffer) {
@@ -400,11 +415,12 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             editedRecipe.image = editedRecipe.image.toString('base64');
         }
 
-        if (!editedRecipe) {
-            return res.status(404).json({ err: 'Something went wrong' });
-        }
+        const result = {
+            ...editedRecipe,
+            chef_username: user.username
+        };
 
-        res.status(200).json(editedRecipe);
+        res.status(200).json(result);
 
     } catch (err) {
         res.status(404).json({ err: err.message });

@@ -11,11 +11,14 @@ const EditRecipe = () => {
     const [image, setImage] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
     const [chef, setChef] = useState("");
+    const [chefUsername, setChefUsername] = useState("");
     const [checked, setChecked] = useState(false);
     const [description, setDescription] = useState("");
     const [quantities, setQuantities] = useState([""]);
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
+
+    const [isOwner, setIsOwner] = useState(false);
 
     const [diet, setDiet] = useState({
         "Vegetarian": false,
@@ -120,6 +123,7 @@ const EditRecipe = () => {
                 if (recipe) {
                     setTitle(recipe.title);
                     setChef(recipe.chef);
+                    setChefUsername(recipe.chef_username);
                     setChecked(recipe.private);
                     setDescription(recipe.description);
                     setQuantities(recipe.quantities);
@@ -162,6 +166,11 @@ const EditRecipe = () => {
                         setImage(recipe.image);
                         setImageUrl(`data:image/jpeg;base64,${recipe.image}`);
                     }
+
+                    if (userDetails.username === chefUsername) {
+                        setIsOwner(true);
+                    }
+
                     return;
                 }
             }
@@ -226,6 +235,10 @@ const EditRecipe = () => {
                     if (res.recipe.image) {
                         setImage(res.recipe.image);
                         setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
+                    }
+
+                    if (res.owner === userDetails.username) {
+                        setIsOwner(true);
                     }
                 })
                 .catch(err => console.log(err));
@@ -407,7 +420,11 @@ const EditRecipe = () => {
                         const recipeIndex = recipes.findIndex(recipe => recipe._id === id);
 
                         if (recipeIndex > -1) {
-                            recipes[recipeIndex] = res;
+                            const result = {
+                                ...res,
+                                chef_username: userDetails.username
+                            };
+                            recipes[recipeIndex] = result;
                         } else {
                             recipes.push(res);
                         }
@@ -432,161 +449,163 @@ const EditRecipe = () => {
             <div className="top-bar">
                 <h1 className="title">Edit recipe</h1>
             </div>
-            <div className="edit-recipe">
-            <form className="forms" onSubmit={(event) => handleSave(event)}>
-                    <label htmlFor="edit-title">Title:</label>
-                    <textarea
-                        id="edit-title"
-                        name="title"
-                        required={true}
-                        value={title}
-                        rows={2}
-                        cols={30}
-                        maxLength={50}
-                        onChange={handleTitle}
-                    />
-                    <label htmlFor="image-file">Image:</label>
-                    {imageUrl && <img src={imageUrl} style={{ width: "200px", height: "200px" }} className="image-file" />}
-                    <input
-                        id="image-file"
-                        type="file" 
-                        onChange={handleImage} 
-                    />
-                    <label>Chef/s:
-                        <input 
-                            type="text"
-                            name="chef"
-                            value={chef}
+            {isOwner ? 
+                <div className="edit-recipe">
+                    <form className="forms" onSubmit={(event) => handleSave(event)}>
+                        <label htmlFor="edit-title">Title:</label>
+                        <textarea
+                            id="edit-title"
+                            name="title"
                             required={true}
-                            onChange={handleChef}
+                            value={title}
+                            rows={2}
+                            cols={30}
+                            maxLength={50}
+                            onChange={handleTitle}
                         />
-                    </label>
-                    <label>Private recipe: 
-                        <input 
-                            type="checkbox"
-                            checked={checked}
-                            onChange={handleChecked}
+                        <label htmlFor="image-file">Image:</label>
+                        {imageUrl && <img src={imageUrl} style={{ width: "200px", height: "200px" }} className="image-file" />}
+                        <input
+                            id="image-file"
+                            type="file" 
+                            onChange={handleImage} 
                         />
-                    </label>
-                    <label htmlFor="description">Description:</label>
-                    <textarea 
-                        id="description"
-                        name="text" 
-                        rows={10}
-                        cols={65}
-                        value={description}
-                        onChange={handleDescription}
-                    />
-                    <div className="edit-recipe-ingredients">
-                        <label htmlFor="ingredients">Ingredients:</label>
-                        {ingredients.map((ingredient, index) => (
-                            <div key={ingredient.id} className="ingredients">
-                                <input 
-                                    type="text" 
-                                    name="quantity"
-                                    className="ingredient"
-                                    value={quantities[index]}
-                                    onChange={(event) => handleQuantityChange(index, event)}
-                                    placeholder="Quantity"
-                                />
-                                <textarea 
-                                    id="ingredients"
-                                    className="ingredient"
-                                    name="ingredients"
-                                    cols={20}
-                                    value={ingredient.value}
-                                    required={true}
-                                    placeholder="Ingredient name"
-                                    onChange={(event) => handleIngredientsChange(index, event)}
-                                />
-                                <button type="button" onClick={() => removeIngredient(index)}>Delete</button>
-                            </div>
-                        ))}
-                        <button type="button" className="add" onClick={addIngredient}>Add one more ingredient</button>
-                    </div>
-                    <div className="edit-recipe-steps">
-                        <label htmlFor="steps">Steps:</label>
-                        {steps.map((step) => (
-                            <div key={step.id} htmlFor="steps" className="steps">
-                                <textarea 
-                                    id="steps"
-                                    className="step"
-                                    name="steps"
-                                    rows={5}
-                                    cols={30}
-                                    value={step.value}
-                                    required={true}
-                                    onChange={(event) => handleStepsChange(step.id, event)}
-                                />
-                                <button type="button" onClick={() => removeStep(step.id)}>Delete</button>
-                            </div> 
-                        ))}
-                        <button type="button" className="add" onClick={addStep}>Add one more step</button>
-                    </div>
-                    <div className="box">
-                        <div className="box-title">Type of diet:</div>
-                        <div className="checkboxes">
-                            {Object.keys(diet).map(type_of_diet => (
-                                <label key={type_of_diet}>
+                        <label>Chef/s:
+                            <input 
+                                type="text"
+                                name="chef"
+                                value={chef}
+                                required={true}
+                                onChange={handleChef}
+                            />
+                        </label>
+                        <label>Private recipe: 
+                            <input 
+                                type="checkbox"
+                                checked={checked}
+                                onChange={handleChecked}
+                            />
+                        </label>
+                        <label htmlFor="description">Description:</label>
+                        <textarea 
+                            id="description"
+                            name="text" 
+                            rows={10}
+                            cols={65}
+                            value={description}
+                            onChange={handleDescription}
+                        />
+                        <div className="edit-recipe-ingredients">
+                            <label htmlFor="ingredients">Ingredients:</label>
+                            {ingredients.map((ingredient, index) => (
+                                <div key={ingredient.id} className="ingredients">
                                     <input 
-                                        type="checkbox"
-                                        checked={diet[type_of_diet]}
-                                        onChange={() => handleCheckboxChange("diet", type_of_diet)}
+                                        type="text" 
+                                        name="quantity"
+                                        className="ingredient"
+                                        value={quantities[index]}
+                                        onChange={(event) => handleQuantityChange(index, event)}
+                                        placeholder="Quantity"
                                     />
-                                    {type_of_diet}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="box">
-                        <div className="box-title">Categories:</div>
-                        <div className="checkboxes">
-                            {Object.keys(categories).map(category => (
-                                <label key={category}>
-                                    <input  
-                                        type="checkbox"
-                                        checked={categories[category]}
-                                        onChange={() => handleCheckboxChange("categories", category)}
+                                    <textarea 
+                                        id="ingredients"
+                                        className="ingredient"
+                                        name="ingredients"
+                                        cols={20}
+                                        value={ingredient.value}
+                                        required={true}
+                                        placeholder="Ingredient name"
+                                        onChange={(event) => handleIngredientsChange(index, event)}
                                     />
-                                    {category}
-                                </label>
+                                    <button type="button" onClick={() => removeIngredient(index)}>Delete</button>
+                                </div>
                             ))}
+                            <button type="button" className="add" onClick={addIngredient}>Add one more ingredient</button>
                         </div>
-                    </div>
-                    <div className="box">
-                        <div className="box-title">Cuisine types:</div>
-                        <div className="checkboxes">
-                            {Object.keys(cuisineTypes).map(cuisineType => (
-                                <label key={cuisineType}>
-                                    <input  
-                                        type="checkbox"
-                                        checked={cuisineTypes[cuisineType]}
-                                        onChange={() => handleCheckboxChange("cuisineTypes", cuisineType)}
+                        <div className="edit-recipe-steps">
+                            <label htmlFor="steps">Steps:</label>
+                            {steps.map((step) => (
+                                <div key={step.id} htmlFor="steps" className="steps">
+                                    <textarea 
+                                        id="steps"
+                                        className="step"
+                                        name="steps"
+                                        rows={5}
+                                        cols={30}
+                                        value={step.value}
+                                        required={true}
+                                        onChange={(event) => handleStepsChange(step.id, event)}
                                     />
-                                    {cuisineType}
-                                </label>
+                                    <button type="button" onClick={() => removeStep(step.id)}>Delete</button>
+                                </div> 
                             ))}
+                            <button type="button" className="add" onClick={addStep}>Add one more step</button>
                         </div>
-                    </div>
-                    <div className="box">
-                        <div className="box-title">Allergens:</div>
-                        <div className="checkboxes">
-                            {Object.keys(allergens).map(allergen => (
-                                <label key={allergen}>
-                                    <input  
-                                        type="checkbox"
-                                        checked={allergens[allergen]}
-                                        onChange={() => handleCheckboxChange("allergens", allergen)}
-                                    />
-                                    {allergen}
-                                </label>
-                            ))}
+                        <div className="box">
+                            <div className="box-title">Type of diet:</div>
+                            <div className="checkboxes">
+                                {Object.keys(diet).map(type_of_diet => (
+                                    <label key={type_of_diet}>
+                                        <input 
+                                            type="checkbox"
+                                            checked={diet[type_of_diet]}
+                                            onChange={() => handleCheckboxChange("diet", type_of_diet)}
+                                        />
+                                        {type_of_diet}
+                                    </label>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit">Save</button>
-                    <button type="button" className="cancel" onClick={redirectToViewRecipe}>Cancel</button>
-                </form>
-            </div>
+                        <div className="box">
+                            <div className="box-title">Categories:</div>
+                            <div className="checkboxes">
+                                {Object.keys(categories).map(category => (
+                                    <label key={category}>
+                                        <input  
+                                            type="checkbox"
+                                            checked={categories[category]}
+                                            onChange={() => handleCheckboxChange("categories", category)}
+                                        />
+                                        {category}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="box">
+                            <div className="box-title">Cuisine types:</div>
+                            <div className="checkboxes">
+                                {Object.keys(cuisineTypes).map(cuisineType => (
+                                    <label key={cuisineType}>
+                                        <input  
+                                            type="checkbox"
+                                            checked={cuisineTypes[cuisineType]}
+                                            onChange={() => handleCheckboxChange("cuisineTypes", cuisineType)}
+                                        />
+                                        {cuisineType}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="box">
+                             <div className="box-title">Allergens:</div>
+                            <div className="checkboxes">
+                                {Object.keys(allergens).map(allergen => (
+                                    <label key={allergen}>
+                                        <input  
+                                            type="checkbox"
+                                            checked={allergens[allergen]}
+                                            onChange={() => handleCheckboxChange("allergens", allergen)}
+                                        />
+                                        {allergen}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <button type="submit">Save</button>
+                        <button type="button" className="cancel" onClick={redirectToViewRecipe}>Cancel</button>
+                    </form>
+                </div>
+            : <p>Sorry, you are not authorized to edit this recipe</p>}
             <Footer />
         </>
     );
