@@ -615,3 +615,50 @@ exports.get_all_favourites = asyncHandler(async (req, res, next) => {
         res.status(400).json({ error: error });
     }
 });
+
+exports.sort_by_popularity = asyncHandler(async (req, res, next) => {
+    const { page_count } = req.body;
+
+    try {
+        const recipes = await Recipe.find({ private: false }).lean();
+
+        const recipeIds = recipes.map(recipe => recipe._id);
+
+        const allRatings = await Star.find({ recipe_id: { $in: recipeIds }});
+
+        const ratingMap = {};
+
+        allRatings.forEach(rating => {
+            if (!ratingMap[rating.recipe_id]) {
+                ratingMap[rating.recipe_id] = [];
+            }
+            ratingMap[rating.recipe_id].push(rating);
+        });
+
+        const recipesWithAverage = recipes.map(recipe => {
+            const ratings = ratingMap[recipe._id] || [];
+            const totalRating = ratings.reduce((a, b) => a + b.stars, 0);
+            const average = ratings.length > 0 ? totalRating / ratings.length : 0;
+
+            return {
+                ...recipe,
+                average: average
+            };
+        });
+
+        const sortedRecipes = recipesWithAverage.sort((a, b) => b.average - a.average);
+
+        const startIndex = (page_count * 20) - 20;
+        const endIndex = page_count * 20;
+
+        const page = sortedRecipes.slice(startIndex, endIndex);
+
+        const limit = page.length < 20 ? true : false;
+
+        res.status(200).json({ page: page, limit: limit });
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
+    }
+});
