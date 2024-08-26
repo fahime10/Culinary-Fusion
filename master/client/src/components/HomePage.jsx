@@ -21,8 +21,6 @@ const HomePage = () => {
     const [limitPage, setLimitPage] = useState(false);
     const [notifications, setNotifications] = useState([]);
 
-    const [sort, setSort] = useState(false);
-
     const navigate = useNavigate();
 
     const [categories, setCategories] = useState({
@@ -274,6 +272,9 @@ const HomePage = () => {
             if (!sessionStorage.getItem("editedUser")) {
                 sessionStorage.setItem("editedUser", false);
             }
+
+            sessionStorage.setItem("popularPageCount", -1);
+            sessionStorage.setItem("popularLimit", -1);
         }
 
         async function fetchRecipesDelayed() {
@@ -298,14 +299,7 @@ const HomePage = () => {
             setLastName(userDetails.last_name);
         }
 
-        const sort = sessionStorage.getItem("sort");
-
-        if (sort === "true") {
-            setSort(sort);
-            handleSort({ target: { checked: true } });
-        } else {
-            fetchRecipesDelayed();   
-        }
+        fetchRecipesDelayed();   
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -425,12 +419,7 @@ const HomePage = () => {
         }
 
         setLimitPage(false);
-
-        if (sort) {
-            await retrievePopularRecipes(pageCount);
-        } else {
-            await fetchRecipes(pageCount);
-        }
+        await fetchRecipes(pageCount);
     }
 
     async function changeToNext() {
@@ -443,56 +432,7 @@ const HomePage = () => {
         }
         
         sessionStorage.setItem("pageCount", pageCount);
-        
-        if (sort) {
-            await retrievePopularRecipes(pageCount);
-        } else {
-            await fetchRecipes(pageCount);
-        }
-    }
-
-    async function retrievePopularRecipes(pageCount) {
-        const data = {
-            page_count: pageCount
-        };
-        
-
-        const response = await fetch("http://localhost:9000/api/popular-recipes", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-            const res = await response.json();
-
-            setRecipes(res.page);
-
-            const isLimit = res.limit;
-        
-            if (isLimit) {
-                setLimitPage(isLimit);
-                let limit = sessionStorage.getItem("pageCount");
-                sessionStorage.setItem("limit", parseInt(limit));
-            }
-        }
-    }
-
-    async function handleSort(e) {
-        const isChecked = e.target.checked;
-        setSort(isChecked);
-        sessionStorage.setItem("sort", isChecked);
-
-        const pageCount = sessionStorage.getItem("pageCount");
-
-        if(isChecked) {
-            await retrievePopularRecipes(pageCount);
-        } else {
-            await fetchRecipes(parseInt(sessionStorage.getItem("pageCount")));
-        }
+        await fetchRecipes(pageCount);
     }
 
     return (
@@ -536,14 +476,7 @@ const HomePage = () => {
                         <DropDownMenu title="Cuisine types" options={cuisineTypes} setOptions={setCuisineTypes} />
                     </div>
                     <div className="sort">
-                        <input 
-                            type="checkbox"
-                            id="sort"
-                            name="sort"
-                            checked={sort}
-                            onChange={handleSort}
-                        />
-                        <label htmlFor="sort">Most popular</label>
+                        <button type="button" onClick={() => navigate("/popular-recipes")}>Most Popular</button>
                     </div>
                     <div className="recipes">
                         {recipes.length > 0 ? recipes.map((recipe) => (

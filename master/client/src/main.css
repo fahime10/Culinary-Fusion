@@ -194,6 +194,15 @@ button:hover {
     row-gap: 1rem;
 }
 
+.popular-recipes {
+    display: grid;
+    margin: 1rem; 
+    height: auto;
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 1rem;
+    width: 100vw;
+}
+
 .recipe {
     border: 3px solid black;
     border-radius: 5px;

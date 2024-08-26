@@ -22,6 +22,7 @@ import IncludeRecipe from "./IncludeRecipe";
 import EditBookRecipe from "./EditBookRecipe";
 import DirectMessage from "./DirectMessage";
 import FavouriteRecipes from "./FavouriteRecipes";
+import PopularRecipes from "./PopularRecipes";
 
 function App() {
   const [response, setResponse] = useState("");
@@ -61,6 +62,7 @@ function App() {
           <Route path="/books/recipes/edit/:id/:recipe_id" element={<EditBookRecipe />} />
           <Route path="/direct-message" element={<DirectMessage />} />
           <Route path="/favourite-recipes" element={<FavouriteRecipes />} />
+          <Route path="/popular-recipes" element={<PopularRecipes />} />
         </Routes>
       </BrowserRouter>
     </>
