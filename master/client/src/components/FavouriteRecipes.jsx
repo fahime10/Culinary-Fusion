@@ -51,7 +51,7 @@ const FavouriteRecipes = () => {
     return (
         <>
             {loading ? <LoadingSpinner /> :
-                <div>
+                <div className="favourite-recipes">
                     <div className="top-bar">
                         <h1 className="title">Culinary Fusion</h1>
                         <h3 className="title-2">Favourite recipes</h3>

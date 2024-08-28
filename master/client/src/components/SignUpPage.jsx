@@ -211,7 +211,7 @@ const SignUpPage = () => {
             </div>
             <div className="sign-up">
                 <form className="forms" onSubmit={(event) => handleSave(event)}>
-                    <select value={nameTitle} onChange={handleNameTitle} required={true}>
+                    <select value={nameTitle} className="name-title" onChange={handleNameTitle} required={true}>
                         <option value="" disabled>Please select an option</option>
                         <option value="Mr">Mr</option>
                         <option value="Mrs">Mrs</option>
@@ -219,57 +219,67 @@ const SignUpPage = () => {
                         <option value="Dr">Dr</option>
                         <option value="Chef">Chef</option>
                     </select>
-                    <label>First name:
-                        <input
-                            type="text"
-                            name="first-name"
-                            required={true}
-                            minLength={1}
-                            maxLength={50}
-                            onChange={handleFirstName}
-                        />
-                    </label>
-                    <label>Last name:
-                        <input
-                            type="text"
-                            name="last-name"
-                            required={true}
-                            minLength={1}
-                            maxLength={50}
-                            onChange={handleLastName}
-                        />
-                    </label>
-                    <label>Username:
-                        <input
-                            type="text"
-                            name="username"
-                            required={true}
-                            minLength={3}
-                            maxLength={20}
-                            onChange={handleUsername}
-                        />
-                    </label>
-                    <label>Password:
-                        <input
-                            type="password"
-                            name="password"
-                            required={true}
-                            minLength={4}
-                            onChange={handlePassword}
-                        />
-                    </label>
-                    <label>Email:
-                        <input
-                            id="email"
-                            type="email"
-                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                            name="email"
-                            required={true}
-                            minLength={1}
-                            onChange={handleEmail}
-                            style={{marginBottom: "1rem"}}
-                        />
-                    </label>
+                    <div className="user-details">
+                        <div className="labels">
+                            <label htmlFor="first-name">First name:</label>
+                            <label htmlFor="last-name">Last name:</label>
+                            <label htmlFor="username">Username:</label>
+                            <label htmlFor="password">Password:</label>
+                            <label htmlFor="email">Email:</label>
+                        </div>
+                        <div className="inputs">
+                            <input
+                                type="text"
+                                id="first-name"
+                                name="first-name"
+                                required={true}
+                                minLength={1}
+                                maxLength={50}
+                                onChange={handleFirstName}
+                                placeholder="First name"
+                            />
+                            <input
+                                type="text"
+                                id="last-name"
+                                name="last-name"
+                                required={true}
+                                minLength={1}
+                                maxLength={50}
+                                onChange={handleLastName}
+                                placeholder="Last name"
+                            />
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                required={true}
+                                minLength={3}
+                                maxLength={20}
+                                onChange={handleUsername}
+                                placeholder="Username"
+                            />
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required={true}
+                                minLength={4}
+                                onChange={handlePassword}
+                                placeholder="Password"
+                            />
+                            <input
+                                id="email"
+                                type="email"
+                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                name="email"
+                                required={true}
+                                minLength={1}
+                                onChange={handleEmail}
+                                style={{marginBottom: "1rem"}}
+                                placeholder="Email"
+                            />
+                        </div>
+                    </div>
                     <div className="box">
                         <div className="box-title">Dietary preferences:</div>
                         <div className="checkboxes">
@@ -336,8 +346,8 @@ const SignUpPage = () => {
                     <button style={{marginBottom: "1rem"}}>Save</button>
                     <button type="button" onClick={() => navigate("/")}>Cancel</button>
                 </form>
-                <Footer />
             </div>
+            <Footer />
         </>
     );
 }

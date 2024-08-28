@@ -26,7 +26,6 @@ import PopularRecipes from "./PopularRecipes";
 
 function App() {
   const [response, setResponse] = useState("");
-  sessionStorage.setItem("pageCount", 1);
 
   useEffect(() => {
     fetch("http://localhost:9000/api")

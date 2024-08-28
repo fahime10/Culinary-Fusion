@@ -450,7 +450,7 @@ const ViewRecipe = () => {
     return (
         <>
             {loading ? <LoadingSpinner /> : 
-                <div>
+                <div className="view-recipe">
                     <div className="top">
                         {isOwner ? (
                             <button onClick={() => redirectToEditRecipe(id)}>Edit Recipe</button>
@@ -501,9 +501,11 @@ const ViewRecipe = () => {
                             </div>
                         : null}
                         {imageUrl ? (imageUrl && <img src={imageUrl} />) :  <img src={NoImageIcon} />}
-                        <p>{description}</p>
-                        <p>Chef/s: {chef}</p>
-                        <p>Added by: {chefUsername}</p>
+                        <div className="info">
+                            <p>Description: {description}</p>
+                            <p>Chef/s: {chef}</p>
+                            <p>Added by: {chefUsername}</p>
+                        </div>
                         <div className="ingredient-list">
                             <p>Ingredients:</p>
                             <ul>
@@ -584,8 +586,8 @@ const ViewRecipe = () => {
                                 <button type="button" onClick={getMoreComments}>Load more comments</button>
                             : null}
                         </div>
-                        <Footer />
                     </div>
+                    <Footer />
                 </div>
             }
         </>

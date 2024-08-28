@@ -50,11 +50,12 @@ const PersonalCollection = () => {
     return (
         <>
             {loading ? <LoadingSpinner /> :
-                <div>
+                <div className="personal-collection">
                     <div className="top-bar">
                         <h1 className="title">Culinary Fusion</h1>
                         <h3 className="title-2">Personal collection</h3>
                         <button className="second" onClick={() => navigate("/")}>Home</button>
+                        <button className="third" onClick={() => navigate(-1)}>Back</button>
                     </div>
                     <div className="recipes">
                         {recipes.length > 0 ? recipes.map((recipe) => (

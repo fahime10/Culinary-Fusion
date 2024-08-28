@@ -11,7 +11,6 @@ const EditRecipe = () => {
     const [image, setImage] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
     const [chef, setChef] = useState("");
-    const [chefUsername, setChefUsername] = useState("");
     const [checked, setChecked] = useState(false);
     const [description, setDescription] = useState("");
     const [quantities, setQuantities] = useState([""]);
@@ -109,6 +108,7 @@ const EditRecipe = () => {
     useEffect(() => {
         async function fetchRecipe() {
             const token = sessionStorage.getItem("token");
+            const userDetails = retrieveUserDetails();
             const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
 
             const cachedData = await getRecipe(key);
@@ -123,7 +123,6 @@ const EditRecipe = () => {
                 if (recipe) {
                     setTitle(recipe.title);
                     setChef(recipe.chef);
-                    setChefUsername(recipe.chef_username);
                     setChecked(recipe.private);
                     setDescription(recipe.description);
                     setQuantities(recipe.quantities);
@@ -167,15 +166,13 @@ const EditRecipe = () => {
                         setImageUrl(`data:image/jpeg;base64,${recipe.image}`);
                     }
 
-                    if (userDetails.username === chefUsername) {
+                    if (userDetails.username === recipe.chef_username) {
                         setIsOwner(true);
                     }
 
                     return;
                 }
             }
-
-            const userDetails = retrieveUserDetails();
 
             if (userDetails) {
                 const data = {
@@ -237,6 +234,7 @@ const EditRecipe = () => {
                         setImageUrl(`data:image/jpeg;base64,${res.recipe.image}`);
                     }
 
+                    console.log(res.owner)
                     if (res.owner === userDetails.username) {
                         setIsOwner(true);
                     }
@@ -517,7 +515,7 @@ const EditRecipe = () => {
                                         placeholder="Ingredient name"
                                         onChange={(event) => handleIngredientsChange(index, event)}
                                     />
-                                    <button type="button" onClick={() => removeIngredient(index)}>Delete</button>
+                                    <button type="button" onClick={() => removeIngredient(index)}>X</button>
                                 </div>
                             ))}
                             <button type="button" className="add" onClick={addIngredient}>Add one more ingredient</button>
@@ -531,12 +529,12 @@ const EditRecipe = () => {
                                         className="step"
                                         name="steps"
                                         rows={5}
-                                        cols={30}
+                                        cols={50}
                                         value={step.value}
                                         required={true}
                                         onChange={(event) => handleStepsChange(step.id, event)}
                                     />
-                                    <button type="button" onClick={() => removeStep(step.id)}>Delete</button>
+                                    <button type="button" onClick={() => removeStep(step.id)}>X</button>
                                 </div> 
                             ))}
                             <button type="button" className="add" onClick={addStep}>Add one more step</button>

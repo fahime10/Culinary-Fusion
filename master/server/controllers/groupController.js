@@ -1,5 +1,7 @@
 const Group = require('../models/groupModel');
 const User = require('../models/userModel');
+const Book = require('../models/bookModel');
+const Recipe = require('../models/recipeModel');
 const JoinRequest = require('../models/joinRequestModel');
 const asyncHandler = require('express-async-handler');
 
@@ -105,7 +107,7 @@ exports.edit_group = asyncHandler(async (req, res, next) => {
 
         const foundGroup = await Group.findOne({ group_name: new_group_name }).lean();
 
-        if (foundGroup) {
+        if (foundGroup && !(group_name === new_group_name)) {
             return res.status(400).json({ error: 'Group name already taken' });
         }
 
@@ -139,6 +141,14 @@ exports.delete_group = asyncHandler(async (req, res, next) => {
         if (!group) {
             return res.status(404).json({ error: 'Group not found' });
         }
+
+        const books = await Book.find({ group_id: group._id }).lean();
+
+        for (const book of books) {
+            await Recipe.deleteMany({ _id: { $in: book.recipes_id }});
+        }
+
+        await Book.deleteMany({ group_id: group._id });
 
         await Group.findByIdAndDelete(group._id);
         

@@ -144,7 +144,7 @@ const ForgottenPassword = () => {
                 <div ref={errorRef} style={{ display: "none", color: "red" }}>
                     <p>{error}</p>
                 </div>
-                <button type="button" onClick={() => navigate("/")}>Cancel</button>
+                <button type="button" onClick={() => navigate(-1)}>Cancel</button>
             </form>
             <Footer />
         </>

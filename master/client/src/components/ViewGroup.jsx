@@ -134,7 +134,7 @@ const ViewGroup = () => {
             <div className="group-page">
                 <div className="top-grid">
                     <h1 className="title">{groupName}</h1>
-                    <h2>{groupDescription}</h2>
+                    <h2 className="description">{groupDescription}</h2>
                     {isMainAdmin || isAdmin ? (
                         <button type="button" onClick={() => redirectToAddMembers(group_name)}>Add members</button>
                     ) : null}
@@ -166,7 +166,7 @@ const ViewGroup = () => {
                 <div className="books">
                     {books.length > 0 ? books.map((book) => (
                         <div key={book._id} id={book._id} className="book" onClick={() => viewBook(book._id)}>
-                            <div className="cover">    
+                            <div key={book._id} className="cover">    
                                 <h3>{book.book_title}</h3>
                                 <p>{book.book_description}</p>
                             </div>

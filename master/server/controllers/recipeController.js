@@ -4,6 +4,7 @@ const Ingredient = require('../models/ingredientModel');
 const Star = require('../models/starModel');
 const FavouriteRecipe = require('../models/favouriteRecipeModel');
 const Comment = require('../models/commentModel');
+const Book = require('../models/bookModel');
 const asyncHandler = require('express-async-handler');
 const multer = require('multer');
 const mongoose = require('mongoose');
@@ -532,7 +533,18 @@ exports.personal_recipes = asyncHandler(async (req, res, next) => {
 
         const userRecipes = await Recipe.find({ user_id: user._id }).lean();
 
-        const result = await convertToObjects(userRecipes);
+        const books = await Book.find().lean();
+        const recipeIds = new Set();
+
+        for (const book of books) {
+            for (const recipeId of book.recipes_id) {
+                recipeIds.add(recipeId.toString());
+            }
+        }
+
+        const filteredRecipes = userRecipes.filter(recipe => !recipeIds.has(recipe._id.toString()));
+
+        const result = await convertToObjects(filteredRecipes);
 
         res.status(200).json(result);
 

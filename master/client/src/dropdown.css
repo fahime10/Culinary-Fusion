@@ -23,3 +23,7 @@
 .dropdown-item label, .dropdown-item input {
     cursor: pointer;
 }
+
+.dropdown-item {
+    margin-top: 0.5rem;
+}

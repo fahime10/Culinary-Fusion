@@ -363,109 +363,113 @@ const ViewBook = () => {
 
     return (
         <>
-            <div className="top-bar-book">
-                <h1 className="title">{bookTitle}</h1>
-                <p className="description">{bookDescription}</p>
-                {isMainAdmin || isAdmin ? 
-                    <button type="button" className="first" onClick={() => redirectToEditBook(id)}>Edit book details</button>
-                : null}
-                {isMainAdmin || isAdmin ? 
-                    <button type="button" className="second" onClick={toggleBookDialog}>Delete book</button>
-                : null}
-                <button type="button" className="third" onClick={() => navigate(-1)}>Back</button>
-                <button type="button" className="fourth" onClick={() => navigate("/")}>Home</button>
+            <div className="book-view">
+                <div className="top-bar-book">
+                    <h1 className="title">{bookTitle}</h1>
+                    <p className="description">{bookDescription}</p>
+                    {isMainAdmin || isAdmin ? 
+                        <button type="button" className="first" onClick={() => redirectToEditBook(id)}>Edit book details</button>
+                    : null}
+                    {isMainAdmin || isAdmin ? 
+                        <button type="button" className="second" onClick={toggleBookDialog}>Delete book</button>
+                    : null}
+                    <button type="button" className="third" onClick={() => navigate(-1)}>Back</button>
+                    <button type="button" className="fourth" onClick={() => navigate("/")}>Home</button>
+                    <Dialog
+                        isOpen={bookDialog}
+                        onClose={toggleBookDialog}
+                        title="Attention"
+                        content="Are you sure you want to delete the book? You will lose all the recipes in it"
+                        funct={() => deleteBook(id)}
+                    ></Dialog>
+                </div>
+                <div className="book-options">
+                    {isMainAdmin || isAdmin || isCollaborator ? 
+                        <button type="button" className="third" onClick={() => redirectToIndludeRecipe(id)}>Add a recipe</button>
+                    : null}
+                    {isMainAdmin || isAdmin || isCollaborator ?
+                            <button type="button" onClick={redirectToEditBookRecipe}>Edit this recipe</button>
+                        : null}
+                    {isMainAdmin || isAdmin ?
+                        <button type="button" onClick={toggleRecipeDialog}>Delete this recipe</button>
+                    : null}
+                </div>
                 <Dialog
-                    isOpen={bookDialog}
-                    onClose={toggleBookDialog}
+                    isOpen={recipeDialog}
+                    onClose={toggleRecipeDialog}
                     title="Attention"
-                    content="Are you sure you want to delete the book? You will lose all the recipes in it"
-                    funct={() => deleteBook(id)}
+                    content="Are you sure you want to delete this recipe"
+                    funct={deleteCurrentRecipe}
                 ></Dialog>
-            </div>
-            {isMainAdmin || isAdmin || isCollaborator ? 
-                <button type="button" className="third" onClick={() => redirectToIndludeRecipe(id)}>Add a recipe</button>
-            : null}
-            {isMainAdmin || isAdmin || isCollaborator ?
-                    <button type="button" onClick={redirectToEditBookRecipe}>Edit this recipe</button>
-                : null}
-            {isMainAdmin || isAdmin ?
-                <button type="button" onClick={toggleRecipeDialog}>Delete this recipe</button>
-            : null}
-            <Dialog
-                isOpen={recipeDialog}
-                onClose={toggleRecipeDialog}
-                title="Attention"
-                content="Are you sure you want to delete this recipe"
-                funct={deleteCurrentRecipe}
-            ></Dialog>
-            <div className="book-recipe">
-                <button type="button" className="previous" onClick={changeToPrevious}></button>
-                <button type="button" className="next" disabled={limitPage} onClick={changeToNext}></button>
-                <h1>{title}</h1>
-                {imageUrl ? (imageUrl && <img src={imageUrl} />) : <img src={NoImageIcon} />}
-                <div className="info">
-                    <p>Description: {description}</p>
-                    <p>Chef/s: {chef}</p>
-                    <p>Added by: {chefUsername}</p>
+                <div className="book-recipe">
+                    <button type="button" className="previous" onClick={changeToPrevious}></button>
+                    <button type="button" className="next" disabled={limitPage} onClick={changeToNext}></button>
+                    <h1>{title}</h1>
+                    {imageUrl ? (imageUrl && <img src={imageUrl} />) : <img src={NoImageIcon} />}
+                    <div className="info">
+                        <p>Description: {description}</p>
+                        <p>Chef/s: {chef}</p>
+                        <p>Added by: {chefUsername}</p>
+                    </div>
+                    <div className="ingredient-list">
+                        <p>Ingredients:</p>
+                        <ul>
+                            {ingredients.map((ingredient) => (
+                                <li key={ingredient.id} className="ingredient">{ingredient.quantity} {ingredient.value}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="step-list">
+                        <p>Steps:</p>
+                        <ol>
+                            {steps.map((step) => (
+                                <li key={step.id} className="step">{step.value}</li>
+                            ))}
+                        </ol>
+                    </div>
+                    <p>Added: {formatDate(timestamp)}</p>
+                    <div>
+                        <p>Type of diet:</p>
+                        <ul>
+                            {diet.length > 0 ? diet.map((typeOfDiet) => (
+                                <li key={typeOfDiet} className="typeOfDiet">{typeOfDiet}</li>
+                            )) : "No type of diet mentioned" }
+                        </ul>
+                    </div>
+                    <div>
+                        <p>Categories:</p>
+                        <ul>
+                            {categories.length > 0 ? categories.map((category) => (
+                                <li key={category} className="category">{category}</li>
+                            )) : "No category mentioned" }
+                        </ul>
+                    </div>
+                    <div>
+                        <p>Cuisine types:</p>
+                        <ul>
+                            {cuisineTypes.length > 0 ? cuisineTypes.map((cuisineType) => (
+                                <li key={cuisineType} className="cuisine">{cuisineType}</li>
+                            )) : "No cuisine type mentioned"}
+                        </ul>
+                    </div>
+                    <div>
+                        <p>Allergens:</p>
+                        <ul>
+                            {allergens.length > 0 ? allergens.map((allergen) => (
+                                <li key={allergen} className="allergen">{allergen}</li>
+                            )) : "No allergens mentioned. Please do check the ingredients" }
+                        </ul>
+                    </div>
                 </div>
-                <div className="ingredient-list">
-                    <p>Ingredients:</p>
-                    <ul>
-                        {ingredients.map((ingredient) => (
-                            <li key={ingredient.id} className="ingredient">{ingredient.quantity} {ingredient.value}</li>
-                        ))}
-                    </ul>
+                <div className="bookpage">
+                    <label htmlFor="current-page">Current page:</label>
+                    <input
+                        type="number"
+                        id="current-page"
+                        value={currentPage}
+                        onChange={handlePageChange}
+                    />
                 </div>
-                <div className="step-list">
-                    <p>Steps:</p>
-                    <ol>
-                        {steps.map((step) => (
-                            <li key={step.id} className="step">{step.value}</li>
-                        ))}
-                    </ol>
-                </div>
-                <p>Added: {formatDate(timestamp)}</p>
-                <div>
-                    <p>Type of diet:</p>
-                    <ul>
-                        {diet.length > 0 ? diet.map((typeOfDiet) => (
-                            <li key={typeOfDiet} className="typeOfDiet">{typeOfDiet}</li>
-                        )) : "No type of diet mentioned" }
-                    </ul>
-                </div>
-                <div>
-                    <p>Categories:</p>
-                    <ul>
-                        {categories.length > 0 ? categories.map((category) => (
-                            <li key={category} className="category">{category}</li>
-                        )) : "No category mentioned" }
-                    </ul>
-                </div>
-                <div>
-                    <p>Cuisine types:</p>
-                    <ul>
-                        {cuisineTypes.length > 0 ? cuisineTypes.map((cuisineType) => (
-                            <li key={cuisineType} className="cuisine">{cuisineType}</li>
-                        )) : "No cuisine type mentioned"}
-                    </ul>
-                </div>
-                <div>
-                    <p>Allergens:</p>
-                    <ul>
-                        {allergens.length > 0 ? allergens.map((allergen) => (
-                            <li key={allergen} className="allergen">{allergen}</li>
-                        )) : "No allergens mentioned. Please do check the ingredients" }
-                    </ul>
-                </div>
-            </div>
-            <div className="bookpage">
-                <label htmlFor="current-page">Current page:</label>
-                <input
-                    type="number"
-                    id="current-page"
-                    value={currentPage}
-                    onChange={handlePageChange}
-                />
             </div>
             <Footer />
         </>

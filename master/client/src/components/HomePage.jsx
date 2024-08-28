@@ -14,12 +14,15 @@ const HomePage = () => {
     const TEN_MINUTES = 10 * 60 * 1000;
 
     const [loading, setLoading] = useState(true);
+    const [isLogged, setIsLogged] = useState(false);
     const [recipes, setRecipes] = useState([]);
     const [nameTitle, setNameTitle] = useState("");
     const [lastName, setLastName] = useState("");
     const [searchRecipe, setSearchRecipe] = useState("");
     const [limitPage, setLimitPage] = useState(false);
     const [notifications, setNotifications] = useState([]);
+
+    const [isFetching, setIsFetching] = useState(false);
 
     const navigate = useNavigate();
 
@@ -122,11 +125,21 @@ const HomePage = () => {
                 const isLimit = res.limit;
         
                 const updatedRecipes = [...cachedRecipes, ...newRecipes];
+
+                const token = sessionStorage.getItem("token");
+
+                let key = "";
+
+                if (token !== null && token !== "undefined") {
+                    key = "userPageCount";
+                } else {
+                    key = "publicPageCount";
+                }
         
                 if (isLimit) {
                     setLimitPage(isLimit);
-                    let limit = sessionStorage.getItem("pageCount");
-                    sessionStorage.setItem("limit", parseInt(limit));
+                    let limit = sessionStorage.getItem(key);
+                    sessionStorage.setItem(`${key}Limit`, parseInt(limit));
                 }
 
                 await setRecipe(cacheKey, { ...updatedRecipes, timestamp: now });
@@ -162,7 +175,7 @@ const HomePage = () => {
 
         if (isUserEdited) {
             clearUserRecipes();
-            sessionStorage.setItem("pageCount", 1);
+            sessionStorage.setItem("userPageCount", 1);
         }
 
         const fetchedRecipes = await fetchAndCacheRecipes(url, cacheKey, pageCount);
@@ -266,7 +279,10 @@ const HomePage = () => {
             if (!sessionStorage.getItem("initialized")) {
                 await clearRecipes();
                 sessionStorage.setItem("initialized", true);
-                sessionStorage.setItem("limit", -1);
+                sessionStorage.setItem("publicPageCountLimit", -1);
+                sessionStorage.setItem("userPageCountLimit", -1);
+                sessionStorage.setItem("publicPageCount", 1);
+                sessionStorage.setItem("userPageCount", 1);
             }
 
             if (!sessionStorage.getItem("editedUser")) {
@@ -278,11 +294,23 @@ const HomePage = () => {
         }
 
         async function fetchRecipesDelayed() {
+            const token = sessionStorage.getItem("token");
+
+            let key = "";
+
+            if (token !== null && token !== "undefined") {
+                key = "userPageCount";
+                setIsLogged(true);
+            } else {
+                key = "publicPageCount";
+                setIsLogged(false);
+            }
+
             setLoading(true);
 
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            await fetchRecipes(parseInt(sessionStorage.getItem("pageCount")));
+            await fetchRecipes(parseInt(sessionStorage.getItem(key)));
 
             await getAllNotifications();
 
@@ -347,9 +375,13 @@ const HomePage = () => {
 
     useEffect(() => {
         const noFilters = Object.values(categories).every(val => !val) && Object.values(cuisineTypes).every(val => !val);
+        const token = sessionStorage.getItem("token");
 
-        if (noFilters) {
-            fetchRecipes(parseInt(sessionStorage.getItem("pageCount")));
+        if (noFilters && token !== null && token !== "undefined") {
+            fetchRecipes(parseInt(sessionStorage.getItem("userPageCount")));
+            setLoading(false);
+        } else if (noFilters) {
+            fetchRecipes(parseInt(sessionStorage.getItem("publicPageCount")));
             setLoading(false);
         } else {
             fetchFilteredRecipes();
@@ -361,7 +393,10 @@ const HomePage = () => {
 
     async function handleLogout() {
         sessionStorage.removeItem("token");
-        sessionStorage.setItem("limit", -1);
+        sessionStorage.setItem("publicPageCountLimit", -1);
+        sessionStorage.setItem("userPageCountLimit", -1);
+        sessionStorage.setItem("userPageCount", 1);
+        sessionStorage.setItem("publicPageCount", 1);
         await clearUserRecipes();
         window.location.reload();
     }
@@ -370,8 +405,12 @@ const HomePage = () => {
         const { value } = e.target;
         setSearchRecipe(value);
 
-        if (value === "") {
-            fetchRecipes(sessionStorage.getItem("pageCount"));
+        const token = sessionStorage.getItem("token");
+
+        if (value === "" && token !== null && token !== "undefined") {
+            fetchRecipes(sessionStorage.getItem("userPageCount"));
+        } else if (value === "") {
+            fetchRecipes(sessionStorage.getItem("publicPageCount"));
         }
     }
 
@@ -407,23 +446,46 @@ const HomePage = () => {
     }
 
     async function changeToPrevious() {
-        let pageCount = sessionStorage.getItem("pageCount");
+        if (isFetching) return;
+
+        setIsFetching(true);
+        const token = sessionStorage.getItem("token");
+
+        let key = "";
+
+        if (token !== null && token !== "undefined") {
+            key = "userPageCount";
+        } else {
+            key = "publicPageCount";
+        }
+        
+        let pageCount = sessionStorage.getItem(key);
+
         pageCount = parseInt(pageCount);
         pageCount -= 1;
 
-        if (pageCount < 1) {
-            pageCount = 1;
-            sessionStorage.setItem("pageCount", 1);
-        } else {
-            sessionStorage.setItem("pageCount", pageCount);
-        }
-
         setLimitPage(false);
+        sessionStorage.setItem(key, pageCount);
         await fetchRecipes(pageCount);
+        setIsFetching(false);
     }
 
     async function changeToNext() {
-        let pageCount = sessionStorage.getItem("pageCount");
+        if (isFetching) return;
+
+        setIsFetching(true);
+        const token = sessionStorage.getItem("token");
+
+        let key = "";
+
+        if (token !== null && token !== "undefined") {
+            key = "userPageCount";
+        } else {
+            key = "publicPageCount";
+        }
+
+        let pageCount = sessionStorage.getItem(key);
+
         if (pageCount === null) {
             pageCount = 1;
         } else {
@@ -431,8 +493,9 @@ const HomePage = () => {
             pageCount += 1;
         }
         
-        sessionStorage.setItem("pageCount", pageCount);
+        sessionStorage.setItem(key, pageCount);
         await fetchRecipes(pageCount);
+        setIsFetching(false);
     }
 
     return (
@@ -502,30 +565,35 @@ const HomePage = () => {
                                 </div>
                             </div>
                         )): <p>No recipes found</p>}
+                        {isLogged ? 
+                            (parseInt(sessionStorage.getItem("userPageCount")) === 1 ? 
+                                <div className="pages">
+                                    <p>Page</p>
+                                    <p>{parseInt(sessionStorage.getItem("userPageCount"))}</p>
+                                    <button type="button"className="page-button" onClick={changeToNext} disabled={limitPage || isFetching}>Next</button>
+                                </div> :
+                                <div className="pages">
+                                    <button type="button" className="page-button" onClick={changeToPrevious} disabled={isFetching}>Previous</button>
+                                    <p>Page</p>
+                                    <p>{parseInt(sessionStorage.getItem("userPageCount"))}</p>
+                                    <button type="button" className="page-button" onClick={changeToNext} disabled={limitPage || isFetching}>Next</button>
+                                </div>
+                            ) : (
+                            parseInt(sessionStorage.getItem("publicPageCount")) === 1 ? 
+                                <div className="pages">
+                                    <p>Page</p>
+                                    <p>{parseInt(sessionStorage.getItem("publicPageCount"))}</p>
+                                    <button type="button"className="page-button" onClick={changeToNext} disabled={limitPage || isFetching}>Next</button>
+                                </div> :
+                                <div className="pages">
+                                    <button type="button" className="page-button" onClick={changeToPrevious} disabled={isFetching}>Previous</button>
+                                    <p>Page</p>
+                                    <p>{parseInt(sessionStorage.getItem("publicPageCount"))}</p>
+                                    <button type="button" className="page-button" onClick={changeToNext} disabled={limitPage || isFetching}>Next</button>
+                                </div>
+                            )
+                        }
                     </div>
-                    {parseInt(sessionStorage.getItem("pageCount")) === 1 ? 
-                        <div className="pages">
-                            <p>Page</p>
-                            <p>{parseInt(sessionStorage.getItem("pageCount"))}</p>
-                            <button 
-                                type="button" 
-                                onClick={changeToNext} 
-                                disabled={limitPage}
-                            >Next
-                            </button>
-                        </div> :
-                        <div className="pages">
-                            <button type="button" onClick={changeToPrevious}>Previous</button>
-                            <p>Page</p>
-                            <p>{parseInt(sessionStorage.getItem("pageCount"))}</p>
-                            <button 
-                                type="button" 
-                                onClick={changeToNext} 
-                                disabled={limitPage}
-                            >Next
-                            </button>
-                        </div>
-                    }
                     <Footer />
                 </div>
             }

@@ -91,8 +91,8 @@ const LoginPage = () => {
                     <button style={{margin: "1rem 0"}}>Login</button>
                     <button type="button" onClick={redirectToHomepage}>Cancel</button>
                 </form>
-                <Footer />
             </div>
+            <Footer />
         </>
     );
 }

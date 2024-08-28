@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import Footer from "./Footer";
 
 const DirectMessage = () => {
     const [username, setUsername] = useState("");
@@ -94,10 +95,11 @@ const DirectMessage = () => {
     return (
         <>
             {username ?
-                <div>
-                    <div className="top">
-                        <h1>Direct message</h1>
-                        <button type="button" onClick={() => navigate(-1)}>Back</button>
+                <div className="direct-message">
+                    <div className="top-bar">
+                        <h1 className="title">Direct message</h1>
+                        <button type="button" className="first" onClick={() => navigate(-1)}>Back</button>
+                        <button type="button" className="second" onClick={() => navigate("/")}>Home</button>
                     </div>
                     <form className="forms" onSubmit={(event) => handleSubmit(event)}>
                         <p>Please note the message will be sent on your behalf from Culinary Fusion</p>
@@ -148,6 +150,7 @@ const DirectMessage = () => {
                 <p>Please login first</p>
                 <button onClick={() => navigate("/login")}>Login</button>
             </div>}
+            <Footer />
         </>
     );
 };

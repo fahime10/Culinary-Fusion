@@ -88,7 +88,7 @@ const CreateGroup = () => {
     return (
         <>
             <div className="create-group">
-                <div className="top">
+                <div className="top-grid">
                     <h1 className="title">Create a new group</h1>
                     <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
                 </div>
@@ -114,8 +114,8 @@ const CreateGroup = () => {
                         <div ref={errorRef} style={{ display: "none", color: "red" }}>
                             <p>{error}</p>
                         </div>
-                        <button>Create</button>
-                        <button type="button" onClick={() => navigate(-1)}>Cancel</button>
+                        <button style={{ margin: "1rem 0 0 0" }}>Create</button>
+                        <button style={{ margin: "1rem 0 0 0" }} type="button" onClick={() => navigate(-1)}>Cancel</button>
                     </form>    
                 : <p>Please login before creating a group</p>}
             </div>
