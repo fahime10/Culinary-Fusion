@@ -90,7 +90,6 @@ const CreateGroup = () => {
             <div className="create-group">
                 <div className="top-grid">
                     <h1 className="title">Create a new group</h1>
-                    <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
                 </div>
                 {username ?
                     <form className="forms" onSubmit={(event) => handleCreateGroup(event)}>

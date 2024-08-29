@@ -426,3 +426,25 @@ exports.edit_recipe = asyncHandler(async (req, res, next) => {
         res.status(400).json({ error: error });
     }
 });
+
+exports.search_book = asyncHandler(async (req, res, next) => {
+    const { book_title } = req.params;
+
+    const { group_name } = req.body;
+
+    try {
+        const foundGroup = await Group.findOne({ group_name: group_name }).lean();
+
+        if (!foundGroup) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const books = await Book.find({ group_id: foundGroup._id, book_title: new RegExp(book_title, 'i') }).lean();
+
+        res.status(200).json(books);
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: error });
+    }
+});

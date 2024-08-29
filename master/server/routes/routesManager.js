@@ -108,4 +108,6 @@ router.post('/recipes/favourite/:user_id', recipe_controller.get_all_favourites)
 
 router.post('/popular-recipes', recipe_controller.sort_by_popularity);
 
+router.post('/books/search/:book_title', book_controller.search_book);
+
 module.exports = router;

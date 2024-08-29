@@ -235,7 +235,7 @@ const EditGroup = () => {
             <div className="edit-group">
                 <div className="top-bar">
                     <h1 className="title">{groupName}</h1>
-                    <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
+                    <button className="first" type="button" style={{ margin: "0 0 1rem 0"}} onClick={() => navigate(-1)}>Back</button>
                 </div>
                 {isMainAdmin || isAdmin ?
                     <div className="edit-group">

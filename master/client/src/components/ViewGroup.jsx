@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import SearchIcon from "../assets/search-icon.png";
 import Dialog from "./Dialog";
 import Footer from "./Footer";
 
@@ -14,71 +15,73 @@ const ViewGroup = () => {
     const [dialog, setDialog] = useState(false);
     const [books, setBooks] = useState([""]);
 
+    const [searchBook, setSearchBook] = useState("");
+
     const navigate = useNavigate();
 
     useEffect(() => {
+        fetchGroup();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    async function fetchGroup() {
         const token = sessionStorage.getItem("token");
 
-        async function fetchGroup() {
-            try {
-                const userDetails = token && token !== "undefined" ? retrieveUserDetails() : null;
+        try {
+            const userDetails = token && token !== "undefined" ? retrieveUserDetails() : null;
 
-                const data = userDetails ? { user_id: userDetails.id } : null;
+            const data = userDetails ? { user_id: userDetails.id } : null;
 
-                if (data) {
-                    const response = await fetch(`http://localhost:9000/api/groups/${group_name}`, {
+            if (data) {
+                const response = await fetch(`http://localhost:9000/api/groups/${group_name}`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+
+                    setGroupName(res.group.group_name);
+                    setGroupDescription(res.group.group_description);
+
+                    if (res.is_main_admin) {
+                        setIsMainAdmin(true);
+                    } else if (res.is_admin) {
+                        setIsAdmin(true);
+                    } else if (res.is_collaborator) {
+                        setIsCollaborator(true);
+                    }
+
+                    const user = {
+                        user_id: userDetails.id
+                    };
+
+                    const booksResponse = await fetch(`http://localhost:9000/api/books/${group_name}`, {
                         method: "POST",
                         headers: {
                             Accept: "application/json",
                             "Content-Type": "application/json"
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify(user)
                     });
 
-                    if (response.ok) {
-                        const res = await response.json();
+                    if (booksResponse.ok) {
+                        const booksRes = await booksResponse.json();
 
-                        setGroupName(res.group.group_name);
-                        setGroupDescription(res.group.group_description);
-
-                        if (res.is_main_admin) {
-                            setIsMainAdmin(true);
-                        } else if (res.is_admin) {
-                            setIsAdmin(true);
-                        } else if (res.is_collaborator) {
-                            setIsCollaborator(true);
-                        }
-
-                        const user = {
-                            user_id: userDetails.id
-                        };
-
-                        const booksResponse = await fetch(`http://localhost:9000/api/books/${group_name}`, {
-                            method: "POST",
-                            headers: {
-                                Accept: "application/json",
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify(user)
-                        });
-
-                        if (booksResponse.ok) {
-                            const booksRes = await booksResponse.json();
-
-                            setBooks(booksRes);
-                        }
+                        setBooks(booksRes);
                     }
                 }
-
-            } catch (error) {
-                console.log(error);
             }
+
+        } catch (error) {
+            console.log(error);
         }
-
-        fetchGroup();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }
 
     function retrieveUserDetails() {
         if (sessionStorage.getItem("token")) {
@@ -129,6 +132,37 @@ const ViewGroup = () => {
         navigate(`/books/view/${id}`);
     }
 
+    function handleSearchBook(e) {
+        setSearchBook(e.target.value);
+
+        if (e.target.value === "") {
+            fetchGroup();
+        }
+    }
+
+    async function findBook(searchBook) {
+        if (searchBook.trim() !== "") {
+            const data = {
+                group_name: group_name
+            };
+
+            const response = await fetch(`http://localhost:9000/api/books/search/${searchBook}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const res = await response.json();
+
+                setBooks(res);
+            }
+        }
+    }
+
     return (
         <>
             <div className="group-page">
@@ -162,6 +196,14 @@ const ViewGroup = () => {
                     {isMainAdmin || isAdmin ? 
                         <button type="button" className="create-book-button" onClick={() => redirectToCreateBook(group_name)}>Create a new book</button>
                     : null}
+                    <div className="search-bar">
+                        <input
+                            type="text"
+                            placeholder="Search for a book"
+                            onChange={handleSearchBook}
+                        />
+                        <img src={SearchIcon} onClick={() => findBook(searchBook)} />
+                    </div>
                 </div>
                 <div className="books">
                     {books.length > 0 ? books.map((book) => (

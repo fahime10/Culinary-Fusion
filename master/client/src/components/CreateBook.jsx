@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import Footer from "./Footer";
 
 const CreateBook = () => {
     const { id } = useParams();
@@ -56,7 +57,7 @@ const CreateBook = () => {
     return (
         <>
             <div className="create-book">
-                <div className="top">
+                <div className="top-grid">
                     <h1 className="title">Create a new book</h1>
                 </div>
                 <form className="forms" onSubmit={(event) => handleSaveBook(event)}>
@@ -79,10 +80,11 @@ const CreateBook = () => {
                         cols={30}
                         onChange={handleBookDescription}
                     />
-                    <button>Create</button>
-                    <button type="button" onClick={() => navigate(-1)}>Cancel</button>
+                    <button style={{ margin: "1rem 0 0 0"}}>Create</button>
+                    <button style={{ margin: "1rem 0 0 0"}} type="button" onClick={() => navigate(-1)}>Cancel</button>
                 </form>
             </div>
+            <Footer />
         </>
     );
 };
