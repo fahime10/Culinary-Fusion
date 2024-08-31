@@ -359,7 +359,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
 
         const { 
             title, chef, description, username, isPrivate, quantities, 
-            ingredients, steps, diet, categories, cuisine_types, allergens } = req.body;
+            ingredients, steps, diet, categories, cuisine_types, allergens, test } = req.body;
 
         const user = await User.findOne({ username: username });
 
@@ -371,6 +371,8 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
         if (req.file && req.file.buffer) {
             image = req.file.buffer;
         }
+
+        const newIngredients = JSON.parse(ingredients);
 
         let newDiet = [];
         if (diet) {
@@ -403,7 +405,8 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             diet: newDiet,
             categories: newCategories,
             cuisine_types: newCuisineTypes,
-            allergens: newAllergens
+            allergens: newAllergens,
+            test: test
         };
 
         if (image) {
@@ -420,6 +423,17 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             ...editedRecipe,
             chef_username: user.username
         };
+
+        await Ingredient.deleteMany({ recipe_id: id });
+
+        for (let ingredient of newIngredients) {
+            const newIngredient = await Ingredient({
+                recipe_id: id,
+                ingredient: ingredient,
+                test: test
+            });
+            await newIngredient.save();
+        }
 
         res.status(200).json(result);
 

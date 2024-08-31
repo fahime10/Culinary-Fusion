@@ -1,11 +1,14 @@
 const User = require('../models/userModel');
 const Recipe = require('../models/recipeModel');
 const Ingredient = require('../models/ingredientModel');
+const Group = require('../models/groupModel');
+const Book = require('../models/bookModel');
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { groupEnd } = require('console');
 
 require('dotenv').config();
 
@@ -185,13 +188,63 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
     try {
         const user = await User.findOne({ username: username }).lean();
 
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const groups = await Group.find({ user_id: user._id }).lean();
+        const preservedRecipes = new Set();
+
+        if (groups.length > 0) {
+            for (let group of groups) {
+                let newAdmin;
+
+                if (group.admins.length > 0) {
+                    newAdmin = group.admins[Math.floor(Math.random() * group.admins.length)];
+
+                    await Group.updateOne(
+                        { _id: group._id },
+                        { $pull: { admins: newAdmin } }
+                    );
+
+                } else if (group.collaborators.length > 0) {
+                    newAdmin = group.collaborators[Math.floor(Math.random() * group.collaborators.length)];
+
+                    await Group.updateOne(
+                        { _id: group._id },
+                        { $pull: { collaborators: newAdmin } }
+                    );
+                }
+
+                const newAdminUser = await User.findOne({ username: newAdmin }).lean();
+
+                if (newAdmin) {
+                    await Group.updateOne(
+                        { _id: group._id },
+                        { $set: { user_id: newAdminUser._id }}
+                    );
+
+                    const books = await Book.find({ group_id: group._id });
+
+                    for (let book of books) {
+                        book.recipes_id.forEach(recipeId => preservedRecipes.add(recipeId.toString()));
+                    }
+
+                } else if (group.admins.length === 0 && group.collaborators.length === 0) {
+                    await Book.deleteMany({ group_id: group._id });
+                    await Group.deleteOne({ _id: group._id });
+                }
+            }
+        }
+
         const recipes = await Recipe.find({ user_id: user._id }).lean();
 
         for (let recipe of recipes) {
-            await Ingredient.deleteMany({ recipe_id: recipe._id });
+            if (!preservedRecipes.has(recipe._id.toString())) {
+                await Ingredient.deleteMany({ recipe_id: recipe._id });
+                await Recipe.deleteOne({ _id: recipe._id });
+            }
         }
-
-        await Recipe.deleteMany({ user_id: user._id });
 
         await User.deleteOne({ username: username });
 
