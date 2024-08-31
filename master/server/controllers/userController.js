@@ -195,6 +195,8 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
         const groups = await Group.find({ user_id: user._id }).lean();
         const preservedRecipes = new Set();
 
+        let newAdminId = "";
+
         if (groups.length > 0) {
             for (let group of groups) {
                 let newAdmin;
@@ -217,6 +219,7 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
                 }
 
                 const newAdminUser = await User.findOne({ username: newAdmin }).lean();
+                newAdminId = newAdminUser._id;
 
                 if (newAdmin) {
                     await Group.updateOne(
@@ -243,6 +246,11 @@ exports.delete_user = asyncHandler(async (req, res, next) => {
             if (!preservedRecipes.has(recipe._id.toString())) {
                 await Ingredient.deleteMany({ recipe_id: recipe._id });
                 await Recipe.deleteOne({ _id: recipe._id });
+            } else {
+                await Recipe.updateOne(
+                    { _id: recipe._id },
+                    { $set: { user_id: newAdminId }}
+                );
             }
         }
 
