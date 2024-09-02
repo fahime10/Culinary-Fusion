@@ -315,10 +315,6 @@ button:hover {
     border-radius: 5px;
 }
 
-.recipe-details img:hover {
-    transform: scale(1.08);
-}
-
 .recipe-details p {
     font-size: large;
 }

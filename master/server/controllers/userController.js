@@ -12,10 +12,25 @@ const { groupEnd } = require('console');
 
 require('dotenv').config();
 
+const createArray = (selected_input, optional_input) => {
+    let array = [];
+
+    if (selected_input && selected_input.length !== 0 && selected_input !== null) {
+        array = selected_input;
+    }
+
+    if (optional_input && optional_input !== "" && optional_input !== null) {
+        const optional_input_array = optional_input.split(',').map(item => item.trim());
+        array = [...array, ...optional_input_array];
+    }
+
+    return array;
+};
+
 exports.add_user = asyncHandler(async (req, res, next) => {
     try {
         const { name_title, first_name, last_name, username, email, dietary_preferences, preferred_categories, 
-                preferred_cuisine_types, allergies, test } = req.body;
+                preferred_cuisine_types, allergies, other_diets, other_categories, other_cuisine_types, other_allergies, test } = req.body;
 
         const user = await User.findOne({ username: username }).lean();
 
@@ -27,6 +42,14 @@ exports.add_user = asyncHandler(async (req, res, next) => {
             return res.status(400).json({ error: 'Username is already taken' });
         } else {
             let password = req.body.password;
+
+            const allDiets = createArray(dietary_preferences, other_diets);
+
+            const allCategories = createArray(preferred_categories, other_categories);
+
+            const allCuisineTypes = createArray(preferred_cuisine_types, other_cuisine_types);
+
+            const allAllergens = createArray(allergies, other_allergies);
 
             bcrypt.hash(password, 10, async (err, hashedPassword) => {
                 if (err) {
@@ -40,10 +63,10 @@ exports.add_user = asyncHandler(async (req, res, next) => {
                         password: hashedPassword,
                         email: email,
                         passcode: "",
-                        dietary_preferences,
-                        preferred_categories,
-                        preferred_cuisine_types,
-                        allergies,
+                        dietary_preferences: allDiets,
+                        preferred_categories: allCategories,
+                        preferred_cuisine_types: allCuisineTypes,
+                        allergies: allAllergens,
                         test
                     });
 
@@ -65,7 +88,8 @@ exports.add_user = asyncHandler(async (req, res, next) => {
         }
 
     } catch (error) {
-        res.status(404).json({ error: error });
+        console.log(error);
+        res.status(400).json({ error: error });
     }
 });
 
@@ -134,8 +158,8 @@ exports.user_details = asyncHandler(async (req, res, next) => {
 exports.edit_user = asyncHandler(async (req, res, next) => {
     const { username } = req.params;
 
-    const { name_title, first_name, last_name, email, dietary_preferences, 
-            preferred_categories, preferred_cuisine_types, allergies } = req.body;
+    const { name_title, first_name, last_name, email, dietary_preferences, preferred_categories, 
+            preferred_cuisine_types, allergies, other_diets, other_categories, other_cuisine_types, other_allergies, test } = req.body;
 
     try {
         const user = await User.findOne({ username: username }).lean();
@@ -150,16 +174,25 @@ exports.edit_user = asyncHandler(async (req, res, next) => {
             return res.status(404).json({ error: 'Username is already taken' });
         } 
 
+        const allDiets = createArray(dietary_preferences, other_diets);
+
+        const allCategories = createArray(preferred_categories, other_categories);
+
+        const allCuisineTypes = createArray(preferred_cuisine_types, other_cuisine_types);
+
+        const allAllergens = createArray(allergies, other_allergies);
+
         let updatedData = {
             name_title,
             first_name,
             last_name,
             username: req.body.username,
             email: email,
-            dietary_preferences,
-            preferred_categories, 
-            preferred_cuisine_types, 
-            allergies
+            dietary_preferences: allDiets,
+            preferred_categories: allCategories, 
+            preferred_cuisine_types: allCuisineTypes, 
+            allergies: allAllergens,
+            test
         };
 
         const editedUser = await User.findByIdAndUpdate(user._id, updatedData, { new: true }).lean();

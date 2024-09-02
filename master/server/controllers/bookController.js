@@ -21,6 +21,21 @@ const convertToObjects = (collection) => {
     return objects;
 }
 
+const createArray = (selected_input, optional_input) => {
+    let array = [];
+
+    if (selected_input && selected_input.length !== 0 && selected_input !== null) {
+        array = JSON.parse(selected_input);
+    }
+
+    if (optional_input && optional_input !== "" && optional_input !== null) {
+        const optional_input_array = optional_input.split(',').map(item => item.trim());
+        array = [...array, ...optional_input_array];
+    }
+
+    return array;
+};
+
 exports.get_all_books = asyncHandler(async (req, res, next) => {
     const { group_name } = req.params;
 
@@ -219,8 +234,8 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
 
     const { 
-        title, chef, username, description, quantities, ingredients, 
-        steps, diet, categories, cuisine_types, allergens, test 
+        title, chef, username, description, quantities, ingredients, steps, diet, categories,
+        cuisine_types, allergens, other_diets, other_categories, other_cuisine_types, other_allergens, test 
     } = req.body;
 
     try {
@@ -248,25 +263,13 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
 
         let newIngredients = JSON.parse(ingredients);
 
-        let newDiet = [];
-        if (diet) {
-            newDiet = JSON.parse(diet);
-        }
+        const allDiets = createArray(diet, other_diets);
 
-        let newCategories = [];
-        if (categories) {
-            newCategories = JSON.parse(categories);
-        }
+        const allCategories = createArray(categories, other_categories);
 
-        let newCuisineTypes = [];
-        if (cuisine_types) {
-            newCuisineTypes = JSON.parse(cuisine_types);
-        }
+        const allCuisineTypes = createArray(cuisine_types, other_cuisine_types);
 
-        let newAllergens = [];
-        if (allergens) {
-            newAllergens = JSON.parse(allergens);
-        }
+        const allAllergens = createArray(allergens, other_allergens);
 
         const newRecipe = new Recipe({
             user_id,
@@ -278,10 +281,10 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
             quantities: JSON.parse(quantities),
             ingredients: newIngredients,
             steps: JSON.parse(steps),
-            diet: newDiet,
-            categories: newCategories,
-            cuisine_types: newCuisineTypes,
-            allergens: newAllergens,
+            diet: allDiets,
+            categories: allCategories,
+            cuisine_types: allCuisineTypes,
+            allergens: allAllergens,
             timestamp: new Date(),
             test
         });
@@ -331,8 +334,8 @@ exports.edit_recipe = asyncHandler(async (req, res, next) => {
     const { id, recipe_id } = req.params;
 
     const { 
-        title, chef, description, user_id, quantities, ingredients, 
-        steps, diet, categories, cuisine_types, allergens, test 
+        title, chef, description, user_id, quantities, ingredients, steps, diet, categories,
+        cuisine_types, allergens, other_diets, other_categories, other_cuisine_types, other_allergens, test 
     } = req.body;
 
     try {
@@ -372,25 +375,13 @@ exports.edit_recipe = asyncHandler(async (req, res, next) => {
                 image = req.file.buffer;
             }
 
-            let newDiet = [];
-            if (diet) {
-                newDiet = JSON.parse(diet);
-            }
+            const allDiets = createArray(diet, other_diets);
 
-            let newCategories = [];
-            if (categories) {
-                newCategories = JSON.parse(categories);
-            }
+            const allCategories = createArray(categories, other_categories);
 
-            let newCuisineTypes = [];
-            if (cuisine_types) {
-                newCuisineTypes = JSON.parse(cuisine_types);
-            }
+            const allCuisineTypes = createArray(cuisine_types, other_cuisine_types);
 
-            let newAllergens = [];
-            if (allergens) {
-                newAllergens = JSON.parse(allergens);
-            }
+            const allAllergens = createArray(allergens, other_allergens);
 
             const updatedData = {
                 title,
@@ -399,10 +390,10 @@ exports.edit_recipe = asyncHandler(async (req, res, next) => {
                 quantities: JSON.parse(quantities),
                 ingredients: JSON.parse(ingredients),
                 steps: JSON.parse(steps),
-                diet: newDiet,
-                categories: newCategories,
-                cuisine_types: newCuisineTypes,
-                allergens: newAllergens
+                diet: allDiets,
+                categories: allCategories,
+                cuisine_types: allCuisineTypes,
+                allergens: allAllergens
             };
 
             if (image) {

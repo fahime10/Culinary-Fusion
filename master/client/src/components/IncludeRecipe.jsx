@@ -38,6 +38,8 @@ const IncludeRecipe = () => {
         "Lactose-free": false
     });
 
+    const [otherDiets, setOtherDiets] = useState("");
+
     const [categories, setCategories] = useState({
        "Appetizer": false,
        "Salad": false,
@@ -64,6 +66,8 @@ const IncludeRecipe = () => {
        "Barbecue": false
     });
 
+    const [otherCategories, setOtherCategories] = useState("");
+
     const [cuisineTypes, setCuisineTypes] = useState({
         "Italian": false,
         "Mexican": false,
@@ -83,6 +87,8 @@ const IncludeRecipe = () => {
         "Caribbean": false
     });
 
+    const [otherCuisineTypes, setOtherCuisineTypes] = useState("");
+
     const [allergens, setAllergens] = useState({
         "Celery": false,
         "Cereals containing gluten": false,
@@ -99,6 +105,8 @@ const IncludeRecipe = () => {
         "Sulphur dioxide": false,
         "Tree nuts (almonds, hazelnuts, walnuts, ...)": false
     });
+
+    const [otherAllergens, setOtherAllergens] = useState("");
 
     const navigate = useNavigate();
 
@@ -219,6 +227,22 @@ const IncludeRecipe = () => {
         return null;
     }
 
+    function handleOtherDiets(e) {
+        setOtherDiets(e.target.value);
+    }
+
+    function handleOtherCategories(e) {
+        setOtherCategories(e.target.value);
+    }
+
+    function handleOtherCuisineTypes(e) {
+        setOtherCuisineTypes(e.target.value);
+    }
+
+    function handleOtherAllergens(e) {
+        setOtherAllergens(e.target.value);
+    }
+
     async function handleSave(event) {
         event.preventDefault();
 
@@ -243,6 +267,11 @@ const IncludeRecipe = () => {
             data.append("categories", JSON.stringify(selectedCategories));
             data.append("cuisine_types", JSON.stringify(selectedCuisineTypes));
             data.append("allergens", JSON.stringify(selectedAllergens));
+
+            data.append("other_diets", otherDiets);
+            data.append("other_categories", otherCategories);
+            data.append("other_cuisine_types", otherCuisineTypes);
+            data.append("other_allergens", otherAllergens);
 
             try {
                 const response = await fetch(`http://localhost:9000/api/books/include/${id}`, {
@@ -377,6 +406,17 @@ const IncludeRecipe = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-diets">Any other diets:</label>
+                    <p>Please separate each diet by comma</p>
+                    <textarea 
+                        id="other-diets"
+                        name="other-diets" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherDiets}
+                        placeholder="Other diets"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <div className="box">
                         <div className="box-title">Categories:</div>
                         <div className="checkboxes">
@@ -392,6 +432,17 @@ const IncludeRecipe = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-categories">Any other categories:</label>
+                    <p>Please separate each category by comma</p>
+                    <textarea 
+                        id="other-categories"
+                        name="other-categories" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherCategories}
+                        placeholder="Other categories"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <div className="box">
                         <div className="box-title">Cuisine types:</div>
                         <div className="checkboxes">
@@ -407,6 +458,17 @@ const IncludeRecipe = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-cuisine-types">Any other cuisine types:</label>
+                    <p>Please separate each cuisine type by comma</p>
+                    <textarea 
+                        id="other-cuisine-types"
+                        name="other-cuisine-types" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherCuisineTypes}
+                        placeholder="Other cuisine types"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <div className="box">
                         <div className="box-title">Allergens:</div>
                         <div className="checkboxes">
@@ -422,6 +484,17 @@ const IncludeRecipe = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-allergens">Any other allergies:</label>
+                    <p>Please separate each allergens by comma</p>
+                    <textarea 
+                        id="other-allergens"
+                        name="other-allergens" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherAllergens}
+                        placeholder="Other allergens"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <button type="submit">Save</button>
                     <button type="button" className="cancel" onClick={() => navigate(-1)}>Cancel</button>
                 </form>

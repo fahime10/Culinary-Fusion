@@ -35,6 +35,8 @@ const SignUpPage = () => {
         "Lactose-free": false
     });
 
+    const [otherDiets, setOtherDiets] = useState("");
+
     const [categories, setCategories] = useState({
         "Appetizer": false,
        "Salad": false,
@@ -60,6 +62,8 @@ const SignUpPage = () => {
        "One Pot Meal": false,
        "Barbecue": false
     });
+
+    const [otherCategories, setOtherCategories] = useState("");
  
     const [cuisineTypes, setCuisineTypes] = useState({
         "Italian": false,
@@ -80,6 +84,8 @@ const SignUpPage = () => {
         "Caribbean": false
     });
 
+    const [otherCuisineTypes, setOtherCuisineTypes] = useState("");
+
     const [allergies, setAllergies] = useState({
         "Celery": false,
         "Cereals containing gluten": false,
@@ -96,6 +102,8 @@ const SignUpPage = () => {
         "Sulphur dioxide": false,
         "Tree nuts (almonds, hazelnuts, walnuts, ...)": false
     });
+
+    const [otherAllergens, setOtherAllergens] = useState("");
 
     const navigate = useNavigate();
 
@@ -163,6 +171,22 @@ const SignUpPage = () => {
         }
     }
 
+    function handleOtherDiets(e) {
+        setOtherDiets(e.target.value);
+    }
+
+    function handleOtherCategories(e) {
+        setOtherCategories(e.target.value);
+    }
+
+    function handleOtherCuisineTypes(e) {
+        setOtherCuisineTypes(e.target.value);
+    }
+
+    function handleOtherAllergens(e) {
+        setOtherAllergens(e.target.value);
+    }
+
     function handleSave(event) {
         event.preventDefault();
 
@@ -171,37 +195,50 @@ const SignUpPage = () => {
         const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
         const selectedAllergens = Object.keys(allergies).filter(key => allergies[key]);
 
-        const data = {
-            name_title: nameTitle,
-            first_name: firstName,
-            last_name: lastName,
-            username: username,
-            password: password,
-            email: email,
-            dietary_preferences: selectedDietaryPreferences,
-            preferred_categories: selectedCategories,
-            preferred_cuisine_types: selectedCuisineTypes,
-            allergies: selectedAllergens
-        };
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{4,}$/;
 
-        fetch("http://localhost:9000/api/users/add-user", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then((res) => res.json())
-        .then((res) => {
-            if (res.error) {
-                setError(res.error);
-            } else {
-                sessionStorage.setItem("token", res.token);
-                navigate("/");
-            }
-        })
-        .catch(err => console.log(err));
+        if (!passwordPattern.test(password)) {
+            setError("Password must be at least 4 characters, contain at least 1 letter, 1 symbol and 1 number");
+        } else if (!emailPattern.test(email)) {
+            setError("Email format is wrong");
+        } else {
+            const data = {
+                name_title: nameTitle,
+                first_name: firstName,
+                last_name: lastName,
+                username: username,
+                password: password,
+                email: email,
+                dietary_preferences: selectedDietaryPreferences,
+                preferred_categories: selectedCategories,
+                preferred_cuisine_types: selectedCuisineTypes,
+                allergies: selectedAllergens,
+                other_diets: otherDiets,
+                other_categories: otherCategories,
+                other_cuisine_types: otherCuisineTypes,
+                other_allergens: otherAllergens
+            };
+    
+            fetch("http://localhost:9000/api/users/add-user", {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                if (res.error) {
+                    setError(res.error);
+                } else {
+                    sessionStorage.setItem("token", res.token);
+                    navigate("/");
+                }
+            })
+            .catch(err => console.log(err));
+        }
     }
 
     return (
@@ -270,7 +307,6 @@ const SignUpPage = () => {
                             <input
                                 id="email"
                                 type="email"
-                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                                 name="email"
                                 required={true}
                                 minLength={1}
@@ -295,6 +331,17 @@ const SignUpPage = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-diets">Any other diets:</label>
+                    <p>Please separate each diet by comma</p>
+                    <textarea 
+                        id="other-diets"
+                        name="other-diets" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherDiets}
+                        placeholder="Other diets"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <div className="box">
                         <div className="box-title">Category preferences:</div>
                         <div className="checkboxes">
@@ -310,6 +357,17 @@ const SignUpPage = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-categories">Any other categories:</label>
+                    <p>Please separate each category by comma</p>
+                    <textarea 
+                        id="other-categories"
+                        name="other-categories" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherCategories}
+                        placeholder="Other categories"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <div className="box">
                         <div className="box-title">Preferred cuisine types:</div>
                         <div className="checkboxes">
@@ -325,6 +383,17 @@ const SignUpPage = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-cuisine-types">Any other cuisine types:</label>
+                    <p>Please separate each cuisine type by comma</p>
+                    <textarea 
+                        id="other-cuisine-types"
+                        name="other-cuisine-types" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherCuisineTypes}
+                        placeholder="Other cuisine types"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <div className="box">
                         <div className="box-title">Any allergies:</div>
                         <div className="checkboxes">
@@ -340,6 +409,17 @@ const SignUpPage = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-allergens">Any other allergies:</label>
+                    <p>Please separate each allergens by comma</p>
+                    <textarea 
+                        id="other-allergens"
+                        name="other-allergens" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherAllergens}
+                        placeholder="Other allergens"
+                        style={{ margin: "0 0 1rem 0" }}
+                    />
                     <div ref={errorRef} style={{ display: "none", color: "red" }}>
                         <p>{error}</p>
                     </div>

@@ -34,6 +34,8 @@ const UserProfile = () => {
         "Lactose-free": false
     });
 
+    const [otherDiets, setOtherDiets] = useState("");
+
     const [categories, setCategories] = useState({
         "Appetizer": false,
        "Salad": false,
@@ -59,6 +61,8 @@ const UserProfile = () => {
        "One Pot Meal": false,
        "Barbecue": false
     });
+
+    const [otherCategories, setOtherCategories] = useState("");
  
     const [cuisineTypes, setCuisineTypes] = useState({
         "Italian": false,
@@ -79,6 +83,8 @@ const UserProfile = () => {
         "Caribbean": false
     });
 
+    const [otherCuisineTypes, setOtherCuisineTypes] = useState("");
+
     const [allergies, setAllergies] = useState({
         "Celery": false,
         "Cereals containing gluten": false,
@@ -95,6 +101,8 @@ const UserProfile = () => {
         "Sulphur dioxide": false,
         "Tree nuts (almonds, hazelnuts, walnuts, ...)": false
     });
+
+    const [otherAllergies, setOtherAllergies] = useState("");
 
     const [isNotEnabled, setIsNotEnabled] = useState(true);
     const [dialog, setDialog] = useState(false);
@@ -127,39 +135,55 @@ const UserProfile = () => {
                 setEmail(res.email);
                 
                 const dietaryPreferencesCheckedBoxes = { ...dietaryPreferences };
+                const otherDietsArray = [];
                 res.dietary_preferences.forEach(dietaryPreference => {
                     if (Object.prototype.hasOwnProperty.call(dietaryPreferencesCheckedBoxes, dietaryPreference)) {
                         dietaryPreferencesCheckedBoxes[dietaryPreference] = true;
+                    } else {
+                        otherDietsArray.push(dietaryPreference);
                     }
                 });
                 setDietaryPreferences(dietaryPreferencesCheckedBoxes);
+                setOtherDiets(otherDietsArray.join(", "));
                 dietaryPreferencesRef.current = dietaryPreferencesCheckedBoxes;
     
                 const categoriesCheckedBoxes = { ...categories };
+                const otherCategoriesArray = [];
                 res.preferred_categories.forEach(category => {
                     if (Object.prototype.hasOwnProperty.call(categoriesCheckedBoxes, category)) {
                         categoriesCheckedBoxes[category] = true;
+                    } else {
+                        otherCategoriesArray.push(category);
                     }
                 });
                 setCategories(categoriesCheckedBoxes);
+                setOtherCategories(otherCategoriesArray.join(", "));
                 categoriesRef.current = categoriesCheckedBoxes;
     
                 const cuisineTypesCheckedBoxes = { ...cuisineTypes };
+                const otherCuisineTypesArray = [];
                 res.preferred_cuisine_types.forEach(cuisineType => {
                     if (Object.prototype.hasOwnProperty.call(cuisineTypesCheckedBoxes, cuisineType)) {
                         cuisineTypesCheckedBoxes[cuisineType] = true;
+                    } else {
+                        otherCuisineTypesArray.push(cuisineType);
                     }
                 });
                 setCuisineTypes(cuisineTypesCheckedBoxes);
+                setOtherCuisineTypes(otherCuisineTypesArray.join(", "));
                 cuisineTypesRef.current = cuisineTypesCheckedBoxes;
     
                 const allergiesCheckedBoxes = { ...allergies };
+                const otherAllergiesArray = [];
                 res.allergies.forEach(allergy => {
                     if (Object.prototype.hasOwnProperty.call(allergiesCheckedBoxes, allergy)) {
                         allergiesCheckedBoxes[allergy] = true;
+                    } else {
+                        otherAllergiesArray.push(allergy);
                     }
                 });
                 setAllergies(allergiesCheckedBoxes);
+                setOtherAllergies(otherAllergiesArray.join(", "));
                 allergiesRef.current = allergiesCheckedBoxes;
             })
             .catch(err => console.log(err));
@@ -257,6 +281,22 @@ const UserProfile = () => {
         }
     }
 
+    function handleOtherDiets(e) {
+        setOtherDiets(e.target.value);
+    }
+
+    function handleOtherCategories(e) {
+        setOtherCategories(e.target.value);
+    }
+
+    function handleOtherCuisineTypes(e) {
+        setOtherCuisineTypes(e.target.value);
+    }
+
+    function handleOtherAllergies(e) {
+        setOtherAllergies(e.target.value);
+    }
+
     function handleEdit(event) {
         event.preventDefault();
 
@@ -266,41 +306,51 @@ const UserProfile = () => {
             const selectedDietaryPreferences = Object.keys(dietaryPreferences).filter(key => dietaryPreferences[key]);
             const selectedCategories = Object.keys(categories).filter(key => categories[key]);
             const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
-            const selectedAllergens = Object.keys(allergies).filter(key => allergies[key]);
+            const selectedAllergies = Object.keys(allergies).filter(key => allergies[key]);
 
-            const data = {
-                name_title: nameTitle,
-                first_name: firstName,
-                last_name: lastName,
-                username: username,
-                email: email,
-                dietary_preferences: selectedDietaryPreferences,
-                preferred_categories: selectedCategories,
-                preferred_cuisine_types: selectedCuisineTypes,
-                allergies: selectedAllergens
-            }
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-            fetch(`http://localhost:9000/api/users/edit-user/${userDetails.username}`, {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            })
-            .then((res) => res.json())
-            .then((res) => {
-                if (res.error) {
-                    setMessage("");
-                    setError(res.error);
-                } else {
-                    setError("");
-                    setMessage(res.message);
-                    sessionStorage.setItem("token", res.token);
-                    sessionStorage.setItem("editedUser", true);
+            if (!emailPattern.test(email)) {
+                setError("Email format is wrong");
+            } else {
+                const data = {
+                    name_title: nameTitle,
+                    first_name: firstName,
+                    last_name: lastName,
+                    username: username,
+                    email: email,
+                    dietary_preferences: selectedDietaryPreferences,
+                    preferred_categories: selectedCategories,
+                    preferred_cuisine_types: selectedCuisineTypes,
+                    allergies: selectedAllergies,
+                    other_diets: otherDiets,
+                    other_categories: otherCategories,
+                    other_cuisine_types: otherCuisineTypes,
+                    other_allergies: otherAllergies
                 }
-            })
-            .catch(err => console.log(err));
+    
+                fetch(`http://localhost:9000/api/users/edit-user/${userDetails.username}`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((res) => res.json())
+                .then((res) => {
+                    if (res.error) {
+                        setMessage("");
+                        setError(res.error);
+                    } else {
+                        setError("");
+                        setMessage(res.message);
+                        sessionStorage.setItem("token", res.token);
+                        sessionStorage.setItem("editedUser", true);
+                    }
+                })
+                .catch(err => console.log(err));
+            }
         }
         
     }
@@ -409,6 +459,18 @@ const UserProfile = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-diets">Any other diets:</label>
+                    <p>Please separate each diet by comma</p>
+                    <textarea 
+                        id="other-diets"
+                        name="other-diets" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherDiets}
+                        value={otherDiets}
+                        style={{ margin: "0 0 1rem 0" }}
+                        disabled={isNotEnabled}
+                    />
                     <div className="box">
                         <div className="box-title">Category preferences:</div>
                         <div className="checkboxes">
@@ -425,6 +487,18 @@ const UserProfile = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-categories">Any other categories:</label>
+                    <p>Please separate each category by comma</p>
+                    <textarea 
+                        id="other-categories"
+                        name="other-categories" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherCategories}
+                        value={otherCategories}
+                        style={{ margin: "0 0 1rem 0" }}
+                        disabled={isNotEnabled}
+                    />
                     <div className="box">
                         <div className="box-title">Preferred cuisine types:</div>
                         <div className="checkboxes">
@@ -441,6 +515,18 @@ const UserProfile = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-cuisine-types">Any other cuisine types:</label>
+                    <p>Please separate each cuisine type by comma</p>
+                    <textarea 
+                        id="other-cuisine-types"
+                        name="other-cuisine-types" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherCuisineTypes}
+                        value={otherCuisineTypes}
+                        style={{ margin: "0 0 1rem 0" }}
+                        disabled={isNotEnabled}
+                    />
                     <div className="box">
                         <div className="box-title">Any allergies:</div>
                         <div className="checkboxes">
@@ -457,6 +543,18 @@ const UserProfile = () => {
                             ))}
                         </div>
                     </div>
+                    <label htmlFor="other-allergies">Any other allergies:</label>
+                    <p>Please separate each allergies by comma</p>
+                    <textarea 
+                        id="other-allergies"
+                        name="other-allergies" 
+                        rows={5}
+                        cols={30}
+                        onChange={handleOtherAllergies}
+                        value={otherAllergies}
+                        style={{ margin: "0 0 1rem 0" }}
+                        disabled={isNotEnabled}
+                    />
                     <div ref={messageRef} style={{ display: "none", color: "green" }}>
                         <p>{message}</p>
                     </div>
