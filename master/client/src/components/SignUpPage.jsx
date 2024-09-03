@@ -108,10 +108,12 @@ const SignUpPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (error) {
-            errorRef.current.style.display = "block";
-        } else {
-            errorRef.current.style.display = "none";
+        if (errorRef.current) {
+            if (error) {
+                errorRef.current.style.display = "block";
+            } else {
+                errorRef.current.style.display = "none";
+            }
         }
 
     }, [error]);
@@ -201,7 +203,7 @@ const SignUpPage = () => {
         if (!passwordPattern.test(password)) {
             setError("Password must be at least 4 characters, contain at least 1 letter, 1 symbol and 1 number");
         } else if (!emailPattern.test(email)) {
-            setError("Email format is wrong");
+            setError("The email format should be name@example.com");
         } else {
             const data = {
                 name_title: nameTitle,

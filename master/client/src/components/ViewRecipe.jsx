@@ -219,7 +219,6 @@ const ViewRecipe = () => {
                     .map(key => cachedData[key]);
 
                 const updatedRecipes = recipes.filter(recipe => recipe._id !== id);
-                console.log(updatedRecipes);
 
                 await setRecipe(key, {
                     ...updatedRecipes

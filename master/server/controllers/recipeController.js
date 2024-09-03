@@ -10,7 +10,17 @@ const multer = require('multer');
 const mongoose = require('mongoose');
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+
+const fileFilter = (req, file, cb) => {
+    const validImageTypes = ['image/jpeg', 'image/png'];
+    if (validImageTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only JPEG and PNG are allowed.'), false);
+    }
+};
+
+const upload = multer({ storage: storage, fileFilter: fileFilter, limits: { fileSize: 5 * 1024 * 1024 }});
 
 exports.upload = upload.single('image');
 
@@ -49,24 +59,27 @@ const recommendedRecipes = async (recipes, user) => {
     const preferredCategories = new Set();
     const preferredCuisineTypes = new Set();
 
-    const userDietaryPreferences = new Set(user.dietary_preferences);
-    const userPreferredCategories = new Set(user.preferred_categories);
-    const userPreferredCuisineTypes = new Set(user.preferred_cuisine_types);
+    const userDietaryPreferences = new Set(user.dietary_preferences.map(diet => diet.toLowerCase()));
+    const userPreferredCategories = new Set(user.preferred_categories.map(category => category.toLowerCase()));
+    const userPreferredCuisineTypes = new Set(user.preferred_cuisine_types.map(cuisine => cuisine.toLowerCase()));
+    const userAllergies = user.allergies.map(allergy => allergy.toLowerCase());
 
     positiveRatings.forEach(rating => {
         const recipe = recipes.find(recipe => recipe._id.equals(rating.recipe_id));
 
         if (recipe) {
-            recipe.categories.forEach(category => preferredCategories.add(category));
-            recipe.cuisine_types.forEach(cuisine_type => preferredCuisineTypes.add(cuisine_type));
+            recipe.categories.forEach(category => preferredCategories.add(category.toLowerCase()));
+            recipe.cuisine_types.forEach(cuisine_type => preferredCuisineTypes.add(cuisine_type.toLowerCase()));
         }
     });
 
     // List popular recipes that the user might be interested in, and take into account the diet and
     // allergies
     const filterPositiveRecipes = recipes.filter(recipe => {
-        const diet = recipe.diet.length === 0 || user.dietary_preferences.length === 0 || recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
-        const noAllergies = !user.allergies.some(allergy => recipe.allergens.includes(allergy));
+        const diet = recipe.diet.length === 0 || user.dietary_preferences.length === 0 || recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet.toLowerCase()));
+        
+        const recipeAllergens = recipe.allergens.map(allergen => allergen.toLowerCase());
+        const noAllergies = !userAllergies.some(allergy => recipeAllergens.includes(allergy));
 
         return noAllergies && diet;
     });
@@ -74,10 +87,12 @@ const recommendedRecipes = async (recipes, user) => {
     // Filter recipes by matching the preferred categories and cuisine types, as well as removing any recipes
     // that the user may be allergic to and take into account the type of diet
     const filterRecipes = recipes.filter(recipe => {
-        const dietMatch = recipe.diet.length === 0 || user.dietary_preferences.length === 0 || recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet));
-        const categoriesMatch = recipe.categories.some(category => userPreferredCategories.has(category) || preferredCategories.has(category));
-        const cuisineTypesMatch = recipe.cuisine_types.some(cuisine_type => userPreferredCuisineTypes.has(cuisine_type) || preferredCuisineTypes.has(cuisine_type));
-        const noAllergies = !user.allergies.some(allergy => recipe.allergens.includes(allergy));
+        const dietMatch = recipe.diet.length === 0 || user.dietary_preferences.length === 0 || recipe.diet.some(type_of_diet => userDietaryPreferences.has(type_of_diet.toLowerCase()));
+        const categoriesMatch = recipe.categories.some(category => userPreferredCategories.has(category) || preferredCategories.has(category.toLowerCase()));
+        const cuisineTypesMatch = recipe.cuisine_types.some(cuisine_type => userPreferredCuisineTypes.has(cuisine_type) || preferredCuisineTypes.has(cuisine_type.toLowerCase()));
+        
+        const recipeAllergens = recipe.allergens.map(allergen => allergen.toLowerCase());
+        const noAllergies = !userAllergies.some(allergy => recipeAllergens.includes(allergy));
 
         return (categoriesMatch || cuisineTypesMatch) && noAllergies && dietMatch;
     });
@@ -197,8 +212,7 @@ exports.add_recipe = asyncHandler(async (req, res, next) => {
         res.status(200).json(result);
 
     } catch (error) {
-        console.log(error);
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error });
     }
 });
 
@@ -245,7 +259,7 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
         res.status(200).json({ result: result, limit: limit });
 
     } catch (err) {
-        res.status(400).json({ error: 'Something went wrong' });
+        return res.status(400).json({ error: 'Something went wrong' });
     }
 });
 
@@ -296,9 +310,9 @@ exports.recipe_get_all_recipes_signed_in = asyncHandler(async (req, res, next) =
 
         res.status(200).json({ result: result, limit: limit });
 
-    } catch (err) {
+    } catch (error) {
         console.log(err);
-        res.status(400).json({ error: err.message });
+        res.status(400).json({ error: error });
     }
 });
 
@@ -316,12 +330,15 @@ exports.recipe_delete = asyncHandler(async (req, res, next) => {
 
         await Comment.deleteMany({ recipe_id: id });
 
+        await Star.deleteMany({ recipe_id: id });
+
         await Recipe.findByIdAndDelete(id);
 
         res.status(204).json({ message: 'Recipe deleted successfully' });
         
-    } catch (err) {
-        console.log(err);
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({ error: error });
     }
 });
 
@@ -369,6 +386,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
         const user = await User.findOne({ username: username });
 
         if (!user) {
+            console.log("user issue");
             return res.status(404).json({ error: 'User not found' });
         }
 
@@ -377,7 +395,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
             image = req.file.buffer;
         }
 
-        const newIngredients = JSON.parse(ingredients);
+        const allIngredients = JSON.parse(ingredients);
 
         const allDiets = createArray(diet, other_diets);
 
@@ -388,18 +406,17 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
         const allAllergens = createArray(allergens, other_allergens);
 
         const updatedData = {
-            title,
-            chef,
+            title: title,
+            chef: chef,
             private: isPrivate,
-            description,
+            description: description,
             quantities: JSON.parse(quantities),
             ingredients: JSON.parse(ingredients),
             steps: JSON.parse(steps),
             diet: allDiets,
             categories: allCategories,
             cuisine_types: allCuisineTypes,
-            allergens: allAllergens,
-            test: test
+            allergens: allAllergens
         };
 
         if (image) {
@@ -419,7 +436,7 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
 
         await Ingredient.deleteMany({ recipe_id: id });
 
-        for (let ingredient of newIngredients) {
+        for (let ingredient of allIngredients) {
             const newIngredient = await Ingredient({
                 recipe_id: id,
                 ingredient: ingredient,
@@ -430,8 +447,8 @@ exports.recipe_edit = asyncHandler(async (req, res, next) => {
 
         res.status(200).json(result);
 
-    } catch (err) {
-        res.status(404).json({ err: err.message });
+    } catch (error) {
+        res.status(400).json({ error: error });
     }
 });
 

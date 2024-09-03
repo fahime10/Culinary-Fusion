@@ -206,7 +206,7 @@ describe('Testing Recipe API', () => {
                 name_title: 'Mr',
                 first_name: 'James',
                 last_name: 'Smith',
-                username: 'JAMES1234567890123',
+                username: 'james12890123',
                 password: 'pass',
                 email: 'random@gmail.com',
                 passcode: '',
@@ -224,8 +224,8 @@ describe('Testing Recipe API', () => {
                 .set('Content-Type', 'multipart/form-data')
                 .field('title', 'Scrambled eggs')
                 .field('chef', 'John')
-                .field('username', 'JAMES1234567890123')
-                .field('isPrivate', false)
+                .field('username', 'james12890123')
+                .field('private', false)
                 .field('description', 'Simple, nutritious recipe')
                 .field('quantities', JSON.stringify(['3', '200ml', '1 teaspoon', 'a pinch', 'a pinch']))
                 .field('ingredients', JSON.stringify(['Eggs', 'Water', 'Olive Oil', 'Salt', 'Pepper']))
@@ -245,21 +245,12 @@ describe('Testing Recipe API', () => {
                 steps: ['Open the eggs, place in a bowl', 'Heat a pan', 'Cook the eggs'],
             };
 
-            const recipe = await Recipe.findById(res.body._id);
-
-            recipe.title = editedRecipe.title;
-            recipe.image = editedRecipe.image;
-            recipe.chef = editedRecipe.chef;
-            recipe.description = editedRecipe.description;
-            recipe.quantities = editedRecipe.quantities;
-            recipe.ingredients = editedRecipe.ingredients;
-            recipe.steps = editedRecipe.steps;
-
             const secondRes = await request
-                .post(`/api/recipes/edit-recipe/${recipe._id}`)
+                .post(`/api/recipes/edit-recipe/${res.body._id}`)
                 .set('Content-Type', 'multipart/form-data')
                 .field('title', editedRecipe.title)
                 .field('chef', editedRecipe.chef)
+                .field('username', 'james12890123')
                 .field('description', editedRecipe.description)
                 .field('quantities', JSON.stringify(editedRecipe.quantities))
                 .field('ingredients', JSON.stringify(editedRecipe.ingredients))

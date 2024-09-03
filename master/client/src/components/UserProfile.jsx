@@ -311,7 +311,7 @@ const UserProfile = () => {
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
             if (!emailPattern.test(email)) {
-                setError("Email format is wrong");
+                setError("The email format should be name@example.com");
             } else {
                 const data = {
                     name_title: nameTitle,

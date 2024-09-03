@@ -41,7 +41,11 @@ const ForgottenPassword = () => {
     function handleChange(event) {
         event.preventDefault();
 
-        if (newPassword === confirmPassword) {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailPattern.test(newPassword)) {
+            setError("The email format should be name@example.com");
+        } else if (newPassword === confirmPassword) {
             const data = {
                 username: username,
                 passcode: passcode,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
@@ -16,6 +16,21 @@ const EditBookRecipe = () => {
     const [quantities, setQuantities] = useState([""]);
     const [ingredients, setIngredients] = useState([{ id: uuidv4(), value: ""}]);
     const [steps, setSteps] = useState([{ id: uuidv4(), value: ""}]);
+
+    const [error, setError] = useState("");
+    const errorRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        if (errorRef.current) {
+            if (error) {
+                errorRef.current.style.display = "block";
+            } else {
+                errorRef.current.style.display = "none";
+            }
+        }
+
+    }, [error]);
 
     const [diet, setDiet] = useState({
         "Vegetarian": false,
@@ -291,16 +306,48 @@ const EditBookRecipe = () => {
     }
 
     function handleImage(e) {
-        const file = e.target.files[0];
-        setImage(file);
+        const validImageTypes = ["image/jpeg", "image/png"];
+        const validExtensions = ["jpg", "jpeg", "png"];
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImageUrl(reader.result);
-        };
+        const file = e.target.files[0];
 
         if (file) {
-            reader.readAsDataURL(file);
+            if (!validImageTypes.includes(file.type)) {
+                setError("The selected file is not a valid image type");
+                setImage(null);
+                setImageUrl("");
+                return;
+            }
+
+            const fileExtension = file.name.split(".").pop().toLowerCase();
+            if (!validExtensions.includes(fileExtension)) {
+                setError("The selected file is not a valid format type. Use JPEG or PNG formats");
+                setImage(null);
+                setImageUrl("");
+                return;
+            }
+
+            setError("");
+            setImage(file);
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageUrl(reader.result);
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+
+    function removeImage() {
+        setImage(null);
+        setImageUrl("");
+        setError("");
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
         }
     }
 
@@ -397,7 +444,7 @@ const EditBookRecipe = () => {
 
         const userDetails = retrieveUserDetails();
 
-        if (userDetails) {
+        if (userDetails  && error === "") {
             const selectedDiet = Object.keys(diet).filter(key => diet[key]);
             const selectedCategories = Object.keys(categories).filter(key => categories[key]);
             const selectedCuisineTypes = Object.keys(cuisineTypes).filter(key => cuisineTypes[key]);
@@ -501,7 +548,12 @@ const EditBookRecipe = () => {
                         id="image-file"
                         type="file" 
                         onChange={handleImage} 
+                        ref={fileInputRef}
                     />
+                    <button type="button" onClick={removeImage}>Remove file</button>
+                    <div ref={errorRef} style={{ display: "none", color: "red" }}>
+                        <p>{error}</p>
+                    </div>
                     <label>Chef/s:
                         <input 
                             type="text"

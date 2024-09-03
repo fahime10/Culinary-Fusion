@@ -20,10 +20,12 @@ const LoginPage = () => {
     }
 
     useEffect(() => {
-        if (error) {
-            errorRef.current.style.display = "block";
-        } else {
-            errorRef.current.style.display = "none";
+        if (errorRef.current) {
+            if (error) {
+                errorRef.current.style.display = "block";
+            } else {
+                errorRef.current.style.display = "none";
+            }
         }
 
     }, [error]);
