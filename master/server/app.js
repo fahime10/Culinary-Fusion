@@ -1,3 +1,13 @@
+/**
+ * app component
+ * 
+ * This component starts all the processes in the server.
+ * 
+ * This component accesses the .env file to retrieve the database connection link and sends a query
+ * to make sure MongoDB is running.
+ * 
+ */
+
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');

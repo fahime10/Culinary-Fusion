@@ -3,6 +3,17 @@ import PropTypes from "prop-types";
 import "../joinRequest.css";
 import { jwtDecode } from "jwt-decode";
 
+/**
+ * JoinRequest component
+ * 
+ * This component presents a list of join requests for the current user.
+ * 
+ * @param {boolean} props.isOpen - If true, then show the dialog
+ * @param {function}  props.onClose - It closes the dialog, with the click of a button
+ * @param {array} props.notifications - List of notifications for the user
+ * @param {function} props.setNotifications - Function to set the state for notifications
+ * @returns {JSX.Element}
+ */
 const JoinRequest = ({ isOpen, onClose, notifications, setNotifications }) => {
     const ref = useRef(null);
 

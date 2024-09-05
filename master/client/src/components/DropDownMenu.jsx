@@ -2,6 +2,19 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import "../dropdown.css";
 
+/**
+ * DropDownMenu component
+ * 
+ * This is a re-usable component for producing drop down menus.
+ * In this project, it is used for categories and cuisine types.
+ * 
+ * @param {string} props.title - Title of the drop down menu
+ * @param {Object} props.options - An object where each key is a string and value is boolean
+ * @param {boolean} props.options.<key> - Each key is a boolean value
+ * @param {function} props.setOptions - Function to set the state in options
+ * 
+ * @returns {JSX.Element}
+ */
 const DropDownMenu = ({ title, options, setOptions }) => {
     const [isOpen, setIsOpen] = useState(false);
 

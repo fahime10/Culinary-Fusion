@@ -1,3 +1,10 @@
+/**
+ * commentController component
+ * 
+ * This component handles all the comment features such as getting, adding and deleting comments for a recipe.
+ * 
+ */
+
 const Comment = require('../models/commentModel');
 const User = require('../models/userModel');
 const Recipe = require('../models/recipeModel');

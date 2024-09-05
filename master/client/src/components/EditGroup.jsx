@@ -3,6 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
+/**
+ * EditGroup component
+ * 
+ * This component presents a web form for editing group details.
+ * In this component, details such as group name and description can be edited.
+ * 
+ * If the current user is an admin, the user can also promote, demote or remove members.
+ * 
+ * @returns {JSX.Element}
+ */
 const EditGroup = () => {
     const { group_name } = useParams();
     const [isMainAdmin, setIsMainAdmin] = useState(false);
@@ -20,6 +30,7 @@ const EditGroup = () => {
 
     const navigate = useNavigate();
 
+    // Retrieves group details
     useEffect(() => {
         const token = sessionStorage.getItem("token");
 
@@ -72,6 +83,8 @@ const EditGroup = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -102,6 +115,7 @@ const EditGroup = () => {
         setGroupDescription(e.target.value);
     }
 
+    // Extracts details such as user ID, group name, description and packages it into a JSON object to be sent to the server
     function handleEditGroup(event) {
         event.preventDefault();
 
@@ -110,9 +124,7 @@ const EditGroup = () => {
         const data = {
             user_id: userDetails.id,
             new_group_name: groupName,
-            group_description: groupDescription,
-            admins: [],
-            collaborators: []
+            group_description: groupDescription
         };
 
         fetch(`http://localhost:9000/api/groups/edit/${group_name}`, {

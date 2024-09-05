@@ -4,6 +4,14 @@ import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
+/**
+ * AddRecipe component
+ * 
+ * This component presents a web form for adding recipes. The user needs to include recipe details such as
+ * title, description, image (if possible), ingredients, steps to make it and so on.
+ * 
+ * @returns {JSX.Element}
+ */
 const AddRecipe = () => {
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
@@ -19,6 +27,8 @@ const AddRecipe = () => {
     const errorRef = useRef(null);
     const fileInputRef = useRef(null);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -293,6 +303,7 @@ const AddRecipe = () => {
         setOtherAllergens(e.target.value);
     }
 
+    // Extracts data from all the inputs and packages it into a JSON object. This object is then sent and validated in the server
     async function handleSave(event) {
         event.preventDefault();
 

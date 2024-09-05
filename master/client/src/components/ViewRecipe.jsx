@@ -8,6 +8,15 @@ import { getRecipe, setRecipe } from "../indexedDb";
 import LoadingSpinner from "./LoadingSpinner";
 import Footer from "./Footer";
 
+/**
+ * ViewRecipe component
+ * 
+ * This component displays a single recipe.
+ * The user can see the average rating and the comments.
+ * Signed in users can leave comments.
+ * 
+ * @returns {JSX.Element}
+ */
 const ViewRecipe = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
@@ -74,6 +83,7 @@ const ViewRecipe = () => {
         }
     }
 
+    // Fetches the recipe either from the cache or from the server
     useEffect(() => {
         const token = sessionStorage.getItem("token");
         const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
@@ -227,16 +237,23 @@ const ViewRecipe = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:9000/api/recipes/delete-recipe/${id}`, {
-                method: "DELETE",
-            });
+            const token = sessionStorage.getItem("token");
 
-            if (response.ok) {
-                const token = sessionStorage.getItem("token");
-                const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
-
-                await updateCache(key);
-                navigate(-1);
+            if (token && token !== "undefined") {
+                const response = await fetch(`http://localhost:9000/api/recipes/delete-recipe/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+    
+                if (response.ok) {
+                    const token = sessionStorage.getItem("token");
+                    const key = token && token !== "undefined" ? "user_recipes" : "public_recipes";
+    
+                    await updateCache(key);
+                    navigate(-1);
+                }
             }
         } catch (error) {
             console.log(error);
@@ -281,6 +298,7 @@ const ViewRecipe = () => {
         }
     }
 
+    // Fetches all the comments associated with this recipe
     function fetchAllComments() {
         fetch(`http://localhost:9000/api/comments/${id}`, {
             method: "POST"
@@ -293,6 +311,7 @@ const ViewRecipe = () => {
         .catch(error => console.log(error));
     }
 
+    // Retrieves more comments
     function getMoreComments() {
         const commentIds = comments.map(comment => comment._id);
 

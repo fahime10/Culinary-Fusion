@@ -3,6 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
+/**
+ * CreateBook component
+ * 
+ * This component presents a web form for adding books. Only the admins and main admins can create a new book.
+ * 
+ * @returns {JSX.Element}
+ */
 const CreateBook = () => {
     const { id } = useParams();
     const [bookTitle, setBookTitle] = useState("");
@@ -29,6 +36,8 @@ const CreateBook = () => {
         setBookDescription(e.target.value);
     }
 
+    // Retrieves details such as user ID, book title and description and packages it into a JSON object
+    // The object is sent to the server for validation
     async function handleSaveBook(event) {
         event.preventDefault();
 

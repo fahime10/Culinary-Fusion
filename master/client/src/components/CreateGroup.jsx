@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
+/**
+ * CreateGroup component
+ * 
+ * This component presents a web form for creating a group. Only signed in users can create a group.
+ * 
+ * @returns {JSX.Element}
+ */
 const CreateGroup = () => {
     const [username, setUsername] = useState("");
     const [groupName, setGroupName] = useState("");
@@ -13,6 +20,7 @@ const CreateGroup = () => {
 
     const navigate = useNavigate();
 
+    // Retrieves the token from session storage to ensure the user is allowed to create a group
     useEffect(() => {
         const token = sessionStorage.getItem("token");
         const userDetails = retrieveUserDetails();
@@ -23,6 +31,8 @@ const CreateGroup = () => {
 
     }, []);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -53,6 +63,8 @@ const CreateGroup = () => {
         setGroupDescription(e.target.value);
     }
 
+    // Extracts details such as user ID, group name, description to be sent to the server
+    // There are extra fields added in advance, admins and collaborators, which are required for later change
     function handleCreateGroup(event) {
         event.preventDefault();
 

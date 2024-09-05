@@ -9,6 +9,18 @@ import Footer from "./Footer.jsx";
 import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe, clearRecipes, clearUserRecipes } from "../indexedDb";
 
+/**
+ * HomePage component
+ * 
+ * This components provides various functions.
+ * Public users can see public recipes, in no particular order.
+ * Signed in users can see recipes that should be tailored to their preferences.
+ * Recipes can be searched, and there are filters for categories and cuisine types.
+ * Recipes are cached in IndexedDB.
+ * Users can see up to 20 recipes per page. Previous and Next buttons allow navigating the pages.
+ * 
+ * @returns {JSX.Element}
+ */
 const HomePage = () => {
     // 10 minutes in milliseconds
     const TEN_MINUTES = 10 * 60 * 1000;
@@ -79,6 +91,7 @@ const HomePage = () => {
         return "";
     }
 
+    // Extracts recipes from the cache with the provided key
     async function getCachedRecipes(cacheKey) {
         const now = new Date().getTime();
         const cachedData = await getRecipe(cacheKey);
@@ -93,6 +106,7 @@ const HomePage = () => {
         return null;
     }
 
+    // Fetches recipes either from the cache or from the server
     async function fetchAndCacheRecipes(url, cacheKey, pageCount) {
         const now = new Date().getTime();
 

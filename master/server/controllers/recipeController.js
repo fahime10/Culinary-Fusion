@@ -1,3 +1,13 @@
+/**
+ * recipeController component
+ * 
+ * This component handles all recipe features ranging from retrieving recipes, adding, editing and deleting recipes,
+ * getting personalized recipes from the recommendation algorithm, recipe filtering by category and cuisine types,
+ * saving favourite recipes and viewing them, searching recipes by their title and ingredients, and retrieve recipes
+ * by popularity.
+ * 
+ */
+
 const Recipe = require('../models/recipeModel');
 const User = require('../models/userModel');
 const Ingredient = require('../models/ingredientModel');
@@ -8,6 +18,7 @@ const Book = require('../models/bookModel');
 const asyncHandler = require('express-async-handler');
 const multer = require('multer');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 const storage = multer.memoryStorage();
 
@@ -24,6 +35,7 @@ const upload = multer({ storage: storage, fileFilter: fileFilter, limits: { file
 
 exports.upload = upload.single('image');
 
+// Removes duplicate recipes in a collection
 const makeDistinct = (collection) => {
     const distinctItems = [];
     const seenIds = new Set();
@@ -38,6 +50,7 @@ const makeDistinct = (collection) => {
     return distinctItems;
 }
 
+// Converts the documents into objects. Images are converted into base64 strings
 const convertToObjects = (collection) => {
     const objects = collection.map(item => {
         if (item.image && Buffer.isBuffer(item.image)) {
@@ -49,6 +62,10 @@ const convertToObjects = (collection) => {
     return objects;
 }
 
+// Recommendation algorithm
+// The algorithm filters in popular recipes, and filters out any recipes that the user is allergic to or anything that does
+// not match the diet of the user.
+// User's preferred categories and cuisine types are also considered.
 const recommendedRecipes = async (recipes, user) => {
     const recipe_ids = recipes.map(recipe => recipe._id);
 
@@ -258,7 +275,7 @@ exports.recipes_get_all = asyncHandler(async (req, res, next) => {
 
         res.status(200).json({ result: result, limit: limit });
 
-    } catch (err) {
+    } catch (error) {
         return res.status(400).json({ error: 'Something went wrong' });
     }
 });
@@ -311,30 +328,41 @@ exports.recipe_get_all_recipes_signed_in = asyncHandler(async (req, res, next) =
         res.status(200).json({ result: result, limit: limit });
 
     } catch (error) {
-        console.log(err);
         res.status(400).json({ error: error });
     }
 });
 
 exports.recipe_delete = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorised' });
+    }
     
     try {
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
         const recipe = await Recipe.findById(id).lean();
 
         if (!recipe) {
             return res.status(404).json({ error: 'Recipe not found' });
         }
 
-        await Ingredient.deleteMany({ recipe_id: id });
+        if (recipe.user_id.toString() === decoded.id) {
+            await Ingredient.deleteMany({ recipe_id: id });
 
-        await Comment.deleteMany({ recipe_id: id });
+            await Comment.deleteMany({ recipe_id: id });
 
-        await Star.deleteMany({ recipe_id: id });
+            await Star.deleteMany({ recipe_id: id });
 
-        await Recipe.findByIdAndDelete(id);
+            await Recipe.findByIdAndDelete(id);
 
-        res.status(204).json({ message: 'Recipe deleted successfully' });
+            res.status(204).json({ message: 'Recipe deleted successfully' });
+        } else {
+            return res.status(401).json({ error: 'Unauthorised' });
+        }
         
     } catch (error) {
         console.log(error);
@@ -369,9 +397,8 @@ exports.get_recipe = asyncHandler(async (req, res, next) => {
             res.status(200).json({ recipe: recipe, owner: false, chef_username: recipe.user_id.username });
         }
 
-    } catch (err) {
-        console.log(err);
-        res.status(404);
+    } catch (error) {
+        res.status(404).json({ error: error });
     }
 });
 
@@ -497,8 +524,8 @@ exports.search_recipe = asyncHandler(async (req, res, next) => {
 
         res.status(200).json(randomRecipes);
 
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+    } catch (error) {
+        res.status(400).json({ error: error });
     }
 });
 
@@ -539,9 +566,8 @@ exports.filter_recipes = asyncHandler(async (req, res, next) => {
 
         res.status(200).json({ recipes: result, status: 200 });
 
-    } catch (err) {
-        console.log(err);
-        res.status(404).json({ error: err.message });
+    } catch (error) {
+        res.status(404).json({ error: error });
     }
 });
 
@@ -572,9 +598,8 @@ exports.personal_recipes = asyncHandler(async (req, res, next) => {
 
         res.status(200).json(result);
 
-    } catch (err) {
-        console.log(err);
-        res.status(404).json({ error: err.message });
+    } catch (error) {
+        res.status(404).json({ error: error });
     }
 });
 

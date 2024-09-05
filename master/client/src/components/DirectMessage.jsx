@@ -3,6 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
+/**
+ * DirectMessage component
+ * 
+ * This component presents a web form for sending am email to a user. 
+ * The recipient must be a username.
+ * The component returns a message from the server, stating if the email has been sent, however,
+ * it does not guarantee if it has been delivered.
+ * 
+ * @returns {JSX.Element}
+ */
 const DirectMessage = () => {
     const [username, setUsername] = useState("");
     const [nameTitle, setNameTitle] = useState("");
@@ -17,6 +27,7 @@ const DirectMessage = () => {
 
     const navigate = useNavigate();
 
+    // Retrieves user details
     useEffect(() => {
         const userDetails = retrieveUserDetails();
 
@@ -26,6 +37,8 @@ const DirectMessage = () => {
 
     }, []);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -60,6 +73,9 @@ const DirectMessage = () => {
         setMessage(e.target.value);
     }
 
+    // Extracts details such as the current username, recipient username, subject and message and packages it into a 
+    // JSON object to be sent to the server.
+    // The result is a message from the server
     async function handleSubmit(event) {
         event.preventDefault();
 

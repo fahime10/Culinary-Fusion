@@ -1,3 +1,11 @@
+/**
+ * userController component
+ * 
+ * This component handles all user features such as signin up and signing in, retrieving user details and be able to edit them, 
+ * delete account, restore a forgotten password, send an email message.
+ * 
+ */
+
 const User = require('../models/userModel');
 const Recipe = require('../models/recipeModel');
 const Ingredient = require('../models/ingredientModel');

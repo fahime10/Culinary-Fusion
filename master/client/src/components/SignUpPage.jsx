@@ -2,6 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "./Footer";
 
+/**
+ * SignUpPage component
+ * 
+ * This component presents a web form to add a new user.
+ * The user should provide details such as their preferred name title, first name, last name,
+ * and so on.
+ * 
+ * @returns {JSX.Element}
+ */
 const SignUpPage = () => {
     const [nameTitle, setNameTitle] = useState("");
     const [firstName, setFirstName] = useState("");
@@ -107,6 +116,8 @@ const SignUpPage = () => {
 
     const navigate = useNavigate();
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -189,6 +200,8 @@ const SignUpPage = () => {
         setOtherAllergens(e.target.value);
     }
 
+    // Extracts user details and before packaging it into a JSON object, emails and passwords are validated with patterns,
+    // then the object is sent to the server
     function handleSave(event) {
         event.preventDefault();
 

@@ -1,3 +1,11 @@
+/**
+ * joinRequestController component
+ * 
+ * This component handles all features of join requests such as getting all notifications for a specific user,
+ * creating, accepting and refusing requests.
+ * 
+ */
+
 const Group = require('../models/groupModel');
 const User = require('../models/userModel');
 const JoinRequest = require('../models/joinRequestModel');
@@ -55,13 +63,17 @@ exports.create_requests = asyncHandler(async (req, res, next) => {
         const validUsernames = validUsers.map(user => user.username);
 
         for (let username of validUsernames) {
-            const newRequest = await JoinRequest({
-                group_id: group._id,
-                user_id: user_id,
-                recipient_username: username,
-                test: test
-            });
-            await newRequest.save();
+            const existingRequest = await JoinRequest.findOne({ group_id: group._id, recipient_username: username });
+
+            if (!existingRequest) {
+                const newRequest = await JoinRequest({
+                    group_id: group._id,
+                    user_id: user_id,
+                    recipient_username: username,
+                    test: test
+                });
+                await newRequest.save();
+            }
         }
 
         res.status(200).json({ message: 'Requests have been sent' });

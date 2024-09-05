@@ -4,12 +4,20 @@ import { jwtDecode } from "jwt-decode";
 import LoadingSpinner from "./LoadingSpinner";
 import Footer from "./Footer";
 
+/**
+ * FavoutiteRecipes component
+ * 
+ * This component shows a list of recipes that the current user has saved.
+ * 
+ * @returns {JSX.Element}
+ */
 const FavouriteRecipes = () => {
     const [loading, setLoading] = useState(true);
     const [recipes, setRecipes] = useState([]);
 
     const navigate = useNavigate();
 
+    // Retrieves all favourite recipes of the user
     useEffect(() => {
         setLoading(true);
         const userDetails = retrieveUserDetails();

@@ -4,6 +4,15 @@ import { v4 as uuidv4 } from "uuid";
 import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 
+/**
+ * AddMembers component
+ * 
+ * This component presents a web form for adding a new member to the group.
+ * It retrieves the group name from the URL parameter and uses it for the fetch request.
+ * Other data to be sent includes the current user ID and the array of usernames who will receive the join request.
+ * 
+ * @returns {JSX.Element}
+ */
 const AddMembers = () => {
     const { group_name } = useParams();
     
@@ -53,6 +62,7 @@ const AddMembers = () => {
         return null;
     }
 
+    // Sends the group name, user ID and all the usernames to the server
     async function handleGroupSave(event) {
         event.preventDefault();
 

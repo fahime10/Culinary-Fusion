@@ -2,6 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "./Footer";
 
+/**
+ * ForgottenPassword component
+ * 
+ * This component presents a web form for restoring a forgotten password.
+ * The user must provide their username and wait for the server to generate a passcode.
+ * The user will receive an email with the passcode. Sometimes, the email can be found in the spam folder.
+ * The user then inputs the passcode, and the new password, which must follow the provided pattern.
+ * 
+ * @returns {JSX.Element}
+ */
 const ForgottenPassword = () => {
     const [username, setUsername] = useState("");
     const [sent, setSent] = useState(false);
@@ -14,6 +24,8 @@ const ForgottenPassword = () => {
 
     const navigate = useNavigate();
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (error) {
             errorRef.current.style.display = "block";
@@ -38,13 +50,15 @@ const ForgottenPassword = () => {
         setConfirmPassword(e.target.value);
     }
 
+    // Extracts information such as user ID, passcode, and password. Before packaging it into a JSON object,
+    // the data is validated, checking if passcode matches and if password is the same as the confirm password
     function handleChange(event) {
         event.preventDefault();
 
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{4,}$/;
 
-        if (!emailPattern.test(newPassword)) {
-            setError("The email format should be name@example.com");
+        if (!passwordPattern.test(newPassword)) {
+            setError("Password must be at least 4 characters, contain at least 1 letter, 1 symbol and 1 number");
         } else if (newPassword === confirmPassword) {
             const data = {
                 username: username,
@@ -75,6 +89,8 @@ const ForgottenPassword = () => {
         }
     }
 
+    // Sends the username and checks if it exists
+    // If it exists, user will receive an email with the passcoce
     function handleSent() {
         const data = {
             username: username

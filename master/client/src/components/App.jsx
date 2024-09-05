@@ -14,6 +14,7 @@ import GroupsPage from "./GroupsPage";
 import CreateGroup from "./CreateGroup";
 import ViewGroup from "./ViewGroup";
 import EditGroup from "./EditGroup";
+import OwnGroups from "./OwnGroups";
 import AddMembers from "./AddMembers";
 import CreateBook from "./CreateBook";
 import ViewBook from "./ViewBook";
@@ -24,6 +25,15 @@ import DirectMessage from "./DirectMessage";
 import FavouriteRecipes from "./FavouriteRecipes";
 import PopularRecipes from "./PopularRecipes";
 
+/**
+ * App component
+ * 
+ * This component is the controller component for the client component.
+ * It redirects the user based on user interactions.
+ * All the routes are defined in this component.
+ * 
+ * @returns List of routes
+ */
 function App() {
   const [response, setResponse] = useState("");
 
@@ -53,6 +63,7 @@ function App() {
           <Route path="/create-group" element={<CreateGroup />} />
           <Route path="/groups/:group_name" element={<ViewGroup />} />
           <Route path="/groups/edit/:group_name" element={<EditGroup />} />
+          <Route path="/own-groups" element={<OwnGroups />} />
           <Route path="/groups/add-members/:group_name" element={<AddMembers />} />
           <Route path="/books/create/:id" element={<CreateBook />} />
           <Route path="/books/view/:id" element={<ViewBook />} />

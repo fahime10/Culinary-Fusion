@@ -5,6 +5,18 @@ import Footer from "./Footer";
 import { jwtDecode } from "jwt-decode";
 import { clearUserRecipes } from "../indexedDb";
 
+/**
+ * UserProfile component
+ * 
+ * This component presents user details. Data is fetched and input fields are auto-filled.
+ * At first, all input fields are non-editable. However, if the toggle button is clicked, all input fields become
+ * editable.
+ * 
+ * User account can also be deleted from this component, which results in deleting all personal recipes, along with the ingredients,
+ * and comments.
+ * 
+ * @returns {JSX.Element}
+ */
 const UserProfile = () => {
     const [nameTitle, setNameTitle] = useState("");
     const [firstName, setFirstName] = useState("");
@@ -192,6 +204,8 @@ const UserProfile = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setUsername]);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (message) {
             messageRef.current.style.display = "block";

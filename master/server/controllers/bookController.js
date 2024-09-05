@@ -1,3 +1,11 @@
+/**
+ * bookController component
+ * 
+ * This component handles all the book features ranging from retrieving all books, creating, editing and deleting new books, 
+ * retrieving a single book, adding, editing and deleting recipes in a book and searching books by their titles.
+ *  
+ */
+
 const Book = require('../models/bookModel');
 const Recipe = require('../models/recipeModel');
 const Group = require('../models/groupModel');
@@ -10,6 +18,7 @@ const upload = multer({ storage: storage });
 
 exports.upload = upload.single('image');
 
+// Converts the documents into objects. Images are converted into base64 strings
 const convertToObjects = (collection) => {
     const objects = collection.map(item => {
         if (item.image && Buffer.isBuffer(item.image)) {
@@ -21,6 +30,7 @@ const convertToObjects = (collection) => {
     return objects;
 }
 
+// Merges two collections to produce a single array
 const createArray = (selected_input, optional_input) => {
     let array = [];
 

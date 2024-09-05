@@ -5,6 +5,13 @@ import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe } from "../indexedDb";
 import Footer from "./Footer";
 
+/**
+ * IncludeRecipe component
+ * 
+ * This component presents a web form to add a recipe to a book.
+ * 
+ * @returns {JSX.Element}
+ */
 const IncludeRecipe = () => {
     const { id } = useParams();
     const [title, setTitle] = useState("");
@@ -20,6 +27,8 @@ const IncludeRecipe = () => {
     const errorRef = useRef(null);
     const fileInputRef = useRef(null);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -290,6 +299,8 @@ const IncludeRecipe = () => {
         setOtherAllergens(e.target.value);
     }
 
+    // Extracts recipe details and packages it into a multi-form object to be sent to the server.
+    // The book cache is also updated with the new recipe
     async function handleSave(event) {
         event.preventDefault();
 

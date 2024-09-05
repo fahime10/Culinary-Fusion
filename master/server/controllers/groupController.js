@@ -1,8 +1,15 @@
+/**
+ * groupController component
+ * 
+ * This component handles all groupd features such as retrieving all groups, creating, editing and deleting groups,
+ * searching groups by their name, promoting, demoting and removing users from a group.
+ *  
+ */
+
 const Group = require('../models/groupModel');
 const User = require('../models/userModel');
 const Book = require('../models/bookModel');
 const Recipe = require('../models/recipeModel');
-const JoinRequest = require('../models/joinRequestModel');
 const asyncHandler = require('express-async-handler');
 
 exports.groups_get_all = asyncHandler(async (req, res, next) => {
@@ -134,25 +141,35 @@ exports.edit_group = asyncHandler(async (req, res, next) => {
 
 exports.delete_group = asyncHandler(async (req, res, next) => {
     const { group_name } = req.params;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorised' });
+    }
 
     try {
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
         const group = await Group.findOne({ group_name: group_name }).lean();
 
         if (!group) {
             return res.status(404).json({ error: 'Group not found' });
         }
 
-        const books = await Book.find({ group_id: group._id }).lean();
+        if (group.user_id.toString() === decoded.id) {
+            const books = await Book.find({ group_id: group._id }).lean();
 
-        for (const book of books) {
-            await Recipe.deleteMany({ _id: { $in: book.recipes_id }});
+            for (const book of books) {
+                await Recipe.deleteMany({ _id: { $in: book.recipes_id }});
+            }
+
+            await Book.deleteMany({ group_id: group._id });
+
+            await Group.findByIdAndDelete(group._id);
+            
+            res.status(200).json({ message: 'Group deleted successfully' });
         }
-
-        await Book.deleteMany({ group_id: group._id });
-
-        await Group.findByIdAndDelete(group._id);
-        
-        res.status(200).json({ message: 'Group deleted successfully' });
     
     } catch (error) {
         res.status(400).json({ error: error });
@@ -279,9 +296,67 @@ exports.remove_user = asyncHandler(async (req, res, next) => {
     }
 });
 
+exports.own_groups = asyncHandler(async (req, res, next) => {
+    const { username } = req.body;
+
+    try {
+        const user = await User.findOne({ username: username }).lean();
+
+        if (!user) {
+            return res.status(404).json({ error: 'No user found' });
+        }
+
+        const ownGroups = await Group.find({
+            $or: [
+                { user_id: user._id },
+                { admins: username },
+                { collaborators: username }
+            ]
+        }).lean();
+
+        res.status(200).json(ownGroups);
+
+    } catch (error) {
+        res.status(404).json({ error: 'No groups found' });
+    }
+});
+
+exports.leave_group = asyncHandler(async (req, res, next) => {
+    const { group_name } = req.params;
+    const { username } = req.body;
+
+    try {
+        const user = await User.findOne({ username: username }).lean();
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const group = await Group.findOne({ group_name: group_name }).lean();
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        await Group.findByIdAndUpdate(
+            group._id,
+            { $pull: { collaborators: username }},
+            { new: true }
+        );
+
+        await Group.findByIdAndUpdate(
+            group._id,
+            { $pull: { admins: username }},
+            { new: true }
+        );
+
+    } catch (error) {
+        res.status(400).json({ error: error });
+    }
+});
+
 exports.search_group = asyncHandler(async (req, res, next) => {
     const { group_name } = req.params;
-
     const { username } = req.body;
 
     try {
@@ -294,6 +369,33 @@ exports.search_group = asyncHandler(async (req, res, next) => {
         const foundGroup = await Group.find({ group_name: new RegExp(group_name, 'i') }).lean();
 
         res.status(200).json(foundGroup);
+
+    } catch (error) {
+        res.status(400).json({ error: error });
+    }
+});
+
+exports.search_own_groups = asyncHandler(async (req, res, next) => {
+    const { group_name } = req.params;
+    const { username } = req.body;
+
+    try {
+        const user = await User.findOne({ username: username }).lean();
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const foundGroups = await Group.find({ 
+            group_name: new RegExp(group_name, 'i'),
+            $or: [
+                { user_id: user._id },
+                { admins: username },
+                { collaborators: username }
+            ]
+        }).lean();
+
+        res.status(200).json(foundGroups);
 
     } catch (error) {
         console.log(error);

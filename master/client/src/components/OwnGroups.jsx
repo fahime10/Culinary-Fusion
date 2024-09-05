@@ -5,13 +5,14 @@ import SearchIcon from "../assets/search-icon.png";
 import Footer from "./Footer";
 
 /**
- * GroupsPage component
+ * OwnGroups component
  * 
- * This component presents a list of groups. Groups can also be searched.
+ * This component is similar to GroupsPage, however, it display a list of groups in which the current user
+ * is a part of.
  * 
  * @returns {JSX.Element}
  */
-const GroupsPage = () => {
+const OwnGroups = () => {
     const [groups, setGroups] = useState([]);
     const [lastName, setLastName] = useState("");
     const [searchGroup, setSearchGroup] = useState("");
@@ -26,20 +27,20 @@ const GroupsPage = () => {
             setLastName(userDetails.last_name);
         }
 
-        fetchGroups();
+        fetchOwnGroups();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Retrieves a list of existing groups
-    async function fetchGroups() {
+    async function fetchOwnGroups() {
         const userDetails = retrieveUserDetails();
         
         const data = {
             username: userDetails.username
         };
 
-        const response = await fetch("http://localhost:9000/api/groups", {
+        const response = await fetch("http://localhost:9000/api/groups/own/groups", {
             method: "POST",
             headers: {
                 Accept: "application/json",
@@ -74,7 +75,7 @@ const GroupsPage = () => {
         setSearchGroup(e.target.value);
 
         if (e.target.value === "") {
-            fetchGroups();
+            fetchOwnGroups();
         }
     }
 
@@ -90,7 +91,7 @@ const GroupsPage = () => {
                 };
             }
 
-            const response = await fetch(`http://localhost:9000/api/groups/search/${searchGroup}`, {
+            const response = await fetch(`http://localhost:9000/api/groups/search/own/${searchGroup}`, {
                 method: "POST",
                 headers: {
                     Accept: "application/json",
@@ -111,7 +112,7 @@ const GroupsPage = () => {
         <>
             <div className="groups-page">
                 <div className="top-bar">
-                    <h1 className="title">Groups page</h1>
+                    <h1 className="title">Own Groups page</h1>
                     <button className="first" type="button" onClick={() => navigate(-1)}>Back</button>
                     {lastName !== "undefined" && lastName ? 
                         <button className="second" onClick={() => navigate("/create-group")}>Create a group</button>
@@ -141,4 +142,4 @@ const GroupsPage = () => {
     )
 };
 
-export default GroupsPage;
+export default OwnGroups;

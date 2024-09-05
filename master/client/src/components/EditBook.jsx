@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
+/**
+ * EditBook component
+ * 
+ * This component present a web form to edit an existing book.
+ * An initial fetch request is performed to find the book, and input fields are auto-filled based on the book.
+ * 
+ * @returns {JSX.Element}
+ */
 const EditBook = () => {
     const { id } = useParams();
     const [bookTitle, setBookTitle] = useState("");
@@ -12,6 +20,7 @@ const EditBook = () => {
 
     const navigate = useNavigate();
 
+    // Retrieve the book
     useEffect(() => {
         const userDetails = retrieveUserDetails();
         
@@ -72,6 +81,7 @@ const EditBook = () => {
         return null;
     }
 
+    // Extracts all book details and packages it into a JSON object to be validated by the server
     async function handleEditBook(event) {
         event.preventDefault();
 

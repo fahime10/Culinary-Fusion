@@ -5,6 +5,14 @@ import LoadingSpinner from "./LoadingSpinner";
 import Footer from "./Footer";
 import { getRecipe, setRecipe } from "../indexedDb";
 
+/**
+ * PopularRecipes component
+ * 
+ * This component displays a list of popular recipes, in order from highest rating to lowest.
+ * Pagination is implemented as up to 20 recipes are shown per page.
+ * 
+ * @returns {JSX.Element}
+ */
 const PopularRecipes = () => {
     const TEN_MINUTES = 10 * 60 * 1000;
 
@@ -32,6 +40,7 @@ const PopularRecipes = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Extracts recipes from the cache with the provided key
     async function getCachedRecipes(cacheKey) {
         const now = new Date().getTime();
         const cachedData = await getRecipe(cacheKey);
@@ -46,6 +55,7 @@ const PopularRecipes = () => {
         return null;
     }
 
+    // Fetches recipes either from the cache or from the server
     async function fetchAndCacheRecipes() {
         const now = new Date().getTime();
 

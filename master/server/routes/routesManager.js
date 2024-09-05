@@ -1,3 +1,12 @@
+/**
+ * routesManager component
+ * 
+ * This component acts as the controller. It defines all the endpoints, which are binded with other controller
+ * components, that the frontend can use.
+ * Based on the client's request, this component will assign the respective to one of the controller components.
+ * 
+ */
+
 const express = require('express');
 const router = express.Router();
 
@@ -75,6 +84,12 @@ router.post('/groups/demote/:group_name', group_controller.demote_user);
 router.delete('/groups/remove/:group_name', group_controller.remove_user);
 
 router.post('/groups/search/:group_name', group_controller.search_group);
+
+router.post('/groups/search/own/:group_name', group_controller.search_own_groups);
+
+router.post('/groups/own/groups', group_controller.own_groups);
+
+router.post('/groups/leave_group/:group_name', group_controller.leave_group);
 
 router.post('/books/:group_name', book_controller.get_all_books);
 

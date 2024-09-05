@@ -5,6 +5,16 @@ import SearchIcon from "../assets/search-icon.png";
 import Dialog from "./Dialog";
 import Footer from "./Footer";
 
+/**
+ * ViewGroup component
+ * 
+ * This component displays the group's details and books.
+ * The view is different for admins, collaborators and non-members.
+ * Admins see the option to create a new book.
+ * A search bar helps the user find a specific book.
+ * 
+ * @returns {JSX.Element}
+ */
 const ViewGroup = () => {
     const { group_name } = useParams();
     const [groupName, setGroupName] = useState("");
@@ -25,6 +35,7 @@ const ViewGroup = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Fetches the group's details and books
     async function fetchGroup() {
         const token = sessionStorage.getItem("token");
 
@@ -115,13 +126,20 @@ const ViewGroup = () => {
     }
 
     async function deleteGroup(id) {
-        try {
-            const response = await fetch(`http://localhost:9000/api/groups/delete/${id}`, {
-                method: "DELETE"
-            });
+        const token = sessionStorage.getItem("token");
 
-            if (response.ok) {
-                navigate(-1);
+        try {
+            if (token && token !== "undefined") {
+                const response = await fetch(`http://localhost:9000/api/groups/delete/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+    
+                if (response.ok) {
+                    navigate(-1);
+                }
             }
         } catch (error) {
             console.log(error);
@@ -163,6 +181,31 @@ const ViewGroup = () => {
         }
     }
 
+    async function leaveGroup(group_name) {
+        const userDetails = retrieveUserDetails();
+        
+        const data = {
+            username: userDetails.username
+        };
+
+        try {
+            const response = await fetch(`http://localhost:9000/api/groups/leave_group/${group_name}`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                navigate(-1);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     return (
         <>
             <div className="group-page">
@@ -181,6 +224,9 @@ const ViewGroup = () => {
                     {isCollaborator ? (
                         <button onClick={() => redirectToEditGroup(group_name)}>View group details</button>
                     ) : null}
+                    {isCollaborator || isAdmin ?
+                        <button onClick={() => leaveGroup(group_name)}>Leave group</button>
+                    : null}
                     <button onClick={() => navigate(-1)}>Back</button>
                     <button onClick={(returnToHomepage)}>Home</button>
                     <Dialog
@@ -207,7 +253,7 @@ const ViewGroup = () => {
                 </div>
                 <div className="books">
                     {books.length > 0 ? books.map((book) => (
-                        <div key={book._id} id={book._id} className="book" onClick={() => viewBook(book._id)}>
+                        <div key={book._id} id={book._id} className="book" style={{ margin: "0 0 1rem 0" }} onClick={() => viewBook(book._id)}>
                             <div key={book._id} className="cover">    
                                 <h3>{book.book_title}</h3>
                                 <p>{book.book_description}</p>

@@ -5,6 +5,14 @@ import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe } from "../indexedDb";
 import Footer from "./Footer";
 
+/**
+ * EditBookRecipe component
+ * 
+ * This component presents a web form for editing an existing book.
+ * A fetch request is performed to find the recipe, and input fields are auto-filled based on the recipe details.
+ * 
+ * @returns {JSX.Element}
+ */
 const EditBookRecipe = () => {
     const { id } = useParams();
     const { recipe_id } = useParams();
@@ -21,6 +29,8 @@ const EditBookRecipe = () => {
     const errorRef = useRef(null);
     const fileInputRef = useRef(null);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -126,6 +136,8 @@ const EditBookRecipe = () => {
 
     const navigate = useNavigate();
 
+    // Retrieves the recipe from the cache.
+    // If not found, then perform a fetch request.
     useEffect(() => {
         async function fetchRecipe() {
             const token = sessionStorage.getItem("token");
@@ -439,6 +451,8 @@ const EditBookRecipe = () => {
         }
     }
 
+    // Extracts recipe details and packages it into a multi-form object to be sent to the server and validated.
+    // It also updates the book cache.
     async function handleSave(event) {
         event.preventDefault();
 

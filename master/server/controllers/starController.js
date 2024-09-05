@@ -1,3 +1,10 @@
+/**
+ * starController component
+ * 
+ * This component handles all star features such as adding a rating to a recipe, getting all the ratings to calculate average.
+ * 
+ */
+
 const Star = require('../models/starModel');
 const User = require('../models/userModel');
 const Recipe = require('../models/recipeModel');

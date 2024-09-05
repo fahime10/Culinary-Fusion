@@ -7,6 +7,15 @@ import { getRecipe, setRecipe, clearBookRecipes } from "../indexedDb";
 import Dialog from "./Dialog";
 import Footer from "./Footer";
 
+/**
+ * ViewBook component
+ * 
+ * This components displays the contents of a book, which include recipes.
+ * Each page is a recipe, Previous and Next buttons allow to navigate through the pages.
+ * Book recipes are cached in IndexedDB.
+ * 
+ * @returns {JSX.Element}
+ */
 const ViewBook = () => {
     const TEN_MINUTES = 10 * 60 * 1000;
 

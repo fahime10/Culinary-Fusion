@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "./Footer";
 
+/**
+ * LoginPage component
+ * 
+ * This component presents a web form for logging in.
+ * 
+ * @returns {JSX.Element}
+ */
 const LoginPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -19,6 +26,8 @@ const LoginPage = () => {
         setPassword(e.target.value);
     }
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -30,6 +39,8 @@ const LoginPage = () => {
 
     }, [error]);
 
+    // Extracts details such as username and password and packages it into a JSON object to be sent to the server.
+    // If the credentials are not valid, the function sets the error message to explain that credentials are incorrect
     function handleLogin(event) {
         event.preventDefault();
 

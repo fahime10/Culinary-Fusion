@@ -5,6 +5,14 @@ import { jwtDecode } from "jwt-decode";
 import { getRecipe, setRecipe } from "../indexedDb";
 import Footer from "./Footer";
 
+/**
+ * EditRecipe component
+ * 
+ * This component presents a web form for editing individual recipes.
+ * Input fields are auto-filled.
+ * 
+ * @returns {JSX.Element}
+ */
 const EditRecipe = () => {
     const { id } = useParams();
     const [title, setTitle] = useState("");
@@ -23,6 +31,8 @@ const EditRecipe = () => {
     const errorRef = useRef(null);
     const fileInputRef = useRef(null);
 
+    // Waits for an error message to appear
+    // If an error message appears, the div element will come into view and explain what is wrong
     useEffect(() => {
         if (errorRef.current) {
             if (error) {
@@ -128,6 +138,8 @@ const EditRecipe = () => {
 
     const navigate = useNavigate();
 
+    // Fetch the recipe by first checking in the cache.
+    // If not found, then perform a fetch request and auto-fill the input fields
     useEffect(() => {
         async function fetchRecipe() {
             const token = sessionStorage.getItem("token");
@@ -471,6 +483,7 @@ const EditRecipe = () => {
         setOtherAllergens(e.target.value);
     }
 
+    // Extracts recipes details and packages it into a multi-form object to be sent to the server
     async function handleSave(event) {
         event.preventDefault();
 
