@@ -10,6 +10,7 @@ const Group = require('../models/groupModel');
 const User = require('../models/userModel');
 const Book = require('../models/bookModel');
 const Recipe = require('../models/recipeModel');
+const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 
 exports.groups_get_all = asyncHandler(async (req, res, next) => {
@@ -172,6 +173,7 @@ exports.delete_group = asyncHandler(async (req, res, next) => {
         }
     
     } catch (error) {
+        console.log(error);
         res.status(400).json({ error: error });
     }
 });

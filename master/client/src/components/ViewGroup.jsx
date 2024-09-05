@@ -260,7 +260,7 @@ const ViewGroup = () => {
                             </div>
                         </div>
                     ))
-                    : null}
+                    : <p>No books available</p>}
                 </div>
             </div>
             <Footer />

@@ -505,6 +505,7 @@ button:hover {
 
 .group-page {
     background-color: #EBE9E1;
+    min-height: 100vh;
 }
 
 .group-page .top-bar button {
