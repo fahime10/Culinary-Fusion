@@ -190,9 +190,11 @@ describe('Testing Recipe API', () => {
             expect(res.status).toBe(200);
     
             const recipe_id = res.body._id;
+            const token = user.body.token;
     
             await request
                 .delete(`/api/recipes/delete-recipe/${recipe_id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .expect(204);
     
             const resQuery = await Recipe.findById(recipe_id);

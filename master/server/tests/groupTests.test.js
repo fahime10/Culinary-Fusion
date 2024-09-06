@@ -318,7 +318,8 @@ describe('Testing Group API', () => {
                 .send(groupData);
 
             const secondRes = await request
-                .delete(`/api/groups/delete/${res.body.group_name}`);
+                .delete(`/api/groups/delete/${res.body.group_name}`)
+                .set('Authorization', `Bearer ${token}`);
 
             expect(secondRes.status).toBe(200);
             expect(secondRes.body).toHaveProperty('message', 'Group deleted successfully');
