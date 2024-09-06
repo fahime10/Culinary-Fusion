@@ -352,6 +352,8 @@ exports.leave_group = asyncHandler(async (req, res, next) => {
             { new: true }
         );
 
+        res.status(200).json({ message: 'Successfully left the group' });
+
     } catch (error) {
         res.status(400).json({ error: error });
     }
